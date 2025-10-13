@@ -16,6 +16,11 @@
     <link rel="stylesheet" href="{{theme_asset(path: 'public/assets/front-end/css/home.css')}}"/>
     <link rel="stylesheet" href="{{ theme_asset(path: 'public/assets/front-end/css/owl.carousel.min.css') }}">
     <link rel="stylesheet" href="{{ theme_asset(path: 'public/assets/front-end/css/owl.theme.default.min.css') }}">
+    <style>
+        /* Homepage View All buttons brand color */
+        .view-all-text { color: #CC6AE7 !important; border-color: #CC6AE7 !important; }
+        .view-all-text:hover, .view-all-text:focus { color: #B85AD3 !important; border-color: #B85AD3 !important; }
+    </style>
 @endpush
 
 @section('content')

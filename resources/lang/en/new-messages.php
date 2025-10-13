@@ -3393,4 +3393,5 @@ return [
 	"the_country_code_field_is_required" => "The country code field is required",
 	"Blog Add" => "Blog Add",
 	"discount_can_not_be_more_or_equal_to_the_price" => "Discount can not be more or equal to the price",
+	"Your_subscription_successfully_done" => "Your subscription successfully done",
 ];

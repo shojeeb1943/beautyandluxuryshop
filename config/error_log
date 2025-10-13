@@ -1,0 +1,132 @@
+[29-Aug-2025 13:28:25 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/app.php:19
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/app.php on line 19
+[29-Aug-2025 13:28:34 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/session.php:21
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/session.php on line 21
+[29-Aug-2025 13:28:41 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/broadcasting.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/broadcasting.php on line 18
+[29-Aug-2025 13:28:43 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/services.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/services.php on line 18
+[29-Aug-2025 13:28:45 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/queue.php:16
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/queue.php on line 16
+[29-Aug-2025 13:28:47 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/filesystems.php:16
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/filesystems.php on line 16
+[29-Aug-2025 13:28:47 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/cache.php:21
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/cache.php on line 21
+[29-Aug-2025 13:28:47 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function resource_path() in /home/beautyan/public_html/config/view.php:17
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/view.php on line 17
+[29-Aug-2025 13:28:47 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/mail.php:19
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/mail.php on line 19
+[03-Sep-2025 18:03:55 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/filesystems.php:16
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/filesystems.php on line 16
+[03-Sep-2025 18:03:59 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/mail.php:19
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/mail.php on line 19
+[03-Sep-2025 18:04:02 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/services.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/services.php on line 18
+[03-Sep-2025 18:04:02 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/session.php:21
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/session.php on line 21
+[03-Sep-2025 18:04:08 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/cache.php:21
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/cache.php on line 21
+[03-Sep-2025 18:04:10 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/app.php:19
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/app.php on line 19
+[03-Sep-2025 18:04:14 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/broadcasting.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/broadcasting.php on line 18
+[03-Sep-2025 18:04:15 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/database.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/database.php on line 18
+[03-Sep-2025 18:04:15 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/queue.php:16
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/queue.php on line 16
+[04-Sep-2025 03:13:35 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/broadcasting.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/broadcasting.php on line 18
+[04-Sep-2025 03:13:35 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/session.php:21
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/session.php on line 21
+[04-Sep-2025 03:13:36 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/mail.php:19
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/mail.php on line 19
+[04-Sep-2025 03:13:39 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/services.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/services.php on line 18
+[04-Sep-2025 03:13:43 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/database.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/database.php on line 18
+[04-Sep-2025 03:13:46 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/filesystems.php:16
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/filesystems.php on line 16
+[04-Sep-2025 03:13:48 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/queue.php:16
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/queue.php on line 16
+[04-Sep-2025 03:13:52 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function resource_path() in /home/beautyan/public_html/config/view.php:17
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/view.php on line 17
+[04-Sep-2025 03:14:01 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/cache.php:21
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/cache.php on line 21
+[04-Sep-2025 03:14:02 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/app.php:19
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/app.php on line 19
+[09-Sep-2025 08:46:14 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/session.php:21
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/session.php on line 21
+[09-Sep-2025 08:46:20 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/app.php:19
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/app.php on line 19
+[09-Sep-2025 08:46:20 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/broadcasting.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/broadcasting.php on line 18
+[09-Sep-2025 08:46:21 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/cache.php:21
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/cache.php on line 21
+[09-Sep-2025 08:46:36 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/beautyan/public_html/config/database.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/beautyan/public_html/config/database.php on line 18

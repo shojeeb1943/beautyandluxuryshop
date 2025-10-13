@@ -20,6 +20,16 @@
         /* Homepage View All buttons brand color */
         .view-all-text { color: #CC6AE7 !important; border-color: #CC6AE7 !important; }
         .view-all-text:hover, .view-all-text:focus { color: #B85AD3 !important; border-color: #B85AD3 !important; }
+        
+        /* Navigation spacing and alignment */
+        .navbar-nav .nav-item { margin: 0 0.5rem; }
+        .navbar-nav .nav-link { white-space: nowrap; padding: 0.5rem 0.75rem; display: flex; align-items: center; }
+        .navbar-stuck-menu { display: flex; align-items: center; }
+        
+        /* Hero section full width */
+        .hero-slider { margin: 0 !important; }
+        .hero-slider .owl-stage-outer { border-radius: 0 !important; }
+        body { overflow-x: hidden; }
     </style>
 @endpush
 

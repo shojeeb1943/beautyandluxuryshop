@@ -3386,4 +3386,10 @@ return [
 	"feature_deal_updated_successfully" => "Feature deal updated successfully",
 	"announcement_updated_successfully" => "Announcement updated successfully",
 	"no_vendor_found" => "No vendor found",
+	"Shipping_Not_Available_for_this_Shop" => "Shipping Not Available for this Shop",
+	"No_shipping_options_available_at_this_shop" => "No shipping options available at this shop",
+	"please_remove_all_items_from_this_shop" => "Please remove all items from this shop",
+	"shipping_Not_Available" => "Shipping Not Available",
+	"the_country_code_field_is_required" => "The country code field is required",
+	"Blog Add" => "Blog Add",
 ];

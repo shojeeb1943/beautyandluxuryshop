@@ -3,7 +3,7 @@
     <div class="__shadow-2">
         <div class="__p-20px rounded bg-white overflow-hidden">
             <div class="d-flex __gap-6px flex-between align-items-baseline px-sm-3">
-                <h2 class="category-product-view-title mb-0">
+                <h2 class="category-product-view-title mb-0 flex-grow-1 text-center" style="margin-top:20px;margin-bottom:20px;">
                     <span class="for-feature-title font-bold __text-20px text-uppercase">
                             {{$category['name']}}
                     </span>

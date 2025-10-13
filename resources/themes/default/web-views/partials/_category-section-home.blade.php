@@ -5,7 +5,7 @@
                 <div class="card __shadow h-100 max-md-shadow-0">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-baseline">
-                            <h2 class="categories-title m-0 letter-spacing-0">
+                            <h2 class="categories-title m-0 letter-spacing-0 flex-grow-1 text-center">
                                 <span class="font-semibold">{{ translate('categories')}}</span>
                             </h2>
                             <div>

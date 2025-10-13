@@ -27,10 +27,12 @@
         @if($web_config['brand_setting'] && $brands->count() > 0)
             <section class="container rtl pt-4">
 
-                <div class="section-header align-items-center mb-1">
-                    <h2 class="text-black font-bold __text-22px mb-0 text-center mt-3 w-100">
-                        <span> {{translate('brands')}}</span>
-                    </h2>
+                <div class="section-header align-items-center mb-1 d-flex">
+                    <div class="flex-grow-1 text-center">
+                        <h2 class="text-black font-bold __text-22px mb-0 mt-3">
+                            <span>{{ translate('brands') }}</span>
+                        </h2>
+                    </div>
                     <div class="__mr-2px">
                         <a class="text-capitalize view-all-text web-text-primary" href="{{route('brands')}}">
                             {{ translate('view_all')}}
@@ -142,8 +144,6 @@
             @include('web-views.partials._top-sellers')
         @endif
 
-        @include('web-views.partials._deal-of-the-day', ['decimal_point_settings' => $decimalPointSettings])
-
         <section class="new-arrival-section">
 
             @if ($newArrivalProducts->count() >0 )
@@ -184,6 +184,10 @@
                 </div>
             </div>
         </section>
+
+        <div class="mt-4">
+            @include('web-views.partials._deal-of-the-day', ['decimal_point_settings' => $decimalPointSettings])
+        </div>
 
 
         @if (count($bannerTypeFooterBanner) > 1)

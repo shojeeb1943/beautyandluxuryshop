@@ -3394,4 +3394,8 @@ return [
 	"Blog Add" => "Blog Add",
 	"discount_can_not_be_more_or_equal_to_the_price" => "Discount can not be more or equal to the price",
 	"Your_subscription_successfully_done" => "Your subscription successfully done",
+	"Nationwide Fast Delivery" => "Nationwide Fast Delivery",
+	"Secure & Easy Payments" => "Secure & Easy Payments",
+	"Easy return policy" => "Easy return policy",
+	"100% Genuine Products" => "100% Genuine Products",
 ];

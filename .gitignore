@@ -2,13 +2,16 @@
 /public/hot
 /public/storage
 /public/themes
+
 /storage/*.key
 /storage/app/*
 /storage/framework/cache/*
 /vendor
+
 .vscode
 .idea
 .idea/*
+
 .env
 .env.backup
 .phpunit.result.cache
@@ -18,6 +21,14 @@ npm-debug.log
 yarn-error.log
 composer-setup.php
 .DS_Store
+
 *.map
 style.css.map
 style_neha.css.map
+
+# Laravel storage safety rules (override above)
+# Ignore everything in storage except public uploads, views, and logs
+/storage/*
+!/storage/app/public/
+!/storage/framework/views/
+!/storage/logs/

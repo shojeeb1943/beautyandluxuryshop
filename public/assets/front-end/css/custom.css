@@ -2310,3 +2310,14 @@ body {
 .column-gap-5 {
     column-gap: 2rem !important;
 }
+
+/* Auth pages primary button color override (scoped) */
+.login-card .btn--primary {
+    background-color: #CC6AE7 !important;
+    border-color: #CC6AE7 !important;
+}
+.login-card .btn--primary:hover,
+.login-card .btn--primary:focus {
+    background-color: #CC6AE7 !important;
+    border-color: #CC6AE7 !important;
+}

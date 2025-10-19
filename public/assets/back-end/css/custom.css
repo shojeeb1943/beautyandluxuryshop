@@ -2031,3 +2031,60 @@ input[name="gateway_image"] {
 [dir=rtl] select {
     background-size: 10px 10px;
 }
+
+/* Brand button overrides */
+.btn-primary,
+.btn-success,
+.btn-info,
+.btn-brand {
+    background-color: #CC6AE7 !important;
+    border-color: #CC6AE7 !important;
+    color: #fff !important;
+}
+
+.btn-primary:hover,
+.btn-success:hover,
+.btn-info:hover,
+.btn-brand:hover,
+.btn-primary:focus,
+.btn-success:focus,
+.btn-info:focus,
+.btn-brand:focus,
+.btn-primary:active,
+.btn-success:active,
+.btn-info:active,
+.btn-brand:active,
+.btn-primary.active,
+.btn-success.active,
+.btn-info.active,
+.btn-brand.active,
+.show > .btn-primary.dropdown-toggle,
+.show > .btn-success.dropdown-toggle,
+.show > .btn-info.dropdown-toggle,
+.show > .btn-brand.dropdown-toggle {
+    background-color: #B155CD !important;
+    border-color: #B155CD !important;
+    color: #fff !important;
+}
+
+.btn-outline-primary,
+.btn-outline--primary {
+    color: #CC6AE7 !important;
+    border-color: #CC6AE7 !important;
+    background-color: transparent !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline--primary:hover,
+.btn-outline-primary:focus,
+.btn-outline--primary:focus,
+.btn-outline-primary:active,
+.btn-outline--primary:active,
+.btn-check:checked + .btn-outline-primary,
+.btn-check:active + .btn-outline-primary,
+.btn-check:checked + .btn-outline--primary,
+.btn-check:active + .btn-outline--primary {
+    color: #fff !important;
+    background-color: #B155CD !important;
+    border-color: #B155CD !important;
+}

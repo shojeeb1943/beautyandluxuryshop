@@ -1,8 +1,8 @@
 @charset "UTF-8";
 :root,
 [data-bs-theme=light] {
-  --bs-primary: #1455ac;
-  --bs-primary-rgb: 20, 85, 172;
+  --bs-primary: #CC6AE7;
+  --bs-primary-rgb: 204, 106, 231;
   --bs-secondary: #f58300;
   --bs-secondary-rgb: 245, 131, 0;
   --bs-success: #04bb7b;

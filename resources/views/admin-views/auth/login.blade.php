@@ -32,25 +32,27 @@
         </style>
     @endif
 
+    <style>
+        :root { --bs-primary: #CC6AE7; --bs-primary-rgb: 204, 106, 231; }
+        .btn-primary { background-color: #CC6AE7; border-color: #CC6AE7; }
+        .btn-primary:hover,
+        .btn-primary:focus,
+        .btn-primary:active { background-color: #B155CD; border-color: #B155CD; }
+        .auth-wrapper-left { display: flex; align-items: center; justify-content: center; background: none !important; }
+    </style>
+
     {!! ToastMagic::styles() !!}
 </head>
 <body>
     <main id="content" role="main" class="main">
         <div class="auth-wrapper">
-            <div class="auth-wrapper-left"
-                style="background: url('{{ dynamicAsset('public/assets/back-end/img/login-bg.png') }}') no-repeat center center / cover">
+            <div class="auth-wrapper-left" style="background: none !important; display: flex; align-items: center; justify-content: center;">
                 <div class="auth-left-cont user-select-none">
                     @php($eCommerceLogo = getWebConfig(name: 'company_web_logo'))
                     <a class="d-inline-flex mb-5" href="{{ route('home') }}">
                         <img width="310" src="{{ getStorageImages(path: $eCommerceLogo, type: 'backend-logo') }}"
                             alt="Logo">
                     </a>
-                    <h2 class="title h1">
-                        {{ translate('Make Your Business') }}
-                        <span class="fw-bold text-primary d-block text-capitalize">
-                            {{ translate('Profitable...') }}
-                        </span>
-                    </h2>
                 </div>
             </div>
             <div class="auth-wrapper-right">
@@ -66,10 +68,15 @@
                         <div>
                             <div class="mb-5 user-select-none">
                                 <h1 class="display-4">{{ translate('sign_in') }}</h1>
-                                <h1 class="h3 text-body mb-4">
-                                    {{ translate('welcome_back_to') }} {{ translate($role) }}
-                                    {{ translate('Login') }}
-                                </h1>
+                                @if ($role === 'employee')
+                                    <h1 class="h3 text-body mb-4">
+                                        {{ translate('welcome_back_to') }} {{ translate('admin') }} {{ translate('Login') }}
+                                    </h1>
+                                @else
+                                    <h1 class="h3 text-body mb-4">
+                                        {{ translate('welcome_back_to') }} {{ translate($role) }} {{ translate('Login') }}
+                                    </h1>
+                                @endif
                             </div>
                         </div>
 

@@ -263,7 +263,7 @@
   'Search_Categories' => 'Search Categories',
   'all_Stores' => 'all Stores',
   'all_Brands' => 'all Brands',
-  'brands' => 'Featured Brands',
+  'brands' => 'brands',
   'Find_your_favourite_brands_and_products' => 'Find your favourite brands and products',
   'Search_Brands' => 'Search Brands',
   'flash_Deal_Products' => 'flash Deal Products',

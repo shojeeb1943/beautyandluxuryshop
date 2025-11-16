@@ -2,6 +2,66 @@
     --input-placeholder-color: #222;
 }
 
+/* Header layout tweaks: bigger logo, smaller search bar (desktop) */
+@media (min-width: 768px) {
+    /* Increase logo area */
+    .navbar.navbar-light .navbar-brand.d-none.d-sm-block {
+        flex: 0 0 20%;
+        max-width: 20%;
+    }
+
+    .navbar.navbar-light .navbar-brand.d-none.d-sm-block img {
+        max-height: 80px;
+        width: auto;
+    }
+
+    /* Reduce search bar width */
+    .navbar.navbar-light .input-group-overlay.search-form-mobile {
+        flex: 0 0 45%;
+        max-width: 45%;
+    }
+}
+
+/* Main navbar menu items (desktop + mobile categories): bolder & larger */
+.navbar-stuck-menu .navbar-nav .nav-link {
+    font-weight: 700 !important;
+    font-size: 18px !important;
+}
+
+/* Main navbar menu items: bolder & larger */
+.navbar.navbar-light .navbar-nav .nav-link {
+    font-weight: 700 !important;
+    font-size: 18px !important;
+}
+
+/* Mobile search bar: better contrast and visibility */
+@media (max-width: 991px) {
+    .search-form-mobile {
+        background: #111827; /* dark slate */
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.6);
+    }
+
+    .search-form-mobile .search_form .form-control {
+        background: #020617;
+        color: #f9fafb;
+        border-color: #374151;
+    }
+
+    .search-form-mobile .search_form .form-control::placeholder {
+        color: rgba(249, 250, 251, 0.5);
+    }
+
+    .search-form-mobile .search_button .input-group-text {
+        background-color: var(--web-primary);
+        color: #ffffff;
+        border-color: var(--web-primary);
+    }
+
+    .search-form-mobile .close-search-form-mobile {
+        color: #e5e7eb;
+    }
+}
+
 .rtl {
     direction: var(--web-direction);
 }

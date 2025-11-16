@@ -36,6 +36,21 @@
 
     <link rel="stylesheet" href="{{ theme_asset('assets/css/custom.css') }}"/>
     <style>
+        .header-middle .logo {
+            flex: 0 0 260px;
+            max-width: 260px;
+        }
+
+        .header-middle .logo img {
+            max-height: 80px;
+            width: auto;
+        }
+
+        .header-middle .search-box {
+            flex: 1 1 auto;
+            max-width: 440px;
+        }
+
         :root {
             --bs-primary: {{ $web_config['primary_color'] }};
             --bs-primary-rgb: {{ getHexToRGBColorCode($web_config['primary_color']) }};

@@ -13,7 +13,7 @@
             <div class="row {{Session::get('direction') === "rtl" ? '__dir-rtl' : ''}}">
                 <div class="col-lg-9">
                     <div class="row">
-                        <div class="col-lg-5 col-md-4">
+                        <div class="col-lg-6 col-md-5">
                             <div class="cz-product-gallery">
                                 <div class="cz-preview">
                                     <div id="sync1" class="owl-carousel owl-theme product-thumbnail-slider">
@@ -134,7 +134,7 @@
                             </div>
                         </div>
 
-                        <div class="col-lg-7 col-md-8 mt-md-0 mt-sm-3 web-direction">
+                        <div class="col-lg-6 col-md-7 mt-md-0 mt-sm-3 web-direction">
                             <div class="details __h-100 product-cart-option-container">
                                 <h2 class="mb-2 __inline-24">{{ $product->name }}</h2>
                                 <div class="d-flex flex-wrap align-items-center mb-2 pro">
@@ -422,7 +422,6 @@
                                             @endif
                                         </div>
 
-                                       
                                         @if(($product['product_type'] == 'physical'))
                                             <div
                                                 class="product-restock-request-section collapse" {!! $firstVariationQuantity <= 0 ? 'style="display: block;"' : '' !!}>
@@ -451,6 +450,13 @@
                                                 </div>
                                             </div>
                                         </button>
+
+                                        @if(!empty($product->code))
+                                            <div class="mt-3">
+                                                <span class="text-muted">Product Code: </span>
+                                                <span class="fw-semibold">{{ $product->code }}</span>
+                                            </div>
+                                        @endif
 
                                         @if($product->added_by == 'admin')
                                             @if(checkVendorAbility(type: 'inhouse', status: 'temporary_close') || checkVendorAbility(type: 'inhouse', status: 'vacation_status'))

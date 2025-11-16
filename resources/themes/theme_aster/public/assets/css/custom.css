@@ -1,3 +1,34 @@
+.page-font-league-spartan,
+html,
+body {
+    font-family: 'League Spartan', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
+.header-middle .logo {
+    flex: 0 0 260px;
+    max-width: 260px;
+}
+
+.header-middle .logo img {
+    max-height: 80px;
+    width: auto;
+}
+
+.header-middle .logo img.h-45 {
+    height: auto !important;
+    max-height: 80px !important;
+    width: auto !important;
+}
+
+.header-middle .search-box {
+    flex: 0 0 40%;
+    max-width: 40%;
+}
+
+.header-middle .search-box input.search-bar-input {
+    max-width: 100%;
+}
+
 .z-9999 {
     z-index: 9999;
 }

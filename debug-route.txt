@@ -1,0 +1,45 @@
+<?php
+
+// Simple color debug - add this temporarily to routes/web.php
+
+Route::get('/debug-colors', function() {
+    $colors = \App\Models\Color::orderBy('id', 'desc')->limit(20)->get();
+    
+    echo "<h1>Color Debug Report</h1>";
+    echo "<style>table { border-collapse: collapse; width: 100%; margin: 20px 0; } th, td { border: 1px solid #ddd; padding: 12px; text-align: left; } th { background-color: #4CAF50; color: white; } .color-box { width: 50px; height: 30px; border: 1px solid #000; }</style>";
+    
+    echo "<h2>All Colors in Database (Latest 20)</h2>";
+    echo "<table>";
+    echo "<tr><th>ID</th><th>Name</th><th>Code</th><th>Preview</th><th>Created</th></tr>";
+    foreach ($colors as $color) {
+        echo "<tr>";
+        echo "<td>{$color->id}</td>";
+        echo "<td>{$color->name}</td>";
+        echo "<td>{$color->code}</td>";
+        echo "<td><div class='color-box' style='background-color: {$color->code};'></div></td>";
+        echo "<td>{$color->created_at}</td>";
+        echo "</tr>";
+    }
+    echo "</table>";
+    
+    echo "<h2>Color Lookup Tests</h2>";
+    $testCodes = ['#9ACD32', '#9acd32', '#F5F5F5', '#f5f5f5', '#FF0000', '#ff0000'];
+    echo "<table>";
+    echo "<tr><th>Test Code</th><th>Uppercase</th><th>Found?</th><th>Color Name</th></tr>";
+    foreach ($testCodes as $code) {
+        $upper = strtoupper($code);
+        $color = \App\Models\Color::where('code', $upper)->first();
+        $found = $color ? '✓ YES' : '✗ NO';
+        $name = $color ? $color->name : 'Not found';
+        $style = $color ? 'color: green;' : 'color: red;';
+        echo "<tr>";
+        echo "<td>{$code}</td>";
+        echo "<td>{$upper}</td>";
+        echo "<td style='{$style}'><strong>{$found}</strong></td>";
+        echo "<td>{$name}</td>";
+        echo "</tr>";
+    }
+    echo "</table>";
+    
+    echo "<p><strong>Note:</strong> After reviewing, remove this route from routes/web.php for security!</p>";
+});

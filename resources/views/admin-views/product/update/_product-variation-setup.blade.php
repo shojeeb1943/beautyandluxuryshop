@@ -14,16 +14,16 @@
                     </label>
                     <label class="switcher">
                         <input type="checkbox" class="switcher_input" id="product-color-switcher"
-                               value="1" {{ count($product['colors']) > 0 ? 'checked' : '' }}
+                               value="1" {{ is_array($product['colors']) && count($product['colors']) > 0 ? 'checked' : '' }}
                                name="colors_active">
                         <span class="switcher_control"></span>
                     </label>
                 </div>
                 <select class="custom-select color-var-select" name="colors[]" multiple="multiple"
-                        id="colors-selector-input" {{ count($product['colors']) > 0 ? '' : 'disabled' }}>
+                        id="colors-selector-input" {{ is_array($product['colors']) && count($product['colors']) > 0 ? '' : 'disabled' }}>
                     @foreach ($colors as $color)
                         <option value="{{ $color->code }}" data-color="{{ $color->code }}"
-                            {{ in_array($color->code,$product['colors']) ? 'selected' : '' }}>
+                            {{ is_array($product['colors']) && in_array($color->code,$product['colors']) ? 'selected' : '' }}>
                             {{ $color['name'] }}
                         </option>
                     @endforeach

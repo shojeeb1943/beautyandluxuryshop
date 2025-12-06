@@ -216,7 +216,7 @@
                                     <input type="hidden" name="id" value="{{ $product->id }}">
                                     <div
                                         class="position-relative {{Session::get('direction') === "rtl" ? 'ml-n4' : 'mr-n4'}} mb-2">
-                                        @if (count(json_decode($product->colors)) > 0)
+                                        @if (json_decode($product->colors) && is_array(json_decode($product->colors)) && count(json_decode($product->colors)) > 0)
                                             <div class="flex-start align-items-center mb-2 gap-2">
                                                 <div class="product-description-label m-0 text-dark font-bold">
                                                     {{ translate('color') }}:

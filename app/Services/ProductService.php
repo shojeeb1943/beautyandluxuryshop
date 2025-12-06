@@ -349,6 +349,22 @@ class ProductService
     public function getVariations(object $request, array $combinations): array
     {
         $variations = [];
+        
+        // DEBUG: Log all request data related to variations
+        \Log::info('=== GET VARIATIONS DEBUG ===', [
+            'colors' => $request->get('colors'),
+            'all_request_keys' => array_keys($request->all()),
+            'price_keys' => array_filter(array_keys($request->all()), function($key) {
+                return strpos($key, 'price_') === 0;
+            }),
+            'sku_keys' => array_filter(array_keys($request->all()), function($key) {
+                return strpos($key, 'sku_') === 0;
+            }),
+            'qty_keys' => array_filter(array_keys($request->all()), function($key) {
+                return strpos($key, 'qty_') === 0;
+            })
+        ]);
+        
         if (isset($combinations[0]) && count($combinations[0]) > 0) {
             foreach ($combinations as $combination) {
                 $str = '';
@@ -357,18 +373,39 @@ class ProductService
                         $str .= '-' . str_replace(' ', '', $item);
                     } else {
                         if ($request->has('colors_active') && $request->has('colors') && count($request['colors']) > 0) {
-                            $color_name = $this->color->where('code', $item)->first()->name;
+                            // Convert to uppercase to match database storage
+                            $colorCode = strtoupper($item);
+                            $color = $this->color->where('code', $colorCode)->first();
+                            $color_name = $color ? $color->name : $item;
                             $str .= $color_name;
                         } else {
                             $str .= str_replace(' ', '', $item);
                         }
                     }
                 }
+                
+                // Sanitize field name to match Blade template logic
+                $fieldName = str_replace([' ', '.'], '_', $str);
+                $priceKey = 'price_' . $fieldName;
+                $skuKey = 'sku_' . $fieldName;
+                $qtyKey = 'qty_' . $fieldName;
+                
+                // DEBUG: Log what we're looking for vs what we found
+                \Log::info('Processing variation', [
+                    'type' => $str,
+                    'looking_for_price_key' => $priceKey,
+                    'looking_for_sku_key' => $skuKey,
+                    'looking_for_qty_key' => $qtyKey,
+                    'found_price' => $request->get($priceKey),
+                    'found_sku' => $request->get($skuKey),
+                    'found_qty' => $request->get($qtyKey)
+                ]);
+                
                 $item = [];
                 $item['type'] = $str;
-                $item['price'] = currencyConverter(abs($request['price_' . str_replace('.', '_', $str)]));
-                $item['sku'] = $request['sku_' . str_replace('.', '_', $str)];
-                $item['qty'] = abs($request['qty_' . str_replace('.', '_', $str)]);
+                $item['price'] = currencyConverter(abs($request['price_' . $fieldName]));
+                $item['sku'] = $request['sku_' . $fieldName];
+                $item['qty'] = abs($request['qty_' . $fieldName]);
                 $variations[] = $item;
             }
         }
@@ -793,6 +830,16 @@ class ProductService
         $productName = $request['name'][array_search('en', $request['lang'])];
         $unitPrice = $request['unit_price'];
 
+        // DEBUG: Log all colors being processed
+        if ($request->has('colors') && count($request['colors']) > 0) {
+            \Log::info('=== VARIATION GENERATION DEBUG ===', [
+                'colors_from_request' => $request['colors'],
+                'colors_in_database' => $this->color->pluck('name', 'code')->toArray(),
+                'product_name' => $productName,
+                'unit_price' => $unitPrice
+            ]);
+        }
+
         $generateCombination = [];
         $existingType = [];
 
@@ -815,7 +862,18 @@ class ProductService
                     $type .= '-' . str_replace(' ', '', $item);
                 } else {
                     if ($request->has('colors_active') && $request->has('colors') && count($request['colors']) > 0) {
-                        $color_name = $this->color->where('code', $item)->first()->name;
+                        // Convert to uppercase to match database storage
+                        $colorCode = strtoupper($item);
+                        $color = $this->color->where('code', $colorCode)->first();
+                        if (!$color) {
+                            // Log the issue for debugging
+                            \Log::warning('Color not found in generatePhysicalVariationCombination', [
+                                'color_code_original' => $item,
+                                'color_code_uppercase' => $colorCode,
+                                'all_colors' => $this->color->pluck('code', 'name')->toArray()
+                            ]);
+                        }
+                        $color_name = $color ? $color->name : $item;
                         $type .= $color_name;
                     } else {
                         $type .= str_replace(' ', '', $item);
@@ -828,6 +886,15 @@ class ProductService
                 $sku .= substr($value, 0, 1);
             }
             $sku .= '-' . $type;
+            
+            // DEBUG: Log each generated combination
+            \Log::info('Generated combination', [
+                'type' => $type,
+                'sku' => $sku,
+                'price' => currencyConverter(amount: $unitPrice),
+                'qty' => 1
+            ]);
+            
             if (in_array($type, $existingType)) {
                 if ($product && $product->variation && count(json_decode($product->variation, true)) > 0) {
                     foreach (json_decode($product->variation, true) as $digitalVariation) {

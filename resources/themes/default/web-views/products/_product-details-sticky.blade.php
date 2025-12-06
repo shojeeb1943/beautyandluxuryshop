@@ -10,7 +10,7 @@
             <input type="hidden" name="position" value="bottom">
             <div class="product-details-sticky-top">
                 <div class="border-bottom d-flex flex-column gap-3 mb-3 pb-3">
-                    @if (count(json_decode($productDetails->colors)) > 0)
+                    @if (json_decode($productDetails->colors) && is_array(json_decode($productDetails->colors)) && count(json_decode($productDetails->colors)) > 0)
                     <div class="position-relative ps-1">
                         <h6 class="fs-14 mb-2">
                             {{ translate('color')}}

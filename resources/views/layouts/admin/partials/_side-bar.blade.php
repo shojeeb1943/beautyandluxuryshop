@@ -300,15 +300,34 @@
                     </ul>
                 </li>
 
-                <li>
-                    <a class="nav-link {{ Request::is('admin/attribute*') ? 'active' : '' }}"
-                       href="{{ route('admin.attribute.view') }}" title="{{ translate('product_Attribute_Setup') }}">
+
+                <li class="{{ (Request::is('admin/attribute*') || Request::is('admin/color*')) ? 'sub-menu-opened' : '' }}">
+                    <a class="nav-link nav-link-toggle {{ (Request::is('admin/attribute*') || Request::is('admin/color*')) ? 'active' : '' }}"
+                       href="javascript:" title="{{ translate('product_Attribute_Setup') }}">
                         <i class="fi fi-sr-sitemap"></i>
                         <span
-                            class="aside-mini-hidden-element flex-grow-1 d-flex justify-content-between align-items-center text-truncate max-w-180">
-                            {{ translate('product_Attribute_Setup') }}
+                            class="aside-mini-hidden-element flex-grow-1 d-flex justify-content-between align-items-center">
+                            <span class="text-truncate max-w-180">
+                                {{ translate('product_Attribute_Setup') }}
+                            </span>
+                            <i class="fi fi-sr-angle-down"></i>
                         </span>
                     </a>
+                    <ul class="aside-submenu navbar-nav">
+                        <li class="nav-item px-3 py-2 fw-semibold text-dark bg-section2 aside-mini-show-element">{{ translate('product_Attribute_Setup') }}</li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ Request::is('admin/attribute*') ? 'active' : '' }}"
+                               href="{{ route('admin.attribute.view') }}" title="{{ translate('attributes') }}">
+                                <span class="text-truncate">{{ translate('attributes') }}</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ Request::is('admin/color*') ? 'active' : '' }}"
+                               href="{{ route('admin.color.list') }}" title="{{ translate('colors') }}">
+                                <span class="text-truncate">{{ translate('colors') }}</span>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 <li class="{{ (Request::is('admin/products/list/in-house') || Request::is('admin/products/bulk-import') || Request::is('admin/products/request-restock-list')  || (Request::is('admin/products/add')) || (Request::is('admin/products/view/in-house/*')) || (Request::is('admin/products/barcode/*'))|| (Request::is('admin/products/update/*') && request()->has('product-gallery'))) ? 'sub-menu-opened' : '' }}">
                     <a class="nav-link nav-link-toggle {{ (Request::is('admin/products/list/in-house') || Request::is('admin/products/bulk-import') || Request::is('admin/products/request-restock-list')  || (Request::is('admin/products/add')) || (Request::is('admin/products/view/in-house/*')) || (Request::is('admin/products/barcode/*'))|| (Request::is('admin/products/update/*') && request()->has('product-gallery'))) ? 'active' : '' }}"

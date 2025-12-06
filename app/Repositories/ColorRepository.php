@@ -17,12 +17,12 @@ class ColorRepository implements ColorRepositoryInterface
 
     public function add(array $data): string|object
     {
-        return true;
+        return $this->color->create($data);
     }
 
     public function getFirstWhere(array $params, array $relations = []): ?Model
     {
-        return $this->color->where($params)->first();
+        return $this->color->with($relations)->where($params)->first();
     }
 
     public function getList(array $orderBy = [], array $relations = [], int|string $dataLimit = DEFAULT_DATA_LIMIT, int $offset = null): Collection|LengthAwarePaginator
@@ -47,9 +47,10 @@ class ColorRepository implements ColorRepositoryInterface
     {
         $query = $this->color
             ->when($searchValue, function ($query) use ($searchValue) {
-                return $query->where('name', 'like', "%$searchValue%");
+                return $query->where('name', 'like', "%$searchValue%")
+                    ->orWhere('code', 'like', "%$searchValue%");
             })
-            ->when($filters && $filters['code'], function ($query) use ($filters) {
+            ->when($filters && isset($filters['code']), function ($query) use ($filters) {
                 return $query->where(['code' => $filters['code']]);
             })
             ->when(!empty($orderBy), function ($query) use ($orderBy) {
@@ -62,11 +63,12 @@ class ColorRepository implements ColorRepositoryInterface
 
     public function update(string $id, array $data): bool
     {
-        return true;
+        return $this->color->find($id)->update($data);
     }
 
     public function delete(array $params): bool
     {
+        $this->color->where($params)->delete();
         return true;
     }
 }

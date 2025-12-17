@@ -453,7 +453,7 @@
 
                                         @if(!empty($product->code))
                                             <div class="mt-3">
-                                                <span class="text-muted">Product Code: </span>
+                                                <span class="text-muted">Product Barcode: </span>
                                                 <span class="fw-semibold">{{ $product->code }}</span>
                                             </div>
                                         @endif

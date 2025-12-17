@@ -220,7 +220,7 @@ return [
 	"For_Ready_After_Sale_deliveries,_customers_pay_first_then_admin_uploads_the_digital_products_that_become_available_to_customers_for_download" => "For Ready After Sale deliveries  customers pay first then admin uploads the digital products that become available to customers for download",
 	"ready_After_Sell" => "Ready After Sell",
 	"ready_Product" => "Ready Product",
-	"create_a_unique_product_code_by_clicking_on_the_Generate_Code_button" => "Create a unique product code by clicking on the Generate Code button",
+	"create_a_unique_product_code_by_clicking_on_the_Generate_Code_button" => "Create a unique product barcode by clicking on the Generate Code button",
 	"generate_code" => "Generate code",
 	"unit" => "Unit",
 	"search_tags" => "Search tags",

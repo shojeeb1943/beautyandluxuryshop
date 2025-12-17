@@ -1555,7 +1555,7 @@ return [
 	"total_sold" => "total sold",
 	"total_sold_amount" => "total sold amount",
 	"general_information" => "general information",
-	"product_SKU" => "product SKU",
+	"product_SKU" => "Product Barcode",
 	"price_information" => "price information",
 	"tags" => "tags",
 	"product_SEO_&_meta_data" => "product SEO & meta data",

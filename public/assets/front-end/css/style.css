@@ -7388,7 +7388,8 @@ span.badge-accent:hover {
     #navbarCollapse {
         position: fixed;
         top: 0;
-        right: 0;
+        left: 0;
+        right: auto;
         width: 100%;
         height: 100vh;
         background-color: #fff !important;
@@ -7396,9 +7397,24 @@ span.badge-accent:hover {
         padding: 20px;
         padding-bottom: 50px;
         max-width: 295px;
-        transition: all ease 0.3s;
+        transition: transform ease 0.3s;
         overflow-y: auto;
         font-size: 13px;
+        transform: translateX(-100%);
+        visibility: hidden;
+        pointer-events: none;
+    }
+    #navbarCollapse.collapse:not(.show) {
+        display: block;
+    }
+    #navbarCollapse.show {
+        transform: translateX(0);
+        visibility: visible;
+        pointer-events: auto;
+    }
+    #navbarCollapse.collapsing {
+        height: 100vh;
+        display: block;
     }
     #navbarCollapse .czi-menu {
         display: none;
@@ -7471,7 +7487,8 @@ span.badge-accent:hover {
     .logout-btn {
         position: fixed;
         bottom: 0;
-        right: 0;
+        left: 0;
+        right: auto;
         width: 100%;
         max-width: 295px;
         background: #fff;

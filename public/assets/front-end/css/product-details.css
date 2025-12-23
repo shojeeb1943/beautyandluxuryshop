@@ -24,12 +24,20 @@ thead {
 }
 
 .cz-preview {
+    position: relative;
     width: 100%;
     margin-top: 0;
     margin-left: 0;
     max-height: 100% !important;
     background: white;
     border-radius: 10px;
+}
+
+.cz-preview .for-discount-value {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 10;
 }
 
 .cz-preview-item.active {

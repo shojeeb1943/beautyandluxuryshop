@@ -225,7 +225,111 @@ a:hover {
 }
 
 .for-discount-value {
-    background: var(--web-primary);
+    background: #dc3545 !important;
+    color: #ffffff !important;
+}
+
+/* Homepage hero/banner height increase */
+.hero-slider .owl-item img {
+    object-fit: cover !important;
+}
+
+/* Mobile: moderate height increase */
+@media (max-width: 767px) {
+    .hero-slider {
+        min-height: 300px;
+    }
+    .hero-slider .owl-item img {
+        min-height: 300px;
+        height: 300px;
+    }
+}
+
+/* Tablet: medium height */
+@media (min-width: 768px) and (max-width: 991px) {
+    .hero-slider {
+        min-height: 420px;
+    }
+    .hero-slider .owl-item img {
+        min-height: 420px;
+        height: 420px;
+    }
+}
+
+/* Desktop: taller banner */
+@media (min-width: 992px) and (max-width: 1279px) {
+    .hero-slider {
+        min-height: 500px;
+    }
+    .hero-slider .owl-item img {
+        min-height: 500px;
+        height: 500px;
+    }
+}
+
+/* Large desktop: maximum height */
+@media (min-width: 1280px) {
+    .hero-slider {
+        min-height: 580px;
+    }
+    .hero-slider .owl-item img {
+        min-height: 580px;
+        height: 580px;
+    }
+}
+
+/* Remove circular background/border from header action icons */
+.navbar-tool-icon-box {
+    border-radius: 0 !important;
+    border: none !important;
+    background-color: transparent !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+/* Add spacing between header icons */
+.navbar-toolbar .navbar-tool {
+    margin-left: 1.25rem !important;
+    margin-right: 1.25rem !important;
+}
+
+.navbar-toolbar .navbar-tool:first-child {
+    margin-left: 0 !important;
+}
+
+.navbar-toolbar .navbar-tool:last-child {
+    margin-right: 0 !important;
+}
+
+.navbar-tool-icon-box.bg-secondary {
+    background-color: transparent !important;
+    border: none !important;
+}
+
+.navbar-tool:hover .navbar-tool-icon-box {
+    background-color: transparent !important;
+    border: none !important;
+}
+
+.navbar-light .navbar-tool-icon-box.bg-secondary,
+.navbar-light .navbar-tool:hover .navbar-tool-icon-box.bg-secondary,
+.navbar-light.bg-secondary .navbar-tool-icon-box.bg-secondary,
+.navbar-light[class^="bg-faded"] .navbar-tool-icon-box.bg-secondary,
+.navbar-light[class*=" bg-faded"] .navbar-tool-icon-box.bg-secondary,
+.navbar-light[style^="background-color"] .navbar-tool-icon-box.bg-secondary,
+.navbar-light[style*=" background-color"] .navbar-tool-icon-box.bg-secondary {
+    background-color: transparent !important;
+    border: none !important;
+}
+
+.navbar-light .navbar-tool:hover .navbar-tool-icon-box.bg-secondary,
+.navbar-light.bg-secondary .navbar-tool:hover .navbar-tool-icon-box.bg-secondary,
+.navbar-light[class^="bg-faded"] .navbar-tool:hover .navbar-tool-icon-box.bg-secondary,
+.navbar-light[class*=" bg-faded"] .navbar-tool:hover .navbar-tool-icon-box.bg-secondary,
+.navbar-light[style^="background-color"] .navbar-tool:hover .navbar-tool-icon-box.bg-secondary,
+.navbar-light[style*=" background-color"] .navbar-tool:hover .navbar-tool-icon-box.bg-secondary {
+    background-color: transparent !important;
+    border: none !important;
 }
 
 span.badge-accent {

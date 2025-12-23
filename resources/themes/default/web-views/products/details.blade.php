@@ -16,6 +16,13 @@
                         <div class="col-lg-6 col-md-5">
                             <div class="cz-product-gallery">
                                 <div class="cz-preview">
+                                    @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
+                                        <span class="for-discount-value p-1 pl-2 pr-2 font-bold fs-13">
+                                            <span class="direction-ltr d-block">
+                                                -{{ getProductPriceByType(product: $product, type: 'discount', result: 'string') }}
+                                            </span>
+                                        </span>
+                                    @endif
                                     <div id="sync1" class="owl-carousel owl-theme product-thumbnail-slider">
                                         @if($product->images!=null && json_decode($product->images)>0)
                                             @if(json_decode($product->colors) && count($product->color_images_full_url)>0)

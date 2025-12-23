@@ -1,0 +1,54 @@
+@font-face {
+    font-family: "Century Gothic";
+    src: local("Century Gothic"), local("CenturyGothic"), url("/assets/fonts/century-gothic/centurygothic.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Century Gothic";
+    src: local("Century Gothic"), local("CenturyGothic"), url("/assets/fonts/century-gothic/centurygothic_bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "CenturyGothic";
+    src: local("Century Gothic"), local("CenturyGothic"), url("/assets/fonts/century-gothic/centurygothic.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "CenturyGothic";
+    src: local("Century Gothic"), local("CenturyGothic"), url("/assets/fonts/century-gothic/centurygothic_bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root {
+    --primary-font-family: "Century Gothic", "CenturyGothic", AppleGothic, Arial, sans-serif;
+    --font-family-sans-serif: var(--primary-font-family);
+    --bs-font-sans-serif: var(--primary-font-family);
+}
+
+html,
+body {
+    font-family: var(--primary-font-family) !important;
+}
+
+body *:not([class^="czi-"]):not([class*=" czi-"]):not(.tio):not([class^="tio-"]):not([class*=" tio-"]):not(.fa):not([class^="fa-"]):not([class*=" fa-"]):not([class^="fi-"]):not([class*=" fi-"]):not([class^="uicons-"]):not([class*=" uicons-"]) {
+    font-family: var(--primary-font-family) !important;
+}
+
+button,
+input,
+select,
+textarea,
+optgroup {
+    font-family: var(--primary-font-family) !important;
+}

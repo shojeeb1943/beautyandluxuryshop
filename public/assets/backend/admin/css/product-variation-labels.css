@@ -1,0 +1,52 @@
+/* Color Variation Image Labels - UX Enhancement */
+
+.color-variation-image-container {
+    display: inline-block;
+    width: 100%;
+}
+
+.color-variation-label {
+    margin-top: 8px;
+    text-align: center;
+}
+
+.color-variation-label .badge {
+    display: inline-block;
+    max-width: 100%;
+    word-wrap: break-word;
+    white-space: normal;
+    line-height: 1.4;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 4px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .color-variation-label .badge {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+}
+
+/* Ensure labels don't interfere with image actions */
+#color-wise-image-section {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+#color-wise-image-section .color-variation-image-container {
+    flex: 0 0 auto;
+}
+
+/* Long name handling */
+.color-variation-label .badge {
+    overflow-wrap: break-word;
+    hyphens: auto;
+}

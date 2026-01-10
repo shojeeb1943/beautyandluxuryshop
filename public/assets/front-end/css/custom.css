@@ -289,8 +289,8 @@ a:hover {
 
 /* Add spacing between header icons */
 .navbar-toolbar .navbar-tool {
-    margin-left: 1.25rem !important;
-    margin-right: 1.25rem !important;
+    margin-left: 2rem !important;
+    margin-right: 2rem !important;
 }
 
 .navbar-toolbar .navbar-tool:first-child {
@@ -299,6 +299,132 @@ a:hover {
 
 .navbar-toolbar .navbar-tool:last-child {
     margin-right: 0 !important;
+}
+
+/* Mobile: reduce spacing and add right padding to prevent cutoff */
+@media (max-width: 767px) {
+    .navbar-toolbar {
+        padding-right: 15px !important;
+    }
+    
+    .navbar-toolbar .navbar-tool {
+        margin-left: 0.75rem !important;
+        margin-right: 0.75rem !important;
+    }
+}
+
+/* Add gap between cart text and price */
+.cart-total-price {
+    display: block !important;
+    margin-top: 2px !important;
+}
+
+/* Increase mobile logo size */
+@media (max-width: 767px) {
+    .mobile-logo-img {
+        max-width: 150px !important;
+        max-height: 90px !important;
+    }
+}
+
+/* Hide existing topbar content (phone + language) */
+.topbar .container > div {
+    display: none !important;
+}
+
+/* Show topbar container for marquee */
+.topbar {
+    display: block !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    position: relative !important;
+    height: 32px !important;
+    line-height: 32px !important;
+}
+
+.topbar .container {
+    display: block !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+}
+
+/* Marquee text wrapper */
+.topbar::before {
+    content: "Discover Beauty & Luxury Shop, Bangladesh's trusted destination for 100% authentic makeup, skincare, and fragrances." !important;
+    display: inline-block !important;
+    padding-left: 100% !important;
+    animation: marquee 25s linear infinite !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+}
+
+/* Duplicate text for seamless loop */
+.topbar::after {
+    content: "Discover Beauty & Luxury Shop, Bangladesh's trusted destination for 100% authentic makeup, skincare, and fragrances." !important;
+    display: inline-block !important;
+    padding-left: 100% !important;
+    animation: marquee 25s linear infinite !important;
+    animation-delay: 12.5s !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+}
+
+/* Marquee animation - scroll left */
+@keyframes marquee {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+/* ========================================
+   LOCAL ROBOTO FONT MAPPING (GUARANTEED)
+   ======================================== */
+
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: local('Roboto Regular'), 
+         url('../fonts/Roboto/Roboto-Regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: local('Roboto Bold'), 
+         url('../fonts/Roboto/Roboto-Bold.woff2') format('woff2');
+}
+
+/* ========================================
+   PRODUCT TITLES & PRICES - BOLD STYLING
+   ======================================== */
+
+/* SINGLE PRODUCT PAGE */
+.product-cart-option-container > h2.mb-2.__inline-24 {
+    font-weight: 700 !important;
+}
+
+.product-cart-option-container .discounted-unit-price {
+    font-weight: 700 !important;
+}
+
+/* PRODUCT CARDS */
+.flash-product-title,
+.widget-product-title {
+    font-weight: 700 !important;
+}
+
+.flash-product-price,
+.product-price .text-accent {
+    font-weight: 700 !important;
 }
 
 .navbar-tool-icon-box.bg-secondary {

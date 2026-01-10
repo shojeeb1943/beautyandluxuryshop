@@ -2,12 +2,23 @@
 
 function colorWiseImageFunctionality(t) {
     let colors = t.val();
+    
+    // Extract color names from select options
+    let colorNames = {};
+    t.find('option:selected').each(function() {
+        let colorCode = $(this).val().replace("#", "");
+        let colorName = $(this).text().trim();
+        colorNames[colorCode] = colorName;
+    });
+    
     $('#color-wise-image-section').html('')
     $.each(colors, function (key, value) {
         let value_id = value.replace('#', '');
         let color = "color_image_" + value_id;
+        let colorName = colorNames[value_id] || value_id;
 
         let generateHtml = `<div class="col-sm-12 col-md-4">
+                            <div class="color-variation-image-container">
                             <div class="custom_upload_input position-relative border-dashed-2">
                                 <input type="file" name="` + color + `" class="custom-upload-input-file action-upload-color-image" id="color-img-upload-` + value_id + `" data-index="1" data-imgpreview="additional_Image_${value_id}"
                                     accept=".jpg, .webp, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*" required>
@@ -31,6 +42,12 @@ function colorWiseImageFunctionality(t) {
                                         <h3 class="text-muted">`+ messageUploadImage +`</h3>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="color-variation-label text-center mt-2">
+                                <span class="badge bg-light text-dark border px-3 py-2 fw-semibold" style="font-size: 13px;">
+                                    ${colorName}
+                                </span>
+                            </div>
                             </div>
                         </div>`;
 

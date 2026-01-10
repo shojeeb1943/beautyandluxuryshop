@@ -27,7 +27,7 @@
     <link rel="stylesheet" href="{{ theme_asset(path: 'public/assets/backend/webfonts/uicons-solid-rounded.css') }}">
     <link rel="stylesheet" href="{{ theme_asset(path: 'public/assets/back-end/css/toastr.css') }}"/>
     <link rel="stylesheet" href="{{ theme_asset(path: 'public/assets/front-end/css/master.css') }}"/>
-    <link rel="stylesheet" href="{{ theme_asset(path: 'public/assets/front-end/css/roboto-font.css')  }}">
+    <link rel="stylesheet" href="{{ theme_asset(path: 'public/assets/front-end/css/google-apis.css')  }}">
     <link rel="stylesheet" href="{{ theme_asset(path: 'public/css/lightbox.css') }}">
     <link rel="stylesheet" href="{{ theme_asset(path: 'public/assets/back-end/vendor/icon-set/style.css') }}">
     <link rel="stylesheet" href="{{ theme_asset(path: 'public/assets/front-end/css/owl.carousel.min.css') }}">

@@ -3419,4 +3419,6 @@ return [
 	"the_color_code_has_already_been_taken" => "The color code has already been taken",
 	"color_updated_successfully" => "Color updated successfully",
 	"color_deleted_successfully" => "Color deleted successfully",
+	"add_New_Color" => "Add New Color",
+	"color_added_successfully" => "Color added successfully",
 ];

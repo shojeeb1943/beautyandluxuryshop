@@ -4,6 +4,7 @@
 
 @push('css_or_js')
     <link href="{{ dynamicAsset(path: 'public/assets/back-end/libs/quill-editor/quill-editor.css') }}" rel="stylesheet">
+    <link href="{{ dynamicAsset(path: 'public/assets/backend/admin/css/product-variation-labels.css') }}" rel="stylesheet">
 @endpush
 
 @section('content')

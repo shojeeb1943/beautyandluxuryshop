@@ -6,6 +6,7 @@
     <link href="{{ dynamicAsset(path: 'public/assets/back-end/css/tags-input.min.css') }}" rel="stylesheet">
     <link href="{{ dynamicAsset(path: 'public/assets/select2/css/select2.min.css') }}" rel="stylesheet">
     <link href="{{ dynamicAsset(path: 'public/assets/back-end/plugins/summernote/summernote.min.css') }}" rel="stylesheet">
+    <link href="{{ dynamicAsset(path: 'public/assets/backend/admin/css/product-variation-labels.css') }}" rel="stylesheet">
 @endpush
 
 @section('content')

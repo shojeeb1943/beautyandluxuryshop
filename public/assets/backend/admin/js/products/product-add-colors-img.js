@@ -13,9 +13,17 @@ function colorWiseImageFunctionality(t) {
     let colorObject = {};
     let colorImageObject = {};
 
+    // Extract color names from select options
+    let colorNames = {};
+    t.find('option:selected').each(function() {
+        let colorCode = $(this).val().replace("#", "");
+        let colorName = $(this).text().trim();
+        colorNames[colorCode] = colorName;
+    });
+
     colors.forEach(function(item) {
         let clean = item.replace("#", "");
-        colorObject[clean] = {'color' : clean, 'image_name' : {}};
+        colorObject[clean] = {'color' : clean, 'image_name' : {}, 'name': colorNames[clean] || clean};
     });
 
     let isCloneProductFromGallery = false;
@@ -52,8 +60,11 @@ function colorWiseImageFunctionality(t) {
             imagePath = colorItem?.image_name?.path;
         }
 
+        let colorName = colorItem?.name || key;
+        
         let generateHtml =
-            `<div><div class="upload-file position-relative">
+            `<div class="color-variation-image-container">
+                <div class="upload-file position-relative">
                 <label for="color-img-upload-${key}">
                     <input type="file" name="${color}" class="single_file_input upload-file__input action-upload-color-image"
                     id="color-img-upload-${key}" data-index="1" data-imgpreview="additional_Image_${key}"
@@ -89,7 +100,13 @@ function colorWiseImageFunctionality(t) {
                         </h6>
                     </div>
                 </div>
-                </div></div></div>`;
+                </div>
+                <div class="color-variation-label text-center mt-2">
+                    <span class="badge bg-light text-dark border px-3 py-2 fw-semibold" style="font-size: 13px;">
+                        ${colorName}
+                    </span>
+                </div>
+            </div>`;
 
         $("#color-wise-image-section").append(generateHtml);
         uploadColorImage();

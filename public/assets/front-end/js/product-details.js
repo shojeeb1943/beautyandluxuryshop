@@ -166,3 +166,105 @@ function renderFocusPreviewImageByColor() {
     });
 }
 renderFocusPreviewImageByColor();
+
+// Color Variant Dropdown Sync Behavior
+$(document).ready(function() {
+    const dropdown = $('#colorVariantDropdown');
+    const trigger = $('#colorDropdownTrigger');
+    const list = $('#colorDropdownList');
+    const selectedDot = $('#selectedColorDot');
+    const selectedText = $('#selectedColorText');
+    
+    // Toggle dropdown open/close
+    trigger.on('click', function(e) {
+        e.stopPropagation();
+        dropdown.toggleClass('open');
+    });
+    
+    // Close dropdown when clicking outside
+    $(document).on('click', function(e) {
+        if (!dropdown.is(e.target) && dropdown.has(e.target).length === 0) {
+            dropdown.removeClass('open');
+        }
+    });
+    
+    // Dropdown option click -> update swatch
+    $('.color-dropdown-option').on('click', function() {
+        const colorId = $(this).data('color-id');
+        const colorValue = $(this).data('color');
+        const colorName = $(this).data('color-name');
+        
+        // Update dropdown UI
+        selectedDot.css('background', colorValue);
+        selectedText.text(colorName);
+        
+        // Update selected state in dropdown list
+        $('.color-dropdown-option').removeClass('selected');
+        $(this).addClass('selected');
+        
+        // Trigger the label click (not just radio change) to fire image update logic
+        $('label[for="' + colorId + '"]').trigger('click');
+        
+        // Close dropdown
+        dropdown.removeClass('open');
+    });
+    
+    // Swatch click -> update dropdown
+    $('.checkbox-color input[type="radio"]').on('change', function() {
+        if ($(this).is(':checked')) {
+            const colorValue = $(this).val();
+            const colorName = $(this).next('label').data('title');
+            
+            // Update dropdown UI
+            selectedDot.css('background', colorValue);
+            selectedText.text(colorName);
+            
+            // Update selected state in dropdown list
+            $('.color-dropdown-option').removeClass('selected');
+            $('.color-dropdown-option[data-color="' + colorValue + '"]').addClass('selected');
+        }
+    });
+});
+
+// Sync main product color selection to mobile sticky bottom panel
+$(document).ready(function() {
+    // Single source of truth: listen to ALL color radio changes
+    $('input[type="radio"][name="color"]').on('change', function() {
+        if ($(this).is(':checked')) {
+            const selectedColor = $(this).val();
+            const colorName = $(this).next('label').data('title');
+            const $changedRadio = $(this);
+            
+            // Sync all other color radios with same value (main + sticky panel)
+            $('input[type="radio"][name="color"]').not(this).each(function() {
+                if ($(this).val() === selectedColor) {
+                    // Update checked state without triggering change event (prevent loop)
+                    $(this).prop('checked', true);
+                }
+            });
+            
+            // Update sticky panel color name display
+            if (colorName) {
+                $('.product-details-sticky-color-name').text('(' + colorName + ')');
+            }
+            
+            // Trigger image update by clicking the corresponding label (if exists)
+            // This ensures image preview updates when sticky panel color is clicked
+            const colorKey = selectedColor.replace('#', '');
+            const $mainLabel = $('label[data-key="' + colorKey + '"]').not('.focus-preview-image-by-color').first();
+            if ($mainLabel.length && !$changedRadio.closest('.product-details-sticky').length) {
+                // Only trigger if change came from main section (avoid double trigger)
+            } else if ($changedRadio.closest('.product-details-sticky').length) {
+                // Change came from sticky panel - trigger main label click for image update
+                const $mainColorLabel = $('.add-to-cart-details-form').find('label[data-key="' + colorKey + '"]').first();
+                if ($mainColorLabel.length) {
+                    $mainColorLabel.trigger('click');
+                }
+            }
+            
+            // Trigger price update for both forms
+            getVariantPrice(".add-to-cart-details-form");
+            getVariantPrice(".add-to-cart-sticky-form");
+        }
+    });
+});

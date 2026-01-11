@@ -382,6 +382,197 @@ a:hover {
 }
 
 /* ========================================
+   COLOR VARIANT UI - GRIFFE STYLE MATCH
+   ======================================== */
+
+/* Hide reviews/orders/wishlist stats line */
+.details .d-flex.flex-wrap.align-items-center.mb-2.pro {
+    display: none !important;
+}
+
+/* Color label as heading above swatches (Griffe style) */
+.flex-start.align-items-center.mb-2.gap-2 {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+}
+
+.flex-start.align-items-center.mb-2.gap-2 .product-description-label {
+    line-height: normal !important;
+    margin: 0 0 4px 0 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #333 !important;
+}
+
+/* Swatch Grid: 2-row wrap with even spacing */
+.checkbox-color {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    max-width: 400px;
+    align-items: center;
+}
+
+/* Circular swatches - consistent size */
+.checkbox-color li {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.checkbox-color label {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    display: block !important;
+    cursor: pointer !important;
+    position: relative !important;
+    transition: all 0.2s ease !important;
+    border: 2px solid transparent !important;
+}
+
+/* Hover state - subtle scale */
+.checkbox-color label:hover {
+    transform: scale(1.05) !important;
+}
+
+/* Active/Selected: Double-ring effect (Griffe style) */
+.checkbox-color input:checked ~ label {
+    transform: scale(1) !important;
+    border: 3px solid #000 !important; /* Outer dark ring */
+    box-shadow: 0 0 0 2px #fff, 0 0 0 5px rgba(0,0,0,0.15) !important; /* Inner light ring + subtle shadow */
+}
+
+/* Remove old outline span styling */
+.checkbox-color input:checked ~ label .outline {
+    display: none !important;
+}
+
+/* Color Dropdown Selector */
+.color-variant-dropdown {
+    margin-top: 16px;
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+}
+
+.color-dropdown-trigger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.color-dropdown-trigger:hover {
+    border-color: #999;
+}
+
+.color-dropdown-trigger::after {
+    content: '▼';
+    position: absolute;
+    right: 14px;
+    font-size: 10px;
+    color: #666;
+    transition: transform 0.2s ease;
+}
+
+.color-variant-dropdown.open .color-dropdown-trigger::after {
+    transform: rotate(180deg);
+}
+
+.color-dropdown-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    flex-shrink: 0;
+}
+
+.color-dropdown-text {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+}
+
+.color-dropdown-list {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+}
+
+.color-variant-dropdown.open .color-dropdown-list {
+    display: block;
+}
+
+.color-dropdown-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.color-dropdown-option:hover {
+    background: #f5f5f5;
+}
+
+.color-dropdown-option.selected {
+    background: #f0f0f0;
+}
+
+/* Scrollbar styling for dropdown */
+.color-dropdown-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.color-dropdown-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.color-dropdown-list::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}
+
+.color-dropdown-list::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .checkbox-color {
+        max-width: 100%;
+        gap: 10px !important;
+    }
+    
+    .checkbox-color label {
+        width: 28px !important;
+        height: 28px !important;
+    }
+    
+    .color-variant-dropdown {
+        max-width: 100%;
+    }
+}
+
+/* ========================================
    LOCAL ROBOTO FONT MAPPING (GUARANTEED)
    ======================================== */
 

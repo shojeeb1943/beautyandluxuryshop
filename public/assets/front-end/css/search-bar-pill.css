@@ -1,0 +1,116 @@
+/* Header Search Bar - Pill/Capsule Shape */
+
+/* Desktop & Mobile: Pill-shaped search bar */
+.search-bar-input,
+.form-control.appended-form-control,
+.search_form .form-control {
+    border-radius: 999px !important;
+}
+
+/* Search form wrapper - pill shape */
+.search_form,
+.input-group-overlay.search-form-mobile,
+.search-form-mobile .search_form {
+    border-radius: 999px !important;
+}
+
+/* Search form container div */
+.search_form .d-flex {
+    border-radius: 999px !important;
+    overflow: hidden;
+}
+
+/* Search button - pill shape on right side */
+.input-group-append-overlay,
+.search_button {
+    border-radius: 0 999px 999px 0 !important;
+}
+
+/* RTL support - pill shape on left side */
+[dir="rtl"] .input-group-append-overlay,
+[dir="rtl"] .search_button {
+    border-radius: 999px 0 0 999px !important;
+}
+
+/* Search button inner span */
+.input-group-append-overlay .input-group-text,
+.search_button .input-group-text {
+    border-radius: 0 999px 999px 0 !important;
+}
+
+/* RTL support for button inner span */
+[dir="rtl"] .input-group-append-overlay .input-group-text,
+[dir="rtl"] .search_button .input-group-text {
+    border-radius: 999px 0 0 999px !important;
+}
+
+/* Focus state - maintain pill shape */
+.search-bar-input:focus,
+.form-control.appended-form-control:focus,
+.search_form .form-control:focus {
+    border-radius: 999px !important;
+    outline: none !important;
+}
+
+/* Hover state - maintain pill shape */
+.search-bar-input:hover,
+.form-control.appended-form-control:hover,
+.search_form .form-control:hover {
+    border-radius: 999px !important;
+}
+
+/* Mobile search form - pill shape */
+@media screen and (max-width: 991px) {
+    .search-form-mobile {
+        border-radius: 999px !important;
+    }
+    
+    .search-form-mobile .search_form {
+        border-radius: 999px !important;
+    }
+    
+    .search-form-mobile .search_form .form-control {
+        border-radius: 999px !important;
+    }
+    
+    .search-form-mobile .d-flex {
+        border-radius: 999px !important;
+    }
+}
+
+/* Override Bootstrap defaults */
+.input-group-overlay .appended-form-control:not(.rounded-right-0) {
+    border-top-right-radius: 999px !important;
+    border-bottom-right-radius: 999px !important;
+}
+
+.input-group-overlay .appended-form-control:not(.rounded-left-0) {
+    border-top-left-radius: 999px !important;
+    border-bottom-left-radius: 999px !important;
+}
+
+/* Ensure no border-radius overrides from theme */
+.navbar .input-group-overlay input[type="search"] {
+    border-radius: 999px !important;
+}
+
+/* Search form input group - pill shape */
+.search-form-input-group .btn--primary {
+    border-radius: 0 999px 999px 0 !important;
+}
+
+[dir="rtl"] .search-form-input-group .btn--primary {
+    border-radius: 999px 0 0 999px !important;
+}
+
+/* Ensure wrapper maintains pill shape */
+.input-group-overlay {
+    border-radius: 999px !important;
+}
+
+/* Mobile search bar container */
+@media (max-width: 767px) {
+    .search-bar-input {
+        border-radius: 999px !important;
+    }
+}

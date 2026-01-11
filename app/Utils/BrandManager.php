@@ -79,6 +79,7 @@ class BrandManager
             }
         }
 
-        return $query->latest()->get();
+        // Default: order by position (drag-drop order from admin)
+        return $query->orderBy('position', 'asc')->get();
     }
 }

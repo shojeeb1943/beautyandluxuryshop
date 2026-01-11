@@ -1,0 +1,155 @@
+/* Product Card Title - 2 Line Display with Bold Font */
+
+/* Main product card titles - apply 2-line clamp and bold weight */
+.single-product-details h3,
+.single-product-details h3 a,
+.flash_deal_product_details a,
+.widget-product-title,
+.widget-product-title a,
+.widget-product-title .ptr,
+.featured_product-title .ptr,
+.flash-product-title,
+.flash-product-title a,
+.product-title,
+.product-title a,
+.product-title1,
+.product-title1 a {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    -webkit-line-clamp: 2 !important;
+    word-wrap: break-word !important;
+    white-space: normal !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    line-height: 1.4em !important;
+    max-height: 2.8em !important;
+}
+
+/* Remove single-line truncation */
+.single-product-details h3,
+.single-product-details h3 a,
+.widget-product-title,
+.widget-product-title a,
+.flash-product-title,
+.flash-product-title a {
+    white-space: normal !important;
+}
+
+/* Ensure proper spacing for 2-line titles */
+.single-product-details h3 {
+    margin-bottom: 0.5rem !important;
+}
+
+/* Flash deal product titles */
+.flash_deal_product_details a {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: normal !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    line-height: 1.4em !important;
+    max-height: 2.8em !important;
+}
+
+/* Override any existing single-line limits */
+.line--limit-1 {
+    -webkit-line-clamp: 2 !important;
+    max-height: 2.8em !important;
+}
+
+/* Product cards in sliders and grids */
+.product-single-hover h3,
+.product-single-hover h3 a {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: normal !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    line-height: 1.4em !important;
+}
+
+/* Category wise products */
+.style--category h3,
+.style--category h3 a {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: normal !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+}
+
+/* Featured products */
+.style--card h3,
+.style--card h3 a {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: normal !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+}
+
+/* Mobile responsive - maintain 2 lines */
+@media (max-width: 768px) {
+    .single-product-details h3,
+    .single-product-details h3 a,
+    .widget-product-title,
+    .widget-product-title a,
+    .flash-product-title,
+    .flash-product-title a,
+    .product-title,
+    .product-title a {
+        -webkit-line-clamp: 2 !important;
+        font-size: 14px !important;
+        line-height: 1.4em !important;
+        max-height: 2.8em !important;
+    }
+}
+
+/* Ensure no layout breaks in owl carousel sliders */
+.owl-carousel .single-product-details h3 {
+    max-height: 2.8em !important;
+}
+
+/* Product grid items */
+.product-card h3,
+.product-card h3 a,
+.__best-selling .ptr {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: normal !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    line-height: 1.4em !important;
+}
+
+/* Additional font-weight enforcement for all product titles */
+.single-product-details h3 a,
+.widget-product-title a,
+.flash-product-title a,
+.product-title a,
+h3.text-center a,
+h3.mb-1 a,
+.single-product-details h3,
+.product-single-hover h3,
+.style--category h3,
+.style--card h3 {
+    font-weight: 700 !important;
+    font-size: 15px !important;
+}

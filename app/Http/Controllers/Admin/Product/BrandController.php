@@ -39,7 +39,7 @@ class BrandController extends BaseController
     public function index(Request|null $request, string $type = null): View
     {
         $brands = $this->brandRepo->getListWhere(
-            orderBy: ['id' => 'desc'],
+            orderBy: ['position' => 'asc'],
             searchValue: $request->get('searchValue'),
             relations: ['storage'],
             dataLimit: getWebConfig(name: 'pagination_limit')
@@ -105,6 +105,23 @@ class BrandController extends BaseController
         updateSetupGuideCacheKey(key: 'brand_setup', panel: 'admin');
         ToastMagic::success(translate('brand_updated_successfully'));
         return redirect()->route('admin.brand.list');
+    }
+
+    public function updatePositions(Request $request): JsonResponse
+    {
+        $positions = $request->input('positions', []);
+        
+        foreach ($positions as $position) {
+            $this->brandRepo->update(
+                id: $position['id'],
+                data: ['position' => $position['position']]
+            );
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => translate('brand_positions_updated_successfully')
+        ]);
     }
 
     public function exportList(Request $request): BinaryFileResponse

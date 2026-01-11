@@ -281,6 +281,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['admin', '
             Route::post('delete', 'delete')->name('delete');
             Route::get('export', 'exportList')->name('export');
             Route::post('status-update', 'updateStatus')->name('status-update');
+            Route::post('update-positions', 'updatePositions')->name('update-positions');
         });
     });
 

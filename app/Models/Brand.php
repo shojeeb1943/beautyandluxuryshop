@@ -25,7 +25,8 @@ class Brand extends Model
         'image',
         'image_storage_type',
         'image_alt_text',
-        'status'
+        'status',
+        'position'
     ];
 
     protected $casts = [
@@ -34,6 +35,7 @@ class Brand extends Model
         'image_storage_type' => 'string',
         'image_alt_text' => 'string',
         'status' => 'integer',
+        'position' => 'integer',
         'brand_products_count' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',

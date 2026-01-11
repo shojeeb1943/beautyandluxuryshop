@@ -69,6 +69,9 @@
     </style>
 
     <link rel="stylesheet" href="{{theme_asset(path: 'public/assets/front-end/css/custom.css')}}">
+    <link rel="stylesheet" href="{{theme_asset(path: 'public/assets/front-end/css/product-title-2-line.css')}}">
+    <link rel="stylesheet" href="{{theme_asset(path: 'public/assets/front-end/css/mobile-hero-fix.css')}}">
+    <link rel="stylesheet" href="{{theme_asset(path: 'public/assets/front-end/css/search-bar-pill.css')}}">
 
     {!! getSystemDynamicPartials(type: 'analytics_script') !!}
 </head>

@@ -1,0 +1,87 @@
+/* Mobile Hero Section - Full Bleed Edge-to-Edge Fix */
+
+/* Remove all spacing around hero section on mobile */
+@media (max-width: 767px) {
+    /* Remove top gap from hero section */
+    .hero-slider {
+        margin-top: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-top: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    
+    /* Remove container padding for hero section parent */
+    section.bg-transparent {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Force container-fluid to have no padding */
+    section.bg-transparent .container-fluid {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Remove row gutters and margins */
+    section.bg-transparent .row {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Remove column padding */
+    section.bg-transparent .col-12 {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    
+    /* Ensure owl carousel wrapper has no padding/margin */
+    .hero-slider.owl-carousel {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* Remove any owl stage padding */
+    .hero-slider .owl-stage-outer {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Ensure images are full width */
+    .hero-slider .owl-item img {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+    }
+    
+    /* Remove any link padding */
+    .hero-slider a {
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Override any body/container default padding */
+    body {
+        padding-top: 0 !important;
+    }
+    
+    /* Remove safe area insets if present */
+    .hero-slider,
+    section.bg-transparent {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+}
+
+/* Remove the 3px padding-top from style.css on mobile */
+@media screen and (max-width: 992px) {
+    .hero-slider {
+        padding-top: 0 !important;
+    }
+}

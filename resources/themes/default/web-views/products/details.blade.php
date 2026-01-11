@@ -31,21 +31,17 @@
                                                         <div
                                                             class="product-preview-item d-flex align-items-center justify-content-center {{ $key==0?'active':''}}"
                                                             id="image{{ $photo['color'] }}">
-                                                            <img class="cz-image-zoom img-responsive w-100"
+                                                            <img class="img-responsive w-100"
                                                                  src="{{ getStorageImages(path: $photo['image_name'], type: 'product') }}"
-                                                                 data-zoom="{{ getStorageImages(path: $photo['image_name'], type: 'product')  }}"
                                                                  alt="{{ translate('product') }}" width="">
-                                                            <div class="cz-image-zoom-pane"></div>
                                                         </div>
                                                     @else
                                                         <div
                                                             class="product-preview-item d-flex align-items-center justify-content-center {{ $key==0?'active':''}}"
                                                             id="image{{ $key}}">
-                                                            <img class="cz-image-zoom img-responsive w-100"
+                                                            <img class="img-responsive w-100"
                                                                  src="{{ getStorageImages(path: $photo['image_name'], type: 'product') }}"
-                                                                 data-zoom="{{ getStorageImages(path: $photo['image_name'], type: 'product') }}"
                                                                  alt="{{ translate('product') }}" width="">
-                                                            <div class="cz-image-zoom-pane"></div>
                                                         </div>
                                                     @endif
                                                 @endforeach
@@ -54,11 +50,9 @@
                                                     <div
                                                         class="product-preview-item d-flex align-items-center justify-content-center {{ $key==0?'active':''}}"
                                                         id="image{{ $key}}">
-                                                        <img class="cz-image-zoom img-responsive w-100"
+                                                        <img class="img-responsive w-100"
                                                              src="{{ getStorageImages($photo, type: 'product') }}"
-                                                             data-zoom="{{ getStorageImages(path: $photo, type: 'product') }}"
                                                              alt="{{ translate('product') }}" width="">
-                                                        <div class="cz-image-zoom-pane"></div>
                                                     </div>
                                                 @endforeach
                                             @endif
@@ -247,6 +241,25 @@
                                                             </li>
                                                         @endforeach
                                                     </ul>
+                                                    
+                                                    {{-- Color Dropdown Selector --}}
+                                                    <div class="color-variant-dropdown" id="colorVariantDropdown">
+                                                        <div class="color-dropdown-trigger" id="colorDropdownTrigger">
+                                                            <div class="color-dropdown-dot" id="selectedColorDot" style="background: {{ json_decode($product->colors)[0] }};"></div>
+                                                            <span class="color-dropdown-text" id="selectedColorText">{{ getColorNameByCode(code: json_decode($product->colors)[0]) }}</span>
+                                                        </div>
+                                                        <div class="color-dropdown-list" id="colorDropdownList">
+                                                            @foreach (json_decode($product->colors) as $key => $color)
+                                                                <div class="color-dropdown-option {{ $key == 0 ? 'selected' : '' }}" 
+                                                                     data-color="{{ $color }}"
+                                                                     data-color-id="{{ str_replace(' ', '', ($product->id. '-color-'. str_replace('#','',$color))) }}"
+                                                                     data-color-name="{{ getColorNameByCode(code: $color) }}">
+                                                                    <div class="color-dropdown-dot" style="background: {{ $color }};"></div>
+                                                                    <span class="color-dropdown-text">{{ getColorNameByCode(code: $color) }}</span>
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         @endif

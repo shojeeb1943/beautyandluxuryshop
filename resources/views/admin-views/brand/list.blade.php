@@ -43,6 +43,7 @@
                             <table class="table table-hover table-borderless align-middle">
                                 <thead class="text-capitalize">
                                     <tr>
+                                        <th width="50">{{ translate('order') }}</th>
                                         <th>{{ translate('SL') }}</th>
                                         <th>{{ translate('brand_Logo') }}</th>
                                         <th class="max-width-100px">{{ translate('name') }}</th>
@@ -52,9 +53,12 @@
                                         <th class="text-center"> {{ translate('action') }}</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="brand-sortable-list">
                                     @foreach ($brands as $key => $brand)
-                                        <tr>
+                                        <tr data-brand-id="{{ $brand['id'] }}">
+                                            <td class="text-center cursor-move">
+                                                <i class="fi fi-rr-menu-burger text-muted" style="cursor: grab;"></i>
+                                            </td>
                                             <td>{{ $brands->firstItem() + $key }}</td>
                                             <td>
                                                 <div class="avatar-60 d-flex align-items-center rounded">
@@ -184,4 +188,61 @@
 
 @push('script')
     <script src="{{ dynamicAsset(path: 'public/assets/backend/admin/js/products/products-management.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Only enable sortable if not searching and on first page
+            const isSearching = '{{ request("searchValue") }}' !== '';
+            const currentPage = {{ $brands->currentPage() }};
+            
+            if (!isSearching && currentPage === 1) {
+                const el = document.getElementById('brand-sortable-list');
+                if (el) {
+                    const sortable = Sortable.create(el, {
+                        handle: '.cursor-move',
+                        animation: 150,
+                        ghostClass: 'bg-light',
+                        onEnd: function(evt) {
+                            // Collect new positions
+                            const positions = [];
+                            $('#brand-sortable-list tr').each(function(index) {
+                                const brandId = $(this).data('brand-id');
+                                positions.push({
+                                    id: brandId,
+                                    position: index + 1
+                                });
+                            });
+                            
+                            // Send AJAX request to update positions
+                            $.ajax({
+                                url: '{{ route("admin.brand.update-positions") }}',
+                                method: 'POST',
+                                data: {
+                                    _token: '{{ csrf_token() }}',
+                                    positions: positions
+                                },
+                                success: function(response) {
+                                    toastr.success('{{ translate("brand_order_updated_successfully") }}');
+                                },
+                                error: function(xhr) {
+                                    toastr.error('{{ translate("failed_to_update_brand_order") }}');
+                                    // Reload page to restore original order
+                                    location.reload();
+                                }
+                            });
+                        }
+                    });
+                }
+            } else if (isSearching || currentPage > 1) {
+                // Show info message that sorting is disabled during search/pagination
+                $('.table-responsive').prepend(
+                    '<div class="alert alert-info alert-dismissible fade show" role="alert">' +
+                    '<i class="fi fi-rr-info me-2"></i>' +
+                    '{{ translate("drag_and_drop_sorting_is_only_available_on_the_first_page_without_search_filters") }}' +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                    '</div>'
+                );
+            }
+        });
+    </script>
 @endpush

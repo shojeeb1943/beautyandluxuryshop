@@ -84,7 +84,7 @@ function _defineProperty(e, t, r) {
                 e.carousel(),
                 e.gallery(),
                 e.productGallery(),
-                e.imageZoom(),
+                // e.imageZoom(), // Disabled: Product image zoom feature
                 e.videoPopupBtn(),
                 e.ajaxifySubscribeForm(),
                 e.rangeSlider(),

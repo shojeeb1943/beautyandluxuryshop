@@ -472,9 +472,9 @@
                                         </button>
 
                                         @if(!empty($product->code))
-                                            <div class="mt-3">
-                                                <span class="text-muted">Product Barcode: </span>
-                                                <span class="fw-semibold">{{ $product->code }}</span>
+                                            <div class="mt-3 product-barcode-section">
+                                                <span class="text-muted">Barcode: </span>
+                                                <span class="fw-semibold product-barcode-value">{{ $product->code }}</span>
                                             </div>
                                         @endif
 

@@ -21,6 +21,12 @@
                 </th>
                 <th class="text-center">
                     <label for="" class="control-label">
+                        {{ translate('Discount') }}
+                        ({{ getCurrencySymbol() }})
+                    </label>
+                </th>
+                <th class="text-center">
+                    <label for="" class="control-label">
                         {{ translate('SKU') }}
                     </label>
                 </th>
@@ -54,6 +60,12 @@
                                value="{{ $combination['price'] }}" min="0"
                                step="0.01"
                                class="form-control w-max-content" required placeholder="{{ translate('ex').': 100'}}">
+                    </td>
+                    <td>
+                        <input type="number" name="discount_{{ $fieldName }}"
+                               value="{{ $combination['discount'] ?? 0 }}" min="0"
+                               step="0.01"
+                               class="form-control w-max-content" placeholder="{{ translate('ex').': 10'}}">
                     </td>
                     <td>
                         <input type="text" name="sku_{{ $fieldName }}" value="{{ $combination['sku'] }}"

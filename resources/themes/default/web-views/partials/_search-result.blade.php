@@ -3,6 +3,10 @@
         <li class="list-group-item px-0 overflow-hidden">
             <button type="submit" class="search-result-product btn p-0 m-0 search-result-product-button align-items-baseline text-start" data-product-name="{{ $product['name'] }}">
                 <span><i class="czi-search"></i></span>
+                <img src="{{ getStorageImages(path: $product->thumbnail_full_url, type: 'product') }}"
+                     alt="{{ $product['name'] }}"
+                     class="search-result-product-thumb"
+                     onerror="this.src='{{ asset('public/assets/front-end/img/image-place-holder.png') }}'">
                 <div class="text-truncate">{{$product['name']}}</div>
                 <span class="px-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up-left" viewBox="0 0 16 16">

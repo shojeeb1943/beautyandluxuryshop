@@ -53,6 +53,7 @@ class CartController extends Controller
         $update_tax = 0;
         $discountedUnitPrice = 0;
         $color_name = '';
+        $sku = '';
         $requestQuantity = $request['quantity'];
         $product = Product::with(['digitalVariation', 'clearanceSale' => function ($query) {
             return $query->active();
@@ -93,13 +94,23 @@ class CartController extends Controller
             $count = count(json_decode($product->variation));
             for ($i = 0; $i < $count; $i++) {
                 if (json_decode($product->variation)[$i]->type == $string) {
-                    $tax = $product->tax_model == 'exclude' ? Helpers::tax_calculation(product: $product, price: json_decode($product->variation)[$i]->price, tax: $product['tax'], tax_type: $product['tax_type']) : 0;
+                    $variation = json_decode($product->variation)[$i];
+                    $variationPrice = $variation->price;
+
+                    // Use variation-specific discount if available, otherwise use product discount
+                    if (isset($variation->discount) && $variation->discount > 0) {
+                        $discount = $variation->discount;
+                    } else {
+                        $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $variationPrice);
+                    }
+
+                    $tax = $product->tax_model == 'exclude' ? Helpers::tax_calculation(product: $product, price: $variationPrice, tax: $product['tax'], tax_type: $product['tax_type']) : 0;
                     $update_tax = $tax * $requestQuantity;
-                    $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: json_decode($product->variation)[$i]->price);
-                    $price = json_decode($product->variation)[$i]->price - $discount + $tax;
-                    $discountedUnitPrice = json_decode($product->variation)[$i]->price - $discount;
-                    $unit_price = json_decode($product->variation)[$i]->price;
-                    $quantity = json_decode($product->variation)[$i]->qty;
+                    $price = $variationPrice - $discount + $tax;
+                    $discountedUnitPrice = $variationPrice - $discount;
+                    $unit_price = $variationPrice;
+                    $quantity = $variation->qty;
+                    $sku = $variation->sku ?? '';
                 }
             }
         } else {
@@ -110,6 +121,7 @@ class CartController extends Controller
             $discountedUnitPrice = $product->unit_price - $discount;
             $unit_price = $product->unit_price;
             $quantity = $product->current_stock;
+            $sku = $product->code ?? '';
         }
 
         $digitalVariation = DigitalProductVariation::where(['product_id' => $product['id'], 'variant_key' => $request['variant_key']])->first();
@@ -168,6 +180,7 @@ class CartController extends Controller
             'discounted_unit_price' => webCurrencyConverter($discountedUnitPrice), //fashion theme
             'color_name' => $color_name,
             'stock_limit' => $stock_limit,
+            'sku' => $sku,
 
             'in_cart_status' => $inCartExistStatus,
             'in_cart_quantity' => $requestQuantity,

@@ -2027,6 +2027,14 @@ function updateProductDetailsTopSection(formSelector, response) {
         .find(".product-details-cart-qty")
         .attr("max", response?.quantity);
 
+    // Update SKU/Barcode when variation changes
+    if (response?.sku) {
+        $('.product-barcode-value').text(response.sku);
+        $('.product-barcode-section').show();
+    } else {
+        $('.product-barcode-section').hide();
+    }
+
     if (response?.product_type?.toString() === "physical") {
         let productRestockRequestButton = $(formSelector).find(
             ".product-restock-request-button"

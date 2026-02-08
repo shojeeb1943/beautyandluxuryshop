@@ -404,6 +404,7 @@ class ProductService
                 $item = [];
                 $item['type'] = $str;
                 $item['price'] = currencyConverter(abs($request['price_' . $fieldName]));
+                $item['discount'] = $request->has('discount_' . $fieldName) ? abs($request['discount_' . $fieldName]) : 0;
                 $item['sku'] = $request['sku_' . $fieldName];
                 $item['qty'] = abs($request['qty_' . $fieldName]);
                 $variations[] = $item;

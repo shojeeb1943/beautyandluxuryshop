@@ -98,11 +98,11 @@
                         </a>
 
                         <div class="footer-description mt-3">
-                            <p class="mb-1">Makeup And Perfume Shop 🇧🇩</p>
-                            <p class="mb-1">Distributor Of Luxury Brands</p>
-                            <p class="mb-1">Imported From Italy 🇮🇹</p>
-                            <p class="mb-0">Always Discount</p>
-                        </div>
+    <p class="mb-0">
+        Discover Beauty & Luxury Shop — your trusted destination in Bangladesh for 100% authentic beauty, skincare, makeup, and luxury fragrance products. We bring you a world of premium beauty, offering only genuine, brand-authorized items sourced directly from reputable distributors and global suppliers.
+    </p>
+</div>
+
 
                         @if((isset($web_config['ios']['status']) && $web_config['ios']['status']) || (isset($web_config['android']['status']) &&  $web_config['android']['status']))
                             <div class="mt-4 pt-lg-4">

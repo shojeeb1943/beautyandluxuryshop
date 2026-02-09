@@ -14,6 +14,7 @@
 .env
 .env.backup
 .claude
+.htaccess
 Homestead.json
 Homestead.yaml
 .phpunit.result.cache

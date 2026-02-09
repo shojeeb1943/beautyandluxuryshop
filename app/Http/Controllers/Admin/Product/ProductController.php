@@ -644,6 +644,7 @@ class ProductController extends BaseController
                 $item['discount'] = $request->has('discount_' . str_replace('.', '_', $str)) ? abs($request['discount_' . str_replace('.', '_', $str)]) : 0;
                 $item['sku'] = $request['sku_' . str_replace('.', '_', $str)];
                 $item['qty'] = abs($request['qty_' . str_replace('.', '_', $str)]);
+                $item['sort_order'] = $request->has('sort_order_' . str_replace('.', '_', $str)) ? abs($request['sort_order_' . str_replace('.', '_', $str)]) : 999;
                 $variations[] = $item;
             }
         }

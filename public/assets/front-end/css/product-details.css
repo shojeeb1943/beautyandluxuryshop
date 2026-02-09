@@ -29,7 +29,7 @@ thead {
     margin-top: 0;
     margin-left: 0;
     max-height: 100% !important;
-    background: white;
+    background: transparent;
     border-radius: 10px;
 }
 
@@ -43,7 +43,7 @@ thead {
 .cz-preview-item.active {
     border: 1px solid #e2f0ff;
     border-radius: 3px;
-    padding: 2%;
+    padding: 0;
 }
 
 .cz-preview-item > img {

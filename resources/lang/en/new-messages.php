@@ -3436,4 +3436,5 @@ return [
 	"last_name_is_required" => "Last name is required",
 	"title_is_required" => "Title is required",
 	"slug_must_be_unique" => "Slug must be unique",
+	"Sort_Order" => "Sort Order",
 ];

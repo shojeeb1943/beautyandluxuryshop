@@ -306,29 +306,46 @@
                         </li>
                     </ul>
 
-                    <ul class="navbar-nav">
-                        <li class="nav-item dropdown d-none d-md-block {{request()->is('/')?'active':''}}">
+                    <ul class="navbar-nav mega-menu-nav">
+                        <li class="nav-item d-none d-md-block {{request()->is('/')?'active':''}}">
                             <a class="nav-link" href="{{route('home')}}">{{ translate('home')}}</a>
                         </li>
 
-                        @php($topCategories = \App\Utils\CategoryManager::getCategoriesWithCountingAndPriorityWiseSorting(dataLimit: 5))
-                        @foreach($topCategories as $topCategory)
-                            <li class="nav-item dropdown d-none d-md-block">
-                                <a class="nav-link {{$topCategory->childes->count() > 0 ? 'dropdown-toggle' : ''}}" 
-                                   href="{{route('products',['category_id'=> $topCategory['id'],'data_from'=>'category','page'=>1])}}" 
-                                   {{$topCategory->childes->count() > 0 ? 'data-toggle=dropdown' : ''}}>
-                                    {{ $topCategory['name'] }}
+                        @php($categories = \App\Utils\CategoryManager::parents())
+                        @foreach($categories as $category)
+                            <li class="nav-item {{ count($category->childes) > 0 ? 'has-mega-menu' : '' }} d-none d-md-block">
+                                <a class="nav-link" href="{{route('products',['id'=> $category['id'],'data_from'=>'category','page'=>1])}}">
+                                    {{ $category['name'] }}
                                 </a>
-                                @if($topCategory->childes->count() > 0)
-                                    <ul class="dropdown-menu text-align-direction">
-                                        @foreach($topCategory->childes as $subCategory)
-                                            <li>
-                                                <a class="dropdown-item" href="{{route('products',['sub_category_id'=> $subCategory['id'],'data_from'=>'category','page'=>1])}}">
-                                                    {{$subCategory['name']}}
-                                                </a>
-                                            </li>
-                                        @endforeach
-                                    </ul>
+
+                                @if(count($category->childes) > 0)
+                                    <div class="mega-menu-panel">
+                                        <div class="container">
+                                            <div class="row">
+                                                @foreach($category->childes as $subCategory)
+                                                    <div class="col-lg-3 col-md-4 col-sm-6 mega-menu-column">
+                                                        <h6 class="mega-menu-title">
+                                                            <a href="{{route('products',['id'=> $subCategory['id'],'data_from'=>'category','page'=>1])}}">
+                                                                {{ $subCategory['name'] }}
+                                                            </a>
+                                                        </h6>
+
+                                                        @if(count($subCategory->childes) > 0)
+                                                            <ul class="mega-menu-links">
+                                                                @foreach($subCategory->childes as $subSubCategory)
+                                                                    <li>
+                                                                        <a href="{{route('products',['id'=> $subSubCategory['id'],'data_from'=>'category','page'=>1])}}">
+                                                                            {{ $subSubCategory['name'] }}
+                                                                        </a>
+                                                                    </li>
+                                                                @endforeach
+                                                            </ul>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
                                 @endif
                             </li>
                         @endforeach
@@ -562,47 +579,6 @@
             </div>
         </div>
 
-        <div class="megamenu-wrap">
-            <div class="container">
-                <div class="category-menu-wrap">
-                    <ul class="category-menu">
-                        @foreach ($categories as $key=>$category)
-                            <li>
-                                <a href="{{route('products',['category_id'=> $category['id'],'data_from'=>'category','page'=>1])}}">
-                                    <span class="d-flex gap-10px justify-content-start align-items-center">
-                                        <img class="aspect-1 rounded-circle" width="20" src="{{ getStorageImages(path: $category?->icon_full_url, type: 'category') }}" alt="{{ $category['name'] }}">
-                                        <span class="line--limit-2">{{ $category->name }}</span>
-                                    </span>
-                                </a>
-                                @if ($category->childes->count() > 0)
-                                    <div class="mega_menu z-2">
-                                        @foreach ($category->childes as $sub_category)
-                                            <div class="mega_menu_inner">
-                                                <h6>
-                                                    <a href="{{route('products',['sub_category_id'=> $sub_category['id'],'data_from'=>'category','page'=>1])}}">{{$sub_category->name}}</a>
-                                                </h6>
-                                                @if ($sub_category->childes->count() >0)
-                                                    @foreach ($sub_category->childes as $sub_sub_category)
-                                                        <div>
-                                                            <a href="{{route('products',['sub_sub_category_id'=> $sub_sub_category['id'],'data_from'=>'category','page'=>1])}}">{{$sub_sub_category->name}}</a>
-                                                        </div>
-                                                    @endforeach
-                                                @endif
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @endif
-                            </li>
-                        @endforeach
-                        <li class="text-center">
-                            <a href="{{route('categories')}}" class="text-primary font-weight-bold justify-content-center">
-                                {{ translate('View_All') }}
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
     </div>
 </header>
 

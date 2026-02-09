@@ -235,12 +235,33 @@ if (!function_exists('setCurrencySymbol')) {
     {
         $decimalPointSettings = getWebConfig('decimal_point_settings');
         $position = getWebConfig('currency_symbol_position');
+
+        // Smart decimal formatting: show decimals only if they exist
+        $formattedAmount = formatPriceWithSmartDecimals($amount, $decimalPointSettings);
+
         if ($position === 'left') {
-            $string = getCurrencySymbol(currencyCode: $currencyCode, type: $type) . '' . number_format($amount, (!empty($decimalPointSettings) ? $decimalPointSettings : 0));
+            $string = getCurrencySymbol(currencyCode: $currencyCode, type: $type) . '' . $formattedAmount;
         } else {
-            $string = number_format($amount, !empty($decimalPointSettings) ? $decimalPointSettings : 0) . '' . getCurrencySymbol(currencyCode: $currencyCode, type: $type);
+            $string = $formattedAmount . '' . getCurrencySymbol(currencyCode: $currencyCode, type: $type);
         }
         return $string;
+    }
+}
+
+if (!function_exists('formatPriceWithSmartDecimals')) {
+    /**
+     * Format price - always rounds to nearest whole number, no decimals
+     * Example: 17625.00 → 17,625 | 99.50 → 100 | 17625.45 → 17,625
+     *
+     * @param string|int|float $amount
+     * @param int|null $maxDecimals (ignored - always rounds to whole number)
+     * @return string
+     */
+    function formatPriceWithSmartDecimals(string|int|float $amount, ?int $maxDecimals = 2): string
+    {
+        // Always round to nearest whole number - no decimals
+        $rounded = round((float)$amount);
+        return number_format($rounded, 0);
     }
 }
 
@@ -276,13 +297,13 @@ if (!function_exists('getFormatCurrency')) {
         foreach ($suffixes as $suffix => $factor) {
             if ($amount >= $factor) {
                 $div = $amount / $factor;
-                $formattedValue = number_format($div, 1) . $suffix;
+                $formattedValue = formatPriceWithSmartDecimals($div, 1) . $suffix;
                 break;
             }
         }
 
         if (!isset($formattedValue)) {
-            $formattedValue = number_format($amount, 2);
+            $formattedValue = formatPriceWithSmartDecimals($amount, 2);
         }
 
         return $formattedValue;

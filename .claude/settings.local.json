@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(php artisan tinker:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(php artisan:*)",
+      "Bash(php artisan config:clear:*)",
+      "Bash(php artisan cache:clear:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)"
     ]
   }
 }

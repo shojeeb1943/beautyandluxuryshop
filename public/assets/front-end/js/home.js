@@ -261,7 +261,7 @@ $(document).ready(function () {
     $(".hero-slider").owlCarousel({
         loop: isLoopHeroSlider,
         autoplay: isLoopHeroSlider,
-        margin: 20,
+        margin: 0,
         nav: isLoopHeroSlider,
         navText:
             directionFromSession === "rtl"

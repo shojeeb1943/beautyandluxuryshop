@@ -313,5 +313,8 @@
 
 @stack('script')
 
+{{-- Mega Menu Navigation Script --}}
+<script src="{{ theme_asset(path: 'public/assets/front-end/js/mega-menu.js') }}"></script>
+
 </body>
 </html>

@@ -10,6 +10,11 @@
                 </th>
                 <th class="text-center">
                     <label for="" class="control-label">
+                        {{ translate('Sort_Order') }}
+                    </label>
+                </th>
+                <th class="text-center">
+                    <label for="" class="control-label">
                         {{ translate('attribute_Variation') }}
                     </label>
                 </th>
@@ -50,6 +55,12 @@
                 <tr>
                     <td class="text-center">
                         {{ $serial++ }}
+                    </td>
+                    <td>
+                        <input type="number" name="sort_order_{{ $fieldName }}"
+                               value="{{ $combination['sort_order'] ?? $serial }}" min="1"
+                               step="1"
+                               class="form-control w-max-content text-center" style="width: 70px;" placeholder="{{ $serial }}">
                     </td>
                     <td>
                         <label for="" class="control-label">{{ $combination['type'] }}</label>

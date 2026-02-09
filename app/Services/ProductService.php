@@ -407,6 +407,7 @@ class ProductService
                 $item['discount'] = $request->has('discount_' . $fieldName) ? abs($request['discount_' . $fieldName]) : 0;
                 $item['sku'] = $request['sku_' . $fieldName];
                 $item['qty'] = abs($request['qty_' . $fieldName]);
+                $item['sort_order'] = $request->has('sort_order_' . $fieldName) ? abs($request['sort_order_' . $fieldName]) : 999;
                 $variations[] = $item;
             }
         }

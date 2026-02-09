@@ -2,7 +2,213 @@
 
 :root {
     --input-placeholder-color: #222;
+
+    /* Global Price Color Variables */
+    --price-sale: #d1034a;
+    --price-old: #9B9B9B;
 }
+
+/* ============================================
+   GLOBAL PRICE STYLING SYSTEM
+   Root-level implementation for consistent pricing
+   across all pages and components
+   ============================================ */
+
+/* OLD PRICE - strikethrough, smaller, gray (#9B9B9B)
+   Uses del.category-single-product-price across all product templates */
+body del.category-single-product-price,
+body .product-price del,
+body h4.product-price del,
+body h5.product-price del,
+body .flash_deal_product del,
+body .product-single-hover del,
+body .inline_product del,
+body .single-product-details del,
+body .flash_deal_product_details del,
+body .feature-product del,
+body .best-selling del,
+body .deal_of_the_day del,
+body .style--card del,
+body .style--category del,
+body .owl-carousel del,
+body .owl-item del {
+    color: #9B9B9B !important;
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    text-decoration: line-through !important;
+}
+
+/* NEW/DISCOUNTED PRICE - bold, red (#d1034a)
+   Override .text-dark which has !important in theme.css */
+
+/* NUCLEAR OPTION - Override text-dark in ALL price contexts */
+html body .product-price span.text-dark,
+html body .product-price span.text-accent,
+html body span.text-accent.text-dark,
+html body h4.product-price span.text-dark,
+html body h4.product-price span.text-accent,
+html body h4.product-price span.text-accent.text-dark,
+html body h5.product-price span.text-dark,
+html body h5.product-price span.text-accent,
+html body h5.product-price span.text-accent.text-dark,
+html body .single-product-details span.text-dark,
+html body .single-product-details span.text-accent,
+html body .product-single-hover span.text-dark,
+html body .product-single-hover span.text-accent,
+html body .style--category span.text-dark,
+html body .style--category span.text-accent,
+html body .style--card span.text-dark,
+html body .style--card span.text-accent,
+html body .style--card .product-price span,
+html body .feature-product span.text-dark,
+html body .feature-product span.text-accent,
+html body #featured_products_list span.text-dark,
+html body #featured_products_list span.text-accent,
+html body .new-arrivals-product span.text-dark,
+html body .new-arrivals-product span.text-accent,
+html body .category-wise-product-slider span.text-dark,
+html body .category-wise-product-slider span.text-accent,
+html body .flash-deal-slider span.text-dark,
+html body .flash-deal-slider span.text-accent,
+html body .owl-carousel span.text-dark,
+html body .owl-carousel span.text-accent,
+html body .owl-carousel .product-price span.text-dark,
+html body .owl-carousel .product-price span.text-accent,
+html body .owl-item span.text-dark,
+html body .owl-item span.text-accent,
+html body .inline_product span.text-dark,
+html body .inline_product span.text-accent {
+    color: #d1034a !important;
+    font-weight: 800 !important;
+    font-size: 16px !important;
+}
+
+/* Flash product price - used in product cards and flash deals */
+body span.flash-product-price,
+body span.flash-product-price.text-dark,
+body span.flash-product-price.fw-semibold,
+body .flash_deal_product .flash-product-price,
+body .flash_deal_product_details .flash-product-price,
+body .flash-deals-product .flash-product-price,
+body .__inline-59 .flash-product-price,
+body .__inline-61 .flash-product-price {
+    color: #d1034a !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+}
+
+/* Product details page - larger font size (28px) */
+body .product-details .text-accent,
+body .product-details h3.text-accent,
+body h3.font-weight-normal.text-accent,
+body .product-details-content .text-accent,
+body .product__description .text-accent,
+body #chosen_price_div .text-accent,
+body .product-details-sticky .text-accent,
+body .product-bottom-section-price,
+body span.discounted-unit-price,
+body .discounted-unit-price {
+    color: #d1034a !important;
+    font-weight: 700 !important;
+    font-size: 28px !important;
+}
+
+/* Product details - old price override */
+body del.product-total-unit-price,
+body .product-total-unit-price {
+    color: #9B9B9B !important;
+    font-size: 16px !important;
+    font-weight: 400 !important;
+    text-decoration: line-through !important;
+}
+
+/* Quick view modal */
+body .modal-quick-view .text-accent,
+body .modal-quick-view h3.text-accent,
+body #quick-view .text-accent,
+body #quick-view-modal .text-accent,
+body .modal .product-price .text-accent {
+    color: #d1034a !important;
+    font-weight: 700 !important;
+    font-size: 22px !important;
+}
+
+/* Feature product section */
+body .feature-product .product-price span:not(del),
+body #featured_products_list .product-price span:not(del),
+body .new-arrivals-product .product-price span:not(del) {
+    color: #d1034a !important;
+    font-weight: 700 !important;
+}
+
+/* Category page products */
+body .product-single-hover .product-price span:not(del),
+body .style--category .product-price span:not(del) {
+    color: #d1034a !important;
+    font-weight: 700 !important;
+}
+
+/* Deal of the day */
+body .deal-of-the-day .text-accent,
+body .deal_of_the_day .text-accent,
+body .featured_deal .text-accent {
+    color: #d1034a !important;
+    font-weight: 700 !important;
+}
+
+/* Best selling products */
+body .best-selleing-product .text-accent,
+body .best-selling .text-accent,
+body .top-rated .text-accent {
+    color: #d1034a !important;
+    font-weight: 700 !important;
+}
+
+/* Wishlist page */
+body .wishlist .flash-product-price,
+body .wishlist-section .flash-product-price,
+body .wish-list .flash-product-price {
+    color: #d1034a !important;
+    font-weight: 700 !important;
+}
+
+/* Cart page prices */
+body .cart-item .text-accent,
+body .cart_item .text-accent,
+body .cart-product .text-accent {
+    color: #d1034a !important;
+    font-weight: 700 !important;
+}
+
+/* Seller products on product details */
+body .seller-products .flash-product-price,
+body .more-from-store .flash-product-price {
+    color: #d1034a !important;
+    font-weight: 700 !important;
+}
+
+/* Filter/search results products */
+body .filter-product .product-price span:not(del),
+body .search-product .product-price span:not(del) {
+    color: #d1034a !important;
+    font-weight: 700 !important;
+}
+
+/* Dark theme support */
+body[theme="dark"] del.category-single-product-price,
+body[theme="dark"] .product-price del {
+    color: #888 !important;
+}
+
+body[theme="dark"] .flash-product-price,
+body[theme="dark"] .text-accent,
+body[theme="dark"] .product-price span:not(del) {
+    color: #d1034a !important;
+}
+
+/* ============================================
+   END GLOBAL PRICE STYLING SYSTEM
+   ============================================ */
 
 /* Header layout tweaks: bigger logo, smaller search bar (desktop) */
 @media (min-width: 768px) {
@@ -25,17 +231,7 @@
     }
 }
 
-/* Main navbar menu items (desktop + mobile categories): bolder & larger */
-.navbar-stuck-menu .navbar-nav .nav-link {
-    font-weight: 700 !important;
-    font-size: 18px !important;
-}
-
-/* Main navbar menu items: bolder & larger */
-.navbar.navbar-light .navbar-nav .nav-link {
-    font-weight: 700 !important;
-    font-size: 18px !important;
-}
+/* Main navbar menu items - removed, styles are now in mega menu section */
 
 /* Mobile search bar: better contrast and visibility */
 @media (max-width: 991px) {
@@ -632,23 +828,10 @@ a:hover {
     font-weight: 700 !important;
 }
 
-.product-cart-option-container .discounted-unit-price {
-    font-weight: 700 !important;
-    color: #d1034a !important;
-    font-size: calc(1em + 1px) !important;
-}
-
 /* PRODUCT CARDS */
 .flash-product-title,
 .widget-product-title {
     font-weight: 700 !important;
-}
-
-.flash-product-price,
-.product-price .text-accent {
-    font-weight: 700 !important;
-    color: #d1034a !important;
-    font-size: calc(1em + 1px) !important;
 }
 
 .navbar-tool-icon-box.bg-secondary {
@@ -1199,11 +1382,6 @@ span.badge-accent:hover {
     left: -7px;
 }
 
-.category-single-product-price {
-    font-size: 12px !important;
-    color: #d1034a !important;
-}
-
 .modal-quick-view .product-title2 {
     font-family: "Roboto", sans-serif !important;
     font-weight: 400 !important;
@@ -1634,18 +1812,6 @@ figure {
     line-height: 16px;
 }
 
-.customer-profile-wishlist .price-range,
-.customer-profile-wishlist .price-range .fs-16 {
-    font-size: 13px;
-}
-
-.customer-profile-wishlist .price-range del {
-    font-size: 14px;
-}
-
-.customer-profile-wishlist .price-range .discounted-unit-price {
-    font-size: 15px;
-}
 
 .customer-profile-orders .status-badge {
     height: 25px;
@@ -1810,7 +1976,7 @@ figure {
     align-items: center !important;
 }
 
-.search-result-product-button > * {
+.search-result-product-button>* {
     display: flex;
     align-items: center;
 }
@@ -2909,99 +3075,7 @@ body {
     border-color: #CC6AE7 !important;
 }
 
-/* ========================================
-   GLOBAL PRICE COLOR OVERRIDE - #d1034a
-   ======================================== */
 
-/* Product prices - all contexts */
-.discounted-unit-price,
-.product-total-unit-price,
-.flash-product-price,
-.product-price .text-accent,
-.product-price .text-accent.text-dark,
-.product-price .text-dark,
-.product-price,
-.price,
-.__price,
-.unit-price,
-.product-unit-price,
-.cart-total-price,
-.text-accent.text-dark,
-span.text-accent.text-dark,
-h4.product-price .text-accent,
-h4.product-price .text-dark,
-h4.product-price span {
-    color: #d1034a !important;
-    font-weight: 700 !important;
-    font-size: calc(1em + 0px) !important;
-}
-
-/* Single product page prices */
-.product-cart-option-container .discounted-unit-price,
-.product-details .discounted-unit-price,
-.product-details .product-price,
-.details .discounted-unit-price,
-.details .product-price {
-    color: #d1034a !important;
-    font-weight: 700 !important;
-    font-size: calc(1em + 2px) !important;
-}
-
-/* Category and listing page prices */
-.category-single-product-price,
-.widget-product-title+div,
-.flash-product-price,
-.product-card .price,
-.product-card__price {
-    color: #d1034a !important;
-    font-weight: 700 !important;
-    font-size: calc(1em + 1px) !important;
-}
-
-/* Cart and checkout prices */
-.cart-total-price,
-.cart-item-price,
-.checkout-price,
-.order-price,
-.cart_value {
-    color: #d1034a !important;
-    font-weight: 700 !important;
-    font-size: calc(1em + 0px) !important;
-}
-
-/* Wishlist prices */
-.customer-profile-wishlist .price-range,
-.customer-profile-wishlist .discounted-unit-price,
-.customer-profile-wishlist .fs-16 {
-    color: #d1034a !important;
-    font-weight: 700 !important;
-    font-size: calc(1em + 0px) !important;
-}
-
-/* Modal quick view prices */
-.modal-quick-view .discounted-unit-price,
-.modal-quick-view .product-price,
-.modal-quick-view .price {
-    color: #d1034a !important;
-    font-weight: 700 !important;
-    font-size: calc(1em + 2px) !important;
-}
-
-/* Price ranges */
-.price-range .discounted-unit-price,
-.price-range .text-accent,
-.price-range .fs-16 {
-    color: #d1034a !important;
-    font-weight: 700 !important;
-    font-size: calc(1em + 0px) !important;
-}
-
-/* Override Bootstrap text-dark class on prices */
-.single-product-details .text-dark,
-.product-single-hover .text-dark {
-    color: #d1034a !important;
-    font-weight: 700 !important;
-}
 /* Search result product thumbnail */
 .search-result-product-thumb {
     width: 25px;
@@ -3018,4 +3092,421 @@ h4.product-price span {
     align-items: center;
     justify-content: center;
     overflow: hidden;
+}
+
+/* Remove gap between header and hero slider */
+body>.row:has(.loading-parent) {
+    margin: 0 !important;
+}
+
+.__inline-61 {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+section.bg-transparent {
+    margin-top: 0 !important;
+}
+
+/* ============================================
+   MEGA MENU NAVIGATION - PROFESSIONAL STYLE
+   Inspired by greta.shop
+   ============================================ */
+
+/* CRITICAL: Allow mega menu to escape parent containers */
+.navbar-stuck-menu,
+.navbar-stuck-menu>.container,
+.navbar-stuck-menu .navbar-collapse,
+.navbar-stuck-menu .mega-menu-nav {
+    overflow: visible !important;
+}
+
+/* Override default navbar font sizes */
+.navbar-stuck-menu .navbar-nav .nav-link {
+    font-weight: 500 !important;
+    font-size: 13px !important;
+    white-space: nowrap !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+    padding: 1rem 0.75rem !important;
+    position: relative !important;
+}
+
+.navbar.navbar-light .navbar-nav .nav-link {
+    font-weight: 500 !important;
+    font-size: 13px !important;
+    white-space: nowrap !important;
+}
+
+/* Desktop Navigation Bar */
+.mega-menu-nav {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex-wrap: nowrap !important;
+    position: static !important;
+    gap: 0 !important;
+}
+
+.mega-menu-nav .nav-item {
+    position: static !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+}
+
+.mega-menu-nav .nav-item.has-mega-menu {
+    position: static !important;
+}
+
+.mega-menu-nav .nav-link {
+    color: #fff !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    text-transform: uppercase !important;
+    padding: 1rem 0.75rem !important;
+    display: inline-block !important;
+    transition: all 0.3s ease !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+    letter-spacing: 0.8px !important;
+    position: relative !important;
+}
+
+/* Underline effect on hover for nav items */
+.mega-menu-nav .nav-link::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: 0.5rem !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 0 !important;
+    height: 2px !important;
+    background: var(--web-primary, #CC6AE7) !important;
+    transition: width 0.3s ease !important;
+}
+
+.mega-menu-nav .nav-link:hover::after,
+.mega-menu-nav .nav-item.has-mega-menu:hover .nav-link::after {
+    width: 80% !important;
+}
+
+.mega-menu-nav .nav-link:hover {
+    color: #fff !important;
+}
+
+/* Dropdown toggle button styling */
+.mega-menu-nav .dropdown .btn.dropdown-toggle {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    text-transform: uppercase !important;
+    padding: 1rem 0.75rem !important;
+    white-space: nowrap !important;
+    letter-spacing: 0.8px !important;
+}
+
+/* ============================================
+   MEGA MENU DROPDOWN PANEL
+   ============================================ */
+.mega-menu-panel {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transform: translateY(-10px) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    z-index: 99999 !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+    border-top: 3px solid var(--web-primary, #CC6AE7) !important;
+}
+
+/* Show mega menu on hover */
+.nav-item.has-mega-menu:hover>.mega-menu-panel {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transform: translateY(0) !important;
+}
+
+.mega-menu-panel:hover {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transform: translateY(0) !important;
+}
+
+/* Inner container for mega menu content */
+.mega-menu-panel>.container {
+    padding: 2.5rem 2rem !important;
+}
+
+.mega-menu-panel>.container>.row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0 !important;
+}
+
+/* ============================================
+   MEGA MENU COLUMNS
+   ============================================ */
+.mega-menu-column {
+    padding: 0 1.5rem !important;
+    margin-bottom: 0 !important;
+    min-width: 180px !important;
+    border-right: 1px solid #f0f0f0 !important;
+}
+
+.mega-menu-column:last-child {
+    border-right: none !important;
+}
+
+/* Category Title (Subcategory heading) */
+.mega-menu-title {
+    color: #1a1a1a !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    margin-bottom: 1.25rem !important;
+    padding-bottom: 0.75rem !important;
+    border-bottom: 2px solid #1a1a1a !important;
+    letter-spacing: 1px !important;
+    white-space: nowrap !important;
+    display: block !important;
+}
+
+.mega-menu-title a {
+    color: #1a1a1a !important;
+    text-decoration: none !important;
+    transition: color 0.25s ease !important;
+    display: block !important;
+    white-space: nowrap !important;
+}
+
+.mega-menu-title a:hover {
+    color: var(--web-primary, #CC6AE7) !important;
+}
+
+/* ============================================
+   MEGA MENU LINKS (Sub-subcategories)
+   ============================================ */
+.mega-menu-links {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.mega-menu-links li {
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+}
+
+.mega-menu-links a {
+    color: #555555 !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    text-decoration: none !important;
+    display: block !important;
+    padding: 0.5rem 0 !important;
+    white-space: nowrap !important;
+    transition: all 0.25s ease !important;
+    position: relative !important;
+    line-height: 1.5 !important;
+}
+
+/* Hover effect - color change + subtle indent */
+.mega-menu-links a:hover {
+    color: #1a1a1a !important;
+    padding-left: 8px !important;
+}
+
+/* Alternative: Underline on hover */
+.mega-menu-links a::before {
+    content: '' !important;
+    position: absolute !important;
+    left: 0 !important;
+    bottom: 0.4rem !important;
+    width: 0 !important;
+    height: 1px !important;
+    background: var(--web-primary, #CC6AE7) !important;
+    transition: width 0.25s ease !important;
+}
+
+.mega-menu-links a:hover::before {
+    width: 100% !important;
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+/* Tablet (768px - 991px) */
+@media (min-width: 768px) and (max-width: 991px) {
+    .mega-menu-nav .nav-link {
+        font-size: 11px !important;
+        padding: 0.75rem 0.5rem !important;
+        letter-spacing: 0.5px !important;
+    }
+
+    .mega-menu-nav .dropdown .btn.dropdown-toggle {
+        font-size: 11px !important;
+        padding: 0.75rem 0.5rem !important;
+    }
+
+    .mega-menu-panel>.container {
+        padding: 1.5rem 1rem !important;
+    }
+
+    .mega-menu-column {
+        min-width: 140px !important;
+        padding: 0 1rem !important;
+    }
+
+    .mega-menu-title {
+        font-size: 12px !important;
+    }
+
+    .mega-menu-links a {
+        font-size: 12px !important;
+        padding: 0.4rem 0 !important;
+    }
+}
+
+/* Desktop (992px - 1199px) */
+@media (min-width: 992px) and (max-width: 1199px) {
+    .mega-menu-nav .nav-link {
+        font-size: 12px !important;
+        padding: 0.875rem 0.6rem !important;
+    }
+
+    .mega-menu-nav .dropdown .btn.dropdown-toggle {
+        font-size: 12px !important;
+        padding: 0.875rem 0.6rem !important;
+    }
+
+    .mega-menu-column {
+        min-width: 160px !important;
+    }
+}
+
+/* Large Desktop (1200px+) */
+@media (min-width: 1200px) {
+    .mega-menu-nav .nav-link {
+        padding: 1rem 1rem !important;
+    }
+
+    .mega-menu-column {
+        min-width: 200px !important;
+        padding: 0 2rem !important;
+    }
+}
+
+/* Mobile: Ensure hamburger menu works properly */
+@media (max-width: 767px) {
+
+    /* Force hamburger button to be visible and clickable */
+    .navbar .navbar-toggler,
+    header .navbar-toggler,
+    .mobile-head .navbar-toggler,
+    .navbar-expand-md .navbar-toggler {
+        position: relative !important;
+        z-index: 100 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0.5rem !important;
+        cursor: pointer !important;
+        background: transparent !important;
+        border: 1px solid rgba(255, 255, 255, 0.5) !important;
+        pointer-events: auto !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
+        touch-action: manipulation !important;
+        -webkit-tap-highlight-color: transparent !important;
+    }
+
+    .navbar-toggler-icon {
+        width: 22px !important;
+        height: 22px !important;
+        background-size: contain !important;
+        pointer-events: none !important;
+    }
+
+    /* Remove any pseudo-elements that could block clicks */
+    .navbar-toggler::before,
+    .navbar-toggler::after {
+        content: none !important;
+    }
+
+    /* Ensure nothing covers the hamburger */
+    .navbar-toolbar,
+    .navbar-brand {
+        z-index: 50 !important;
+    }
+
+    /* Make sure container doesn't have overflow hidden that could clip the hamburger */
+    .navbar .container {
+        overflow: visible !important;
+    }
+
+    /* Mobile nav items - ensure vertical list with proper colors */
+    #navbarCollapse .mega-menu-nav {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        flex-wrap: wrap !important;
+        overflow-x: visible !important;
+    }
+
+    #navbarCollapse .mega-menu-nav .nav-item {
+        width: 100% !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+    }
+
+    #navbarCollapse .mega-menu-nav .nav-link {
+        padding: 0.75rem 0 !important;
+        font-size: 14px !important;
+        color: #333 !important;
+    }
+
+    /* Hide mega menu panels on mobile - use regular links instead */
+    .mega-menu-panel {
+        display: none !important;
+    }
+}
+
+/* Ensure hamburger is always visible on mobile regardless of other rules */
+@media (max-width: 767.98px) {
+    button.navbar-toggler[data-toggle="collapse"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+}
+
+/* Accessibility: Focus styles */
+.mega-menu-nav .nav-link:focus,
+.mega-menu-title a:focus,
+.mega-menu-links a:focus {
+    outline: 2px solid var(--web-primary, #CC6AE7) !important;
+    outline-offset: 2px !important;
+}
+
+/* Keyboard navigation: show mega menu on focus */
+.nav-item.has-mega-menu .nav-link:focus+.mega-menu-panel,
+.nav-item.has-mega-menu .mega-menu-panel:focus-within {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
 }

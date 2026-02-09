@@ -65,10 +65,14 @@ class BackEndHelper
     {
         $decimal_point_settings = getWebConfig(name: 'decimal_point_settings');
         $position = getWebConfig(name: 'currency_symbol_position');
+
+        // Smart decimal formatting: show decimals only if they exist
+        $formattedAmount = formatPriceWithSmartDecimals($amount, $decimal_point_settings);
+
         if (!is_null($position) && $position == 'left') {
-            $string = currency_symbol() . '' . number_format($amount, (!empty($decimal_point_settings) ? $decimal_point_settings: 0));
+            $string = currency_symbol() . '' . $formattedAmount;
         } else {
-            $string = number_format($amount, !empty($decimal_point_settings) ? $decimal_point_settings: 0) . '' . currency_symbol();
+            $string = $formattedAmount . '' . currency_symbol();
         }
         return $string;
     }

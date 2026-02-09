@@ -65,6 +65,65 @@ class ProductDetailsController extends Controller
         );
 
         if ($product) {
+            // Sort variations and choice_options by sort_order
+            if ($product['variation']) {
+                $variations = json_decode($product['variation'], true);
+                if (is_array($variations) && count($variations) > 0) {
+                    // Sort variations by sort_order
+                    usort($variations, function($a, $b) {
+                        $orderA = $a['sort_order'] ?? 999;
+                        $orderB = $b['sort_order'] ?? 999;
+                        return $orderA <=> $orderB;
+                    });
+                    $product['variation'] = json_encode($variations);
+
+                    // Create a mapping of variation type to sort_order
+                    $sortOrderMap = [];
+                    foreach ($variations as $variation) {
+                        $sortOrderMap[$variation['type']] = $variation['sort_order'] ?? 999;
+                    }
+
+                    // Also sort choice_options to match variation order
+                    if ($product['choice_options']) {
+                        $choiceOptions = json_decode($product['choice_options'], true);
+                        if (is_array($choiceOptions) && count($choiceOptions) > 0) {
+                            // Sort options in each choice based on the sort_order map
+                            foreach ($choiceOptions as &$choice) {
+                                if (isset($choice['options']) && is_array($choice['options'])) {
+                                    usort($choice['options'], function($a, $b) use ($sortOrderMap) {
+                                        $orderA = $sortOrderMap[$a] ?? 999;
+                                        $orderB = $sortOrderMap[$b] ?? 999;
+                                        return $orderA <=> $orderB;
+                                    });
+                                }
+                            }
+                            $product['choice_options'] = json_encode($choiceOptions);
+                        }
+                    }
+
+                    // Also sort colors array for color-based products
+                    if ($product['colors']) {
+                        $colors = json_decode($product['colors'], true);
+                        if (is_array($colors) && count($colors) > 0) {
+                            // Map color codes to color names and then to sort order
+                            $colorOrderMap = [];
+                            foreach ($colors as $colorCode) {
+                                $colorName = getColorNameByCode(code: $colorCode);
+                                $colorOrderMap[$colorCode] = $sortOrderMap[$colorName] ?? 999;
+                            }
+
+                            // Sort colors by their sort_order
+                            usort($colors, function($a, $b) use ($colorOrderMap) {
+                                $orderA = $colorOrderMap[$a] ?? 999;
+                                $orderB = $colorOrderMap[$b] ?? 999;
+                                return $orderA <=> $orderB;
+                            });
+                            $product['colors'] = json_encode($colors);
+                        }
+                    }
+                }
+            }
+
             $productDetailsMeta = $product?->seoInfo;
             $productAuthorsInfo = $this->productService->getProductAuthorsInfo(product: $product);
             $productPublishingHouseInfo = $this->productService->getProductPublishingHouseInfo(product: $product);
@@ -145,6 +204,65 @@ class ProductDetailsController extends Controller
         );
 
         if ($product ) {
+            // Sort variations and choice_options by sort_order
+            if ($product['variation']) {
+                $variations = json_decode($product['variation'], true);
+                if (is_array($variations) && count($variations) > 0) {
+                    // Sort variations by sort_order
+                    usort($variations, function($a, $b) {
+                        $orderA = $a['sort_order'] ?? 999;
+                        $orderB = $b['sort_order'] ?? 999;
+                        return $orderA <=> $orderB;
+                    });
+                    $product['variation'] = json_encode($variations);
+
+                    // Create a mapping of variation type to sort_order
+                    $sortOrderMap = [];
+                    foreach ($variations as $variation) {
+                        $sortOrderMap[$variation['type']] = $variation['sort_order'] ?? 999;
+                    }
+
+                    // Also sort choice_options to match variation order
+                    if ($product['choice_options']) {
+                        $choiceOptions = json_decode($product['choice_options'], true);
+                        if (is_array($choiceOptions) && count($choiceOptions) > 0) {
+                            // Sort options in each choice based on the sort_order map
+                            foreach ($choiceOptions as &$choice) {
+                                if (isset($choice['options']) && is_array($choice['options'])) {
+                                    usort($choice['options'], function($a, $b) use ($sortOrderMap) {
+                                        $orderA = $sortOrderMap[$a] ?? 999;
+                                        $orderB = $sortOrderMap[$b] ?? 999;
+                                        return $orderA <=> $orderB;
+                                    });
+                                }
+                            }
+                            $product['choice_options'] = json_encode($choiceOptions);
+                        }
+                    }
+
+                    // Also sort colors array for color-based products
+                    if ($product['colors']) {
+                        $colors = json_decode($product['colors'], true);
+                        if (is_array($colors) && count($colors) > 0) {
+                            // Map color codes to color names and then to sort order
+                            $colorOrderMap = [];
+                            foreach ($colors as $colorCode) {
+                                $colorName = getColorNameByCode(code: $colorCode);
+                                $colorOrderMap[$colorCode] = $sortOrderMap[$colorName] ?? 999;
+                            }
+
+                            // Sort colors by their sort_order
+                            usort($colors, function($a, $b) use ($colorOrderMap) {
+                                $orderA = $colorOrderMap[$a] ?? 999;
+                                $orderB = $colorOrderMap[$b] ?? 999;
+                                return $orderA <=> $orderB;
+                            });
+                            $product['colors'] = json_encode($colors);
+                        }
+                    }
+                }
+            }
+
             $productDetailsMeta = $product?->seoInfo;
             $productAuthorsInfo = $this->productService->getProductAuthorsInfo(product: $product);
             $productPublishingHouseInfo = $this->productService->getProductPublishingHouseInfo(product: $product);
@@ -261,6 +379,65 @@ class ProductDetailsController extends Controller
         );
 
         if ($product != null) {
+            // Sort variations and choice_options by sort_order
+            if ($product['variation']) {
+                $variations = json_decode($product['variation'], true);
+                if (is_array($variations) && count($variations) > 0) {
+                    // Sort variations by sort_order
+                    usort($variations, function($a, $b) {
+                        $orderA = $a['sort_order'] ?? 999;
+                        $orderB = $b['sort_order'] ?? 999;
+                        return $orderA <=> $orderB;
+                    });
+                    $product['variation'] = json_encode($variations);
+
+                    // Create a mapping of variation type to sort_order
+                    $sortOrderMap = [];
+                    foreach ($variations as $variation) {
+                        $sortOrderMap[$variation['type']] = $variation['sort_order'] ?? 999;
+                    }
+
+                    // Also sort choice_options to match variation order
+                    if ($product['choice_options']) {
+                        $choiceOptions = json_decode($product['choice_options'], true);
+                        if (is_array($choiceOptions) && count($choiceOptions) > 0) {
+                            // Sort options in each choice based on the sort_order map
+                            foreach ($choiceOptions as &$choice) {
+                                if (isset($choice['options']) && is_array($choice['options'])) {
+                                    usort($choice['options'], function($a, $b) use ($sortOrderMap) {
+                                        $orderA = $sortOrderMap[$a] ?? 999;
+                                        $orderB = $sortOrderMap[$b] ?? 999;
+                                        return $orderA <=> $orderB;
+                                    });
+                                }
+                            }
+                            $product['choice_options'] = json_encode($choiceOptions);
+                        }
+                    }
+
+                    // Also sort colors array for color-based products
+                    if ($product['colors']) {
+                        $colors = json_decode($product['colors'], true);
+                        if (is_array($colors) && count($colors) > 0) {
+                            // Map color codes to color names and then to sort order
+                            $colorOrderMap = [];
+                            foreach ($colors as $colorCode) {
+                                $colorName = getColorNameByCode(code: $colorCode);
+                                $colorOrderMap[$colorCode] = $sortOrderMap[$colorName] ?? 999;
+                            }
+
+                            // Sort colors by their sort_order
+                            usort($colors, function($a, $b) use ($colorOrderMap) {
+                                $orderA = $colorOrderMap[$a] ?? 999;
+                                $orderB = $colorOrderMap[$b] ?? 999;
+                                return $orderA <=> $orderB;
+                            });
+                            $product['colors'] = json_encode($colors);
+                        }
+                    }
+                }
+            }
+
             $productDetailsMeta = $product?->seoInfo;
             $productAuthorsInfo = $this->productService->getProductAuthorsInfo(product: $product);
             $productPublishingHouseInfo = $this->productService->getProductPublishingHouseInfo(product: $product);

@@ -684,6 +684,8 @@ trait UpdateClass
 
         foreach ($defaultPages as $key => $value) {
             $getPage = BusinessSetting::where('type', $key)->first();
+            $existingBusinessPage = BusinessPage::where('slug', Str::slug($value))->first();
+
             if (in_array($value, ['terms-and-conditions', 'about-us', 'privacy-policy'])) {
                 $description = $getPage?->value ?? '';
                 $status = 1;
@@ -692,7 +694,9 @@ trait UpdateClass
                 $description = $decodeData['content'] ?? '';
                 $status = $decodeData['status'] ?? 0;
             }
-            if (!$getPage) {
+
+            // Only create if BusinessPage doesn't exist
+            if (!$existingBusinessPage && !$getPage) {
                 $businessPage = BusinessPage::create([
                     'title' => ucwords(str_replace('-', ' ', $value)),
                     'slug' => Str::slug($value),

@@ -3433,4 +3433,7 @@ return [
 	"ML" => "ML",
 	"100 ML" => "100 ML",
 	"200 ML" => "200 ML",
+	"last_name_is_required" => "Last name is required",
+	"title_is_required" => "Title is required",
+	"slug_must_be_unique" => "Slug must be unique",
 ];

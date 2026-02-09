@@ -38,12 +38,34 @@ class PagesController extends BaseController
      */
     public function index(Request|null $request, string $type = null): View
     {
+        // Clean up duplicate pages first
+        $this->cleanupDuplicatePages();
+
         $businessPages = $this->businessPageRepo->getListWhere(orderBy: ['default_status' => 'desc'], searchValue: $request['search'] ?? '', dataLimit: 'all');
         if ($businessPages->count() <= 0) {
             $this->addOrUpdateBusinessPagesData();
             $businessPages = $this->businessPageRepo->getListWhere(orderBy: ['default_status' => 'desc'], dataLimit: 'all');
         }
         return view('admin-views.pages-and-media.list', compact('businessPages'));
+    }
+
+    /**
+     * Clean up duplicate business pages
+     */
+    private function cleanupDuplicatePages(): void
+    {
+        $allPages = $this->businessPageRepo->getListWhere(dataLimit: 'all');
+        $slugs = [];
+
+        foreach ($allPages as $page) {
+            if (in_array($page->slug, $slugs)) {
+                // This is a duplicate - delete it
+                $this->businessPageRepo->delete(params: ['id' => $page->id]);
+            } else {
+                // First occurrence - keep it
+                $slugs[] = $page->slug;
+            }
+        }
     }
 
     public function getAddView(): View|RedirectResponse

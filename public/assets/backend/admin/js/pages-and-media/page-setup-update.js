@@ -3,6 +3,15 @@ $(document).ready(function () {
     const originalSrc = $img.data('default-src') || $img.attr('src');
     const originalDescription = $('#description-page').val();
 
+    // Sync Quill editor content to textarea before form submission
+    $('form').on('submit', function (e) {
+        const quill = $('#description-page-editor').data('quill');
+        if (quill) {
+            const content = quill.root.innerHTML;
+            $('#description-page').val(content);
+        }
+    });
+
     $('form').on('reset', function () {
         setTimeout(() => {
             $img.attr('src', originalSrc).show();

@@ -38,5 +38,5 @@ composer-setup.php
 
 # 4. Optional: If you want to ensure the folders exist but remain empty of files
 # uncomment the lines below:
-# /storage/app/public/*
+/storage/app/public/*
 # /storage/logs/*

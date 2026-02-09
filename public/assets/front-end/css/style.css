@@ -2589,7 +2589,8 @@ a {
 }
 
 .__inline-14 {
-    width: 100%;
+    width: 2.5rem;
+    height: 2.5rem;
     aspect-ratio: 1;
     -o-object-fit: cover;
     object-fit: cover;

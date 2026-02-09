@@ -3009,3 +3009,13 @@ h4.product-price span {
     object-fit: cover;
     border-radius: 3px;
 }
+
+/* Profile image container in header - keep it small and proportionate */
+.navbar-tool-icon-box .navbar-tool-icon-box {
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}

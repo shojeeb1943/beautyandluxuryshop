@@ -1,35 +1,42 @@
+# Dependency directories
 /node_modules
+/vendor
+
+# Public assets & builds
 /public/hot
 /public/storage
 /public/themes
+*.map
 
-/storage/*.key
-/storage/app/*
-/storage/framework/cache/*
-/vendor
-
+# Development tools and local config
 .vscode
 .idea
-.idea/*
-
 .env
 .env.backup
-.phpunit.result.cache
+.claude
 Homestead.json
 Homestead.yaml
+.phpunit.result.cache
+.DS_Store
+
+# Logs and debug files
 npm-debug.log
 yarn-error.log
 composer-setup.php
-.DS_Store
-.claude
 
-*.map
-style.css.map
-style_neha.css.map
+# --- LARAVEL STORAGE RULES ---
+# 1. Ignore all keys and sensitive framework files
+/storage/*.key
 
-# Laravel storage safety rules (override above)
-# Ignore everything in storage except public uploads, views, and logs
+# 2. Ignore everything in storage by default
 /storage/*
+
+# 3. Allow specific directories (keeps them on GitHub so they exist on cPanel)
 !/storage/app/public/
 !/storage/framework/views/
 !/storage/logs/
+
+# 4. Optional: If you want to ensure the folders exist but remain empty of files
+# uncomment the lines below:
+# /storage/app/public/*
+# /storage/logs/*

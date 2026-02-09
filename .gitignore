@@ -21,6 +21,7 @@ npm-debug.log
 yarn-error.log
 composer-setup.php
 .DS_Store
+.claude
 
 *.map
 style.css.map

@@ -1018,6 +1018,11 @@
 
     <span id="route-review-list-product" data-url="{{ route('review-list-product') }}"></span>
     <span id="products-details-page-data" data-id="{{ $product['id'] }}"></span>
+
+    <script>
+        // Pass variation images data to JavaScript for image switching
+        window.productVariationImages = @json($product->variation_images_full_url ?? []);
+    </script>
 @endsection
 
 @push('script')

@@ -242,6 +242,58 @@ class ProductService
         ];
     }
 
+    public function getProcessedVariationImages(object $request, ?object $product = null): array
+    {
+        $variationImages = [];
+        $storage = config('filesystems.disks.default') ?? 'public';
+
+        // Get existing variation images for update scenario
+        $existingVariationImages = [];
+        if ($product && $product->variation_images) {
+            $existingVariationImages = is_array($product->variation_images)
+                ? $product->variation_images
+                : (json_decode($product->variation_images, true) ?? []);
+        }
+
+        // Process each variation image from the request
+        foreach ($request->all() as $key => $value) {
+            if (str_starts_with($key, 'variation_image_')) {
+                $fieldName = str_replace('variation_image_', '', $key);
+                // Convert underscores back to original variation type format
+                $variationType = str_replace(['_dot_', '__'], ['.', ' '], $fieldName);
+
+                if ($request->hasFile($key)) {
+                    // Delete old image if exists
+                    if (isset($existingVariationImages[$variationType])) {
+                        $this->delete(filePath: 'product/' . $existingVariationImages[$variationType]['image_name']);
+                    }
+
+                    $imageName = $this->upload(dir: 'product/', format: 'webp', image: $request->file($key));
+                    $variationImages[$variationType] = [
+                        'image_name' => $imageName,
+                        'storage' => $storage,
+                    ];
+                } elseif (isset($existingVariationImages[$variationType])) {
+                    // Keep existing image if no new upload
+                    $variationImages[$variationType] = $existingVariationImages[$variationType];
+                }
+            }
+        }
+
+        // Preserve any existing variation images that weren't in the current request
+        // (for variations that still exist but weren't updated)
+        if ($product && !empty($existingVariationImages)) {
+            $currentVariations = $request->input('type', []);
+            foreach ($existingVariationImages as $variationType => $imageData) {
+                if (in_array($variationType, $currentVariations) && !isset($variationImages[$variationType])) {
+                    $variationImages[$variationType] = $imageData;
+                }
+            }
+        }
+
+        return $variationImages;
+    }
+
     public function getCategoriesArray(object $request): array
     {
         $category = [];
@@ -340,7 +392,8 @@ class ProductService
         $combinations = $this->generatePhysicalVariationCombination(request: $request, options: $options, combinations: $combinations, product: $product);
 
         if ($product) {
-            return view(Product::SKU_EDIT_COMBINATION[VIEW], compact('combinations', 'unitPrice', 'colorsActive', 'productName'))->render();
+            $variationImages = $product->variation_images_full_url ?? [];
+            return view(Product::SKU_EDIT_COMBINATION[VIEW], compact('combinations', 'unitPrice', 'colorsActive', 'productName', 'variationImages'))->render();
         } else {
             return view(Product::SKU_COMBINATION[VIEW], compact('combinations', 'unitPrice', 'colorsActive', 'productName'))->render();
         }
@@ -496,6 +549,7 @@ class ProductService
     {
         $storage = config('filesystems.disks.default') ?? 'public';
         $processedImages = $this->getProcessedImages(request: $request); //once the images are processed do not call this function again just use the variable
+        $variationImages = $this->getProcessedVariationImages(request: $request);
         $combinations = $this->getCombinations($this->getOptions(request: $request));
         $variations = $this->getVariations(request: $request, combinations: $combinations);
         $stockCount = isset($combinations[0]) && count($combinations[0]) > 0 ? $this->getTotalQuantity(variations: $variations) : (integer)$request['current_stock'];
@@ -552,6 +606,7 @@ class ProductService
             'shipping_cost' => $request['product_type'] == 'physical' ? currencyConverter(amount: $request['shipping_cost']) : 0,
             'multiply_qty' => ($request['product_type'] == 'physical') ? ($request['multiply_qty'] == 'on' ? 1 : 0) : 0, //to be changed in form multiply_qty
             'color_image' => json_encode($processedImages['colored_image_names']),
+            'variation_images' => json_encode($variationImages),
             'images' => json_encode($processedImages['image_names']),
             'thumbnail' => $request->has('image') ? $this->upload(dir: 'product/thumbnail/', format: 'webp', image: $request['image']) : $request->existing_thumbnail,
             'thumbnail_storage_type' => $request->has('image') ? $storage : null,
@@ -567,6 +622,7 @@ class ProductService
     {
         $storage = config('filesystems.disks.default') ?? 'public';
         $processedImages = $this->getProcessedUpdateImages(request: $request, product: $product);
+        $variationImages = $this->getProcessedVariationImages(request: $request, product: $product);
         $combinations = $this->getCombinations($this->getOptions(request: $request));
         $variations = $this->getVariations(request: $request, combinations: $combinations);
         $stockCount = isset($combinations[0]) && count($combinations[0]) > 0 ? $this->getTotalQuantity(variations: $variations) : (integer)$request['current_stock'];
@@ -622,6 +678,7 @@ class ProductService
             'video_url' => $request['video_url'],
             'multiply_qty' => ($request['product_type'] == 'physical') ? ($request['multiply_qty'] == 'on' ? 1 : 0) : 0,
             'color_image' => json_encode($processedImages['colored_image_names']),
+            'variation_images' => json_encode($variationImages),
             'images' => json_encode($processedImages['image_names']),
             'digital_file_ready' => $digitalFile,
             'digital_file_ready_storage_type' => $request->has('digital_file_ready') ? $storage : $product['digital_file_ready_storage_type'],

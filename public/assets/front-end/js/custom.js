@@ -1930,8 +1930,35 @@ function getVariantPrice(formSelector = ".add-to-cart-details-form") {
                     $(".product-image-discount-badge")
                         .addClass("d-none");
                 }
+
+                // Update product image if variation-specific image exists
+                if (response?.variation_image) {
+                    updateProductMainImage(response.variation_image);
+                }
             },
         });
+    }
+}
+
+// Function to update the main product image with variation-specific image
+function updateProductMainImage(imageUrl) {
+    if (!imageUrl) return;
+
+    // Update the active image in the main carousel
+    let activeSlide = $('#sync1 .product-preview-item.active img');
+    if (activeSlide.length > 0) {
+        activeSlide.attr('src', imageUrl);
+    }
+
+    // Also update the first slide as fallback
+    let firstSlideImg = $('#sync1 .product-preview-item:first img');
+    if (firstSlideImg.length > 0) {
+        firstSlideImg.attr('src', imageUrl);
+    }
+
+    // Trigger carousel to go to first slide
+    if (typeof $('#sync1').data('owl.carousel') !== 'undefined') {
+        $('#sync1').trigger('to.owl.carousel', [0, 300]);
     }
 }
 

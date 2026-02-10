@@ -199,6 +199,13 @@ class CartController extends Controller
                 : getProductPriceByType(product: $product, type: 'discount', result: 'value').'%';
         }
 
+        // Get variation-specific image if exists
+        $variationImage = null;
+        $variationImages = $product->variation_images_full_url ?? [];
+        if (!empty($string) && isset($variationImages[$string])) {
+            $variationImage = $variationImages[$string]['image_name']['path'] ?? null;
+        }
+
         return [
             'price' => webCurrencyConverter($price * $requestQuantity),
             'discount' => $discountDisplay,
@@ -222,6 +229,7 @@ class CartController extends Controller
             'variation_code' => $string,
             'product_type' => $product['product_type'],
             'restock_request_status' => $restockRequestStatus,
+            'variation_image' => $variationImage,
         ];
     }
 

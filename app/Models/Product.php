@@ -103,6 +103,7 @@ class Product extends Model
         'shipping_cost',
         'multiply_qty',
         'color_image',
+        'variation_images',
         'images',
         'thumbnail',
         'thumbnail_storage_type',
@@ -407,6 +408,21 @@ class Product extends Model
                 $item = (array)$item;
                 $images[] = [
                     'color' => $item['color'],
+                    'image_name' => $this->storageLink('product', $item['image_name'], $item['storage'] ?? 'public')
+                ];
+            }
+        }
+        return $images;
+    }
+
+    public function getVariationImagesFullUrlAttribute(): array
+    {
+        $images = [];
+        $value = is_array($this->variation_images) ? $this->variation_images : json_decode($this->variation_images, true);
+        if ($value) {
+            foreach ($value as $variationType => $item) {
+                $images[$variationType] = [
+                    'variation_type' => $variationType,
                     'image_name' => $this->storageLink('product', $item['image_name'], $item['storage'] ?? 'public')
                 ];
             }

@@ -3440,4 +3440,5 @@ return [
 	"Flat" => "Flat",
 	"Percent" => "Percent",
 	"view_all_brands" => "View all brands",
+	"Variation_Image" => "Variation Image",
 ];

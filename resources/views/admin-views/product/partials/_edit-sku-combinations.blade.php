@@ -44,6 +44,11 @@
                         {{ translate('Variation_Wise_Stock') }}
                     </label>
                 </th>
+                <th class="text-center">
+                    <label for="" class="control-label">
+                        {{ translate('Variation_Image') }}
+                    </label>
+                </th>
             </tr>
             </thead>
             <tbody>
@@ -113,6 +118,29 @@
                                class="form-control w-max-content" placeholder="{{ translate('ex') }}: {{ translate('5') }}"
                                required>
                     </td>
+                    <td>
+                        @php
+                            $existingImage = isset($variationImages[$combination['type']]) ? $variationImages[$combination['type']] : null;
+                            $imageSrc = $existingImage
+                                ? getStorageImages(path: $existingImage['image_name'], type: 'product')
+                                : dynamicAsset(path: 'public/assets/back-end/img/placeholder/upload-image-icon.png');
+                        @endphp
+                        <div class="variation-image-upload d-flex align-items-center gap-2">
+                            <label for="variation_image_{{ $fieldName }}" class="mb-0 cursor-pointer">
+                                <img id="variation-preview-{{ $fieldName }}"
+                                     class="variation-image-preview border rounded"
+                                     style="width: 50px; height: 50px; object-fit: cover;"
+                                     src="{{ $imageSrc }}"
+                                     alt="{{ $combination['type'] }}">
+                            </label>
+                            <input type="file"
+                                   id="variation_image_{{ $fieldName }}"
+                                   name="variation_image_{{ $fieldName }}"
+                                   class="d-none variation-image-input"
+                                   accept=".jpg, .webp, .png, .jpeg"
+                                   data-preview="variation-preview-{{ $fieldName }}">
+                        </div>
+                    </td>
                 </tr>
             @endforeach
             </tbody>
@@ -140,6 +168,20 @@
             var discountType = $('select[name="discount_type_' + fieldName + '"]').val();
             if (discountType === 'percent' && parseFloat($(this).val()) > 100) {
                 $(this).val(100);
+            }
+        });
+
+        // Handle variation image preview
+        $(document).on('change', '.variation-image-input', function() {
+            var previewId = $(this).data('preview');
+            var previewElement = $('#' + previewId);
+
+            if (this.files && this.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    previewElement.attr('src', e.target.result);
+                };
+                reader.readAsDataURL(this.files[0]);
             }
         });
     </script>

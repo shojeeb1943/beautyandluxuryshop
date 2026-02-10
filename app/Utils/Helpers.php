@@ -183,7 +183,10 @@ class Helpers
                 'type' => $var['type'],
                 'price' => (double)$var['price'],
                 'sku' => $var['sku'],
-                'qty' => (integer)$var['qty'],
+                'qty' => (integer)($var['qty'] ?? 0),
+                'discount' => (double)($var['discount'] ?? 0),
+                'discount_type' => $var['discount_type'] ?? 'flat',
+                'sort_order' => (integer)($var['sort_order'] ?? 999),
             ];
         }
         $data['variation'] = $variation;

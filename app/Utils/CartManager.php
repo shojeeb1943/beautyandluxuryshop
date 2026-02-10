@@ -486,12 +486,14 @@ class CartManager
             'variant' => $string,
         ];
 
+        $matchedVariation = null;
         if ($string != null) {
             $count = count(json_decode($product->variation));
             for ($i = 0; $i < $count; $i++) {
                 if (json_decode($product->variation)[$i]->type == $string) {
-                    $price = json_decode($product->variation)[$i]->price;
-                    if (json_decode($product->variation)[$i]->qty < $request['quantity']) {
+                    $matchedVariation = json_decode($product->variation)[$i];
+                    $price = $matchedVariation->price;
+                    if ($matchedVariation->qty < $request['quantity']) {
                         return ['status' => 0, 'message' => translate('out_of_stock!')];
                     }
                 }
@@ -501,7 +503,10 @@ class CartManager
         }
 
         $tax = Helpers::tax_calculation(product: $product, price: $price, tax: $product['tax'], tax_type: 'percent');
-        $getProductDiscount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $price);
+
+        // Use variation-aware discount calculation
+        $discountData = getVariationDiscount(product: $product, variation: $matchedVariation, variationPrice: $price);
+        $getProductDiscount = $discountData['discount'];
 
         $cartArray += [
             'customer_id' => ($user == 'offline' ? $guestId : $user->id),

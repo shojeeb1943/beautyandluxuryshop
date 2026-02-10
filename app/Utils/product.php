@@ -73,6 +73,100 @@ if (!function_exists('getProductDiscount')) {
     }
 }
 
+if (!function_exists('getVariationDiscount')) {
+    /**
+     * Calculate variation-specific discount
+     * Priority: Clearance Sale > Variation Discount > Product Discount
+     *
+     * @param object|array $product
+     * @param object|array|null $variation
+     * @param string|float|int $variationPrice
+     * @return array ['discount' => float, 'discount_type' => string, 'discount_value' => float]
+     */
+    function getVariationDiscount(object|array $product, object|array|null $variation, string|float|int $variationPrice): array
+    {
+        // Priority 1: Check for clearance sale (highest priority)
+        if ((isset($product['clearanceSale']) && $product['clearanceSale']) ||
+            (isset($product['clearance_sale']) && $product['clearance_sale'])) {
+            $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $variationPrice);
+            $discountType = getProductPriceByType(product: $product, type: 'discount_type', result: 'string');
+            $discountValue = getProductPriceByType(product: $product, type: 'discount', result: 'value');
+
+            return [
+                'discount' => floatval($discount),
+                'discount_type' => $discountType,
+                'discount_value' => floatval($discountValue),
+                'source' => 'clearance_sale'
+            ];
+        }
+
+        // Priority 2: Check for variation-specific discount
+        if ($variation !== null) {
+            $variationObj = is_object($variation) ? $variation : (object) $variation;
+            $variationDiscount = $variationObj->discount ?? 0;
+            $variationDiscountType = $variationObj->discount_type ?? 'flat';
+
+            if ($variationDiscount > 0) {
+                if ($variationDiscountType == 'percent') {
+                    $discount = ($variationPrice * $variationDiscount) / 100;
+                } else {
+                    $discount = $variationDiscount;
+                }
+
+                return [
+                    'discount' => floatval($discount),
+                    'discount_type' => $variationDiscountType,
+                    'discount_value' => floatval($variationDiscount),
+                    'source' => 'variation'
+                ];
+            }
+        }
+
+        // Priority 3: Fall back to product-level discount
+        $discount = getProductDiscount(product: $product, price: $variationPrice);
+        $discountType = $product['discount_type'] ?? 'flat';
+        $discountValue = $product['discount'] ?? 0;
+
+        return [
+            'discount' => floatval($discount),
+            'discount_type' => $discountType,
+            'discount_value' => floatval($discountValue),
+            'source' => 'product'
+        ];
+    }
+}
+
+if (!function_exists('getVariationFromProduct')) {
+    /**
+     * Get variation object from product by variant string
+     *
+     * @param object|array $product
+     * @param string $variantString
+     * @return object|null
+     */
+    function getVariationFromProduct(object|array $product, string $variantString): ?object
+    {
+        if (empty($variantString)) {
+            return null;
+        }
+
+        $variations = is_string($product['variation']) ? json_decode($product['variation']) : $product['variation'];
+
+        if (!$variations || !is_array($variations)) {
+            return null;
+        }
+
+        foreach ($variations as $variation) {
+            $variationObj = is_object($variation) ? $variation : (object) $variation;
+            if (isset($variationObj->type) && $variationObj->type == $variantString) {
+                return $variationObj;
+            }
+        }
+
+        return null;
+    }
+}
+
 if (!function_exists('getPriceRangeWithDiscount')) {
     function getPriceRangeWithDiscount(array|object $product, string|null $type = 'web'): float|string
     {

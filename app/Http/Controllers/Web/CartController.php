@@ -54,6 +54,8 @@ class CartController extends Controller
         $discountedUnitPrice = 0;
         $color_name = '';
         $sku = '';
+        $variationDiscountType = null; // Track variation-specific discount type
+        $variationDiscountValue = 0; // Track variation-specific discount value
         $requestQuantity = $request['quantity'];
         $product = Product::with(['digitalVariation', 'clearanceSale' => function ($query) {
             return $query->active();
@@ -97,10 +99,24 @@ class CartController extends Controller
                     $variation = json_decode($product->variation)[$i];
                     $variationPrice = $variation->price;
 
-                    // Use variation-specific discount if available, otherwise use product discount
-                    if (isset($variation->discount) && $variation->discount > 0) {
-                        $discount = $variation->discount;
-                    } else {
+                    // Check for clearance sale first (highest priority)
+                    if ((isset($product['clearanceSale']) && $product['clearanceSale'])) {
+                        $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $variationPrice);
+                    }
+                    // Use variation-specific discount if available
+                    elseif (isset($variation->discount) && $variation->discount > 0) {
+                        $variationDiscountType = $variation->discount_type ?? 'flat';
+                        $variationDiscountValue = $variation->discount;
+
+                        // Calculate discount based on variation discount type
+                        if ($variationDiscountType == 'percent') {
+                            $discount = ($variationPrice * $variationDiscountValue) / 100;
+                        } else {
+                            $discount = $variationDiscountValue;
+                        }
+                    }
+                    // Fall back to product-level discount
+                    else {
                         $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $variationPrice);
                     }
 
@@ -164,13 +180,31 @@ class CartController extends Controller
             ])->count() > 0);
         }
 
-        $discountType = getProductPriceByType(product: $product, type: 'discount_type', result: 'string');
+        // Determine the effective discount type for response
+        // Priority: clearance sale > variation discount > product discount
+        if ((isset($product['clearanceSale']) && $product['clearanceSale'])) {
+            $discountType = getProductPriceByType(product: $product, type: 'discount_type', result: 'string');
+            $discountDisplay = $discountType == 'flat'
+                ? webCurrencyConverter($discount)
+                : getProductPriceByType(product: $product, type: 'discount', result: 'value').'%';
+        } elseif ($variationDiscountType !== null && $variationDiscountValue > 0) {
+            $discountType = $variationDiscountType;
+            $discountDisplay = $discountType == 'flat'
+                ? webCurrencyConverter($discount)
+                : $variationDiscountValue.'%';
+        } else {
+            $discountType = getProductPriceByType(product: $product, type: 'discount_type', result: 'string');
+            $discountDisplay = $discountType == 'flat'
+                ? webCurrencyConverter($discount)
+                : getProductPriceByType(product: $product, type: 'discount', result: 'value').'%';
+        }
 
         return [
             'price' => webCurrencyConverter($price * $requestQuantity),
-            'discount' => $discountType == 'flat' ? webCurrencyConverter($discount) : getProductPriceByType(product: $product, type: 'discount', result: 'value').'%',
+            'discount' => $discountDisplay,
             'discount_type' => $discountType,
             'discount_amount' => $discount,
+            'discount_percent' => $variationDiscountType == 'percent' ? $variationDiscountValue : ($discountType == 'percent' ? getProductPriceByType(product: $product, type: 'discount', result: 'value') : 0),
             'tax' => $product['tax_model'] == 'exclude' ? webCurrencyConverter($tax) : 'incl.',
             'update_tax' => $product['tax_model'] == 'exclude' ? webCurrencyConverter($update_tax) : 'incl.', // for others theme
             'quantity' => $product['product_type'] == 'physical' ? $quantity : 100,

@@ -3437,4 +3437,7 @@ return [
 	"title_is_required" => "Title is required",
 	"slug_must_be_unique" => "Slug must be unique",
 	"Sort_Order" => "Sort Order",
+	"Flat" => "Flat",
+	"Percent" => "Percent",
+	"view_all_brands" => "View all brands",
 ];

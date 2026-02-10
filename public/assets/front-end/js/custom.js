@@ -1904,21 +1904,30 @@ function getVariantPrice(formSelector = ".add-to-cart-details-form") {
                 }
 
                 if (response?.discount_amount > 0) {
-                    if (response?.discount_type === "flat") {
-                        $(formSelector)
-                            .find(".discounted_badge")
-                            .html(`${response?.discount}`);
-                    } else {
-                        $(formSelector)
-                            .find(".discounted_badge")
-                            .html(`- ${response?.discount}`);
-                    }
+                    let discountBadgeText = response?.discount_type === "flat"
+                        ? `-${response?.discount}`
+                        : `-${response?.discount}`;
+
+                    // Update badge inside form
+                    $(formSelector)
+                        .find(".discounted_badge")
+                        .html(discountBadgeText);
                     $(formSelector)
                         .find(".discounted-badge-element")
                         .removeClass("d-none");
+
+                    // Update product image discount badge (outside form)
+                    $(".product-image-discount-badge")
+                        .removeClass("d-none");
+                    $(".product-image-discount-text")
+                        .html(discountBadgeText);
                 } else {
                     $(formSelector)
                         .find(".discounted-badge-element")
+                        .addClass("d-none");
+
+                    // Hide product image discount badge when no discount
+                    $(".product-image-discount-badge")
                         .addClass("d-none");
                 }
             },
@@ -2017,6 +2026,15 @@ function updateProductDetailsTopSection(formSelector, response) {
     $(formSelector)
         .find(".product-details-tax-amount")
         .html(response?.update_tax);
+
+    // Update discounted unit price and original price display
+    $(formSelector)
+        .find(".discounted-unit-price")
+        .html(response?.discounted_unit_price);
+    $(formSelector)
+        .find(".product-total-unit-price")
+        .html(response?.discount_amount > 0 ? response?.total_unit_price : "");
+
     let updatedTax = response?.update_tax.replace(/[^\d.,]/g, "");
 
     if (updatedTax <= 0) {

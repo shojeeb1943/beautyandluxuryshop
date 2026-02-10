@@ -674,11 +674,34 @@ class ProductController extends BaseController
         $stockCount = $request['current_stock'];
         if ($request->has('type')) {
             foreach ($request['type'] as $key => $str) {
+                $fieldName = str_replace([' ', '.'], '_', $str);
+
+                // Get discount type (default to 'flat' for backward compatibility)
+                $discountType = $request->has('discount_type_' . $fieldName)
+                    ? $request['discount_type_' . $fieldName]
+                    : 'flat';
+
+                // Get discount value
+                $discountValue = $request->has('discount_' . $fieldName) ? abs($request['discount_' . $fieldName]) : 0;
+
+                // For flat discount, convert to USD; for percent, store as-is
+                if ($discountType == 'flat') {
+                    $discountValue = currencyConverter($discountValue);
+                }
+
+                // Validate percent discount doesn't exceed 100
+                if ($discountType == 'percent' && $discountValue > 100) {
+                    $discountValue = 100;
+                }
+
                 $item = [];
                 $item['type'] = $str;
-                $item['price'] = currencyConverter(amount: abs($request['price_' . str_replace('.', '_', $str)]));
-                $item['sku'] = $request['sku_' . str_replace('.', '_', $str)];
-                $item['qty'] = abs($request['qty_' . str_replace('.', '_', $str)]);
+                $item['price'] = currencyConverter(amount: abs($request['price_' . $fieldName]));
+                $item['discount'] = $discountValue;
+                $item['discount_type'] = $discountType;
+                $item['sku'] = $request['sku_' . $fieldName];
+                $item['qty'] = abs($request['qty_' . $fieldName]);
+                $item['sort_order'] = $request->has('sort_order_' . $fieldName) ? abs($request['sort_order_' . $fieldName]) : 999;
                 $variations[] = $item;
             }
         }

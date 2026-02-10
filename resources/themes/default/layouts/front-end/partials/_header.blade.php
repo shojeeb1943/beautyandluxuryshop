@@ -314,7 +314,7 @@
                         @php($categories = \App\Utils\CategoryManager::parents())
                         @foreach($categories as $category)
                             <li class="nav-item {{ count($category->childes) > 0 ? 'has-mega-menu' : '' }} d-none d-md-block">
-                                <a class="nav-link" href="{{route('products',['id'=> $category['id'],'data_from'=>'category','page'=>1])}}">
+                                <a class="nav-link" href="{{route('products',['category_id'=> $category['id'],'data_from'=>'category','offer_type'=>'','page'=>1])}}">
                                     {{ $category['name'] }}
                                 </a>
 
@@ -325,7 +325,7 @@
                                                 @foreach($category->childes as $subCategory)
                                                     <div class="col-lg-3 col-md-4 col-sm-6 mega-menu-column">
                                                         <h6 class="mega-menu-title">
-                                                            <a href="{{route('products',['id'=> $subCategory['id'],'data_from'=>'category','page'=>1])}}">
+                                                            <a href="{{route('products',['sub_category_id'=> $subCategory['id'],'data_from'=>'category','offer_type'=>'','page'=>1])}}">
                                                                 {{ $subCategory['name'] }}
                                                             </a>
                                                         </h6>
@@ -334,7 +334,7 @@
                                                             <ul class="mega-menu-links">
                                                                 @foreach($subCategory->childes as $subSubCategory)
                                                                     <li>
-                                                                        <a href="{{route('products',['id'=> $subSubCategory['id'],'data_from'=>'category','page'=>1])}}">
+                                                                        <a href="{{route('products',['sub_sub_category_id'=> $subSubCategory['id'],'data_from'=>'category','offer_type'=>'','page'=>1])}}">
                                                                             {{ $subSubCategory['name'] }}
                                                                         </a>
                                                                     </li>
@@ -351,37 +351,30 @@
                         @endforeach
 
                         @if(getWebConfig(name: 'product_brand'))
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#"
-                                   data-toggle="dropdown">{{ translate('brand') }}</a>
-                                <ul class="text-align-direction dropdown-menu __dropdown-menu-sizing dropdown-menu-{{Session::get('direction') === "rtl" ? 'right' : 'left'}} scroll-bar">
-                                    @php($brandIndex=0)
-                                    @foreach(\App\Utils\BrandManager::getActiveBrandWithCountingAndPriorityWiseSorting() as $brand)
-                                        @php($brandIndex++)
-                                        @if($brandIndex < 10)
-                                            <li class="__inline-17">
-                                                <div>
-                                                    <a class="dropdown-item"
-                                                       href="{{route('products',['brand_id'=> $brand['id'],'data_from'=>'brand','page'=>1])}}">
-                                                        {{$brand['name']}}
+                            @php($brands = \App\Utils\BrandManager::getActiveBrandWithCountingAndPriorityWiseSorting())
+                            <li class="nav-item has-mega-menu d-none d-md-block">
+                                <a class="nav-link" href="{{route('brands')}}">{{ translate('brand') }}</a>
+                                <div class="mega-menu-panel brand-mega-menu">
+                                    <div class="container">
+                                        <div class="row justify-content-center">
+                                            @foreach($brands as $brand)
+                                                <div class="col-lg-2 col-md-3 col-sm-4 mega-menu-column brand-column">
+                                                    <a href="{{route('products',['brand_id'=> $brand['id'],'data_from'=>'brand','page'=>1])}}" class="brand-menu-link">
+                                                        <span class="brand-name">{{$brand['name']}}</span>
+                                                        @if($brand['brand_products_count'] > 0)
+                                                            <span class="brand-count">({{ $brand['brand_products_count'] }})</span>
+                                                        @endif
                                                     </a>
                                                 </div>
-                                                <div class="align-baseline">
-                                                    @if($brand['brand_products_count'] > 0 )
-                                                        <span class="count-value px-2">( {{ $brand['brand_products_count'] }} )</span>
-                                                    @endif
-                                                </div>
-                                            </li>
-                                        @endif
-                                    @endforeach
-                                    <li class="__inline-17">
-                                        <div>
-                                            <a class="dropdown-item web-text-primary" href="{{route('brands')}}">
-                                                {{ translate('view_more') }}
-                                            </a>
+                                            @endforeach
+                                            <div class="col-12 text-center mt-3 brand-view-more">
+                                                <a href="{{route('brands')}}" class="btn btn-outline-primary btn-sm">
+                                                    {{ translate('view_all_brands') }}
+                                                </a>
+                                            </div>
                                         </div>
-                                    </li>
-                                </ul>
+                                    </div>
+                                </div>
                             </li>
                         @endif
 
@@ -411,7 +404,7 @@
                             <li class="nav-item dropdown">
                                 <a class="nav-link text-capitalize"
                                    href="{{ route('products', ['offer_type' => 'discounted', 'page' => 1]) }}">
-                                    {{ translate('discounted_products')}}
+                                    Sale
                                 </a>
                             </li>
                         @elseif(
@@ -452,7 +445,7 @@
                                         @if($web_config['discount_product'] > 0)
                                             <div class="dropdown-divider"></div>
                                             <a class="dropdown-item text-nowrap text-capitalize" href="{{ route('products', ['offer_type' => 'discounted', 'page' => 1]) }}">
-                                                {{ translate('discounted_products')}}
+                                                Sale
                                             </a>
                                         @endif
 

@@ -3121,6 +3121,19 @@ section.bg-transparent {
     overflow: visible !important;
 }
 
+/* Center the entire navigation bar */
+.navbar-stuck-menu .navbar-collapse {
+    justify-content: center !important;
+}
+
+.navbar-stuck-menu .container {
+    justify-content: center !important;
+}
+
+.navbar-stuck-menu #navbarCollapse {
+    flex-grow: 0 !important;
+}
+
 /* Override default navbar font sizes */
 .navbar-stuck-menu .navbar-nav .nav-link {
     font-weight: 500 !important;
@@ -3144,11 +3157,12 @@ section.bg-transparent {
     align-items: center !important;
     justify-content: center !important;
     list-style: none !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     flex-wrap: nowrap !important;
     position: static !important;
     gap: 0 !important;
+    width: 100% !important;
 }
 
 .mega-menu-nav .nav-item {
@@ -3509,4 +3523,223 @@ section.bg-transparent {
     opacity: 1 !important;
     visibility: visible !important;
     transform: translateY(0) !important;
+}
+
+/* ============================================
+   BRAND MEGA MENU STYLES
+   ============================================ */
+.brand-mega-menu {
+    background: #ffffff !important;
+}
+
+.brand-mega-menu > .container {
+    padding: 2rem 1.5rem !important;
+    max-width: 1200px !important;
+}
+
+.brand-mega-menu > .container > .row {
+    justify-content: center !important;
+}
+
+.brand-mega-menu .brand-column {
+    border-right: none !important;
+    padding: 0.5rem 1rem !important;
+    min-width: auto !important;
+    text-align: center !important;
+}
+
+.brand-menu-link {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 1rem !important;
+    text-decoration: none !important;
+    color: #333 !important;
+    border-radius: 8px !important;
+    transition: all 0.25s ease !important;
+    background: #f8f9fa !important;
+    min-height: 80px !important;
+}
+
+.brand-menu-link:hover {
+    background: var(--web-primary, #CC6AE7) !important;
+    color: #fff !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15) !important;
+    text-decoration: none !important;
+}
+
+.brand-menu-link .brand-name {
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.brand-menu-link .brand-count {
+    font-size: 11px !important;
+    opacity: 0.7 !important;
+    margin-top: 4px !important;
+}
+
+.brand-menu-link:hover .brand-count {
+    opacity: 1 !important;
+}
+
+.brand-view-more {
+    padding-top: 1rem !important;
+    border-top: 1px solid #eee !important;
+    margin-top: 1rem !important;
+}
+
+.brand-view-more .btn {
+    padding: 0.5rem 2rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    font-size: 12px !important;
+}
+
+/* Responsive adjustments for brand mega menu */
+@media (max-width: 991px) {
+    .brand-mega-menu .brand-column {
+        flex: 0 0 33.333% !important;
+        max-width: 33.333% !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .brand-mega-menu .brand-column {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+
+    .brand-menu-link {
+        min-height: 60px !important;
+        padding: 0.75rem !important;
+    }
+}
+
+/* ============================================
+   PRODUCT VARIATION SELECTOR - PILL BUTTONS
+   ============================================ */
+
+/* Container for variation options - MUST be horizontal */
+.checkbox-alphanumeric.checkbox-alphanumeric--style-1,
+.checkbox-alphanumeric.checkbox-alphanumeric--style-1.row,
+.checkbox-alphanumeric.checkbox-alphanumeric--style-1.flex-start {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    list-style: none !important;
+}
+
+/* Ensure options wrapper stays in row */
+.checkbox-alphanumeric--style-1 .user-select-none,
+.checkbox-alphanumeric--style-1.row .user-select-none {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    flex-shrink: 0 !important;
+}
+
+/* Hide the actual radio input */
+.checkbox-alphanumeric--style-1 input[type="radio"] {
+    position: absolute !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Variation option wrapper */
+.checkbox-alphanumeric--style-1 .for-mobile-capacity {
+    display: inline-flex !important;
+    position: relative !important;
+}
+
+/* Variation pill button label */
+.checkbox-alphanumeric--style-1 label {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 60px !important;
+    height: 42px !important;
+    padding: 8px 20px !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #333 !important;
+    background-color: #fff !important;
+    border: 2px solid #e0e0e0 !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    transform: none !important;
+    float: none !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    user-select: none !important;
+}
+
+/* Hover state */
+.checkbox-alphanumeric--style-1 label:hover {
+    border-color: #333 !important;
+    background-color: #fafafa !important;
+}
+
+/* Selected/checked state */
+.checkbox-alphanumeric--style-1 input[type="radio"]:checked + label,
+.checkbox-alphanumeric--style-1 input:checked ~ label {
+    background-color: #1a1a1a !important;
+    border-color: #1a1a1a !important;
+    color: #fff !important;
+    transform: none !important;
+}
+
+/* Focus state for accessibility */
+.checkbox-alphanumeric--style-1 input[type="radio"]:focus + label {
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Variation row alignment - label on top, options below */
+/* Target only the outer row (not the inner checkbox row) */
+.product-cart-option-container > .row.flex-start.mx-0,
+.product-cart-option-container .row.flex-start.mx-0.align-items-center {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    margin-bottom: 15px !important;
+}
+
+/* Exclude the checkbox container from column direction */
+.product-cart-option-container .row.flex-start.mx-0 .checkbox-alphanumeric--style-1.row {
+    flex-direction: row !important;
+}
+
+/* Label styling - full width on its own line */
+.product-cart-option-container .row.flex-start > .product-description-label,
+.product-cart-option-container .row.flex-start.mx-0 > .product-description-label {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #333 !important;
+    margin-bottom: 10px !important;
+    min-width: auto !important;
+    width: 100% !important;
+    padding-right: 0 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 575px) {
+    .checkbox-alphanumeric--style-1 label {
+        min-width: 50px !important;
+        height: 38px !important;
+        padding: 6px 14px !important;
+        font-size: 13px !important;
+    }
+
+    .checkbox-alphanumeric.checkbox-alphanumeric--style-1 {
+        gap: 6px !important;
+    }
 }

@@ -203,10 +203,12 @@ class CartController extends Controller
         if ($product && $user != 'offline') {
             $variationCode = '';
             if ($request->has('color')) {
-                $variationCode .= Color::where(['code' => $request['color']])->first()->name;
+                $colorCode = strtoupper($request['color']);
+                $colorModel = Color::where(['code' => $colorCode])->first();
+                $variationCode .= $colorModel?->name ?? '';
             }
 
-            foreach (json_decode($product['choice_options']) as $key => $choice) {
+            foreach (json_decode($product['choice_options'] ?? '[]') as $key => $choice) {
                 if ($variationCode != null) {
                     $variationCode .= '-' . str_replace(' ', '', $request[$choice->name]);
                 } else {

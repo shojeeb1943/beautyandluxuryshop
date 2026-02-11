@@ -28,21 +28,24 @@ class CartService
         $unitPrice = 0;
         $discount = 0;
         $tax = 0;
+        $choiceOptions = json_decode($product['choice_options'] ?? '[]') ?? [];
         $variation = $this->makeVariation(
             request: $request,
             colorName: $colorName,
-            choiceOptions: json_decode($product['choice_options'])
+            choiceOptions: $choiceOptions
         );
 
-        if ($variation != null) {
-            $count = count(json_decode($product->variation));
+        $productVariations = json_decode($product->variation ?? '[]') ?? [];
+        if ($variation != null && is_array($productVariations)) {
+            $count = count($productVariations);
             for ($i = 0; $i < $count; $i++) {
-                if (json_decode($product->variation)[$i]->type == $variation) {
-                    $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: json_decode($product->variation)[$i]->price, from: 'panel');
-                    $tax = $product->tax_model == 'exclude' ? $this->getTaxAmount(price: json_decode($product->variation)[$i]->price, tax: $product['tax']) : 0;
-                    $price = json_decode($product->variation)[$i]->price - $discount + $tax;
-                    $unitPrice = json_decode($product->variation)[$i]->price;
-                    $quantity = json_decode($product->variation)[$i]->qty;
+                if (isset($productVariations[$i]->type) && $productVariations[$i]->type == $variation) {
+                    $variationPrice = $productVariations[$i]->price ?? 0;
+                    $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $variationPrice, from: 'panel');
+                    $tax = $product->tax_model == 'exclude' ? $this->getTaxAmount(price: $variationPrice, tax: $product['tax']) : 0;
+                    $price = $variationPrice - $discount + $tax;
+                    $unitPrice = $variationPrice;
+                    $quantity = $productVariations[$i]->qty ?? 0;
                 }
             }
         } else {
@@ -175,11 +178,11 @@ class CartService
         $count = count($variation);
         $price = 0;
         for ($i = 0; $i < $count; $i++) {
-            if ($variation[$i]->type == $variant) {
-                $price = $variation[$i]->price;
+            if (isset($variation[$i]->type) && $variation[$i]->type == $variant) {
+                $price = $variation[$i]->price ?? 0;
             }
         }
-        return $price;
+        return (float)$price;
     }
 
     public function getVariationQuantity(array $variation, string $variant): int
@@ -187,11 +190,11 @@ class CartService
         $count = count($variation);
         $productQuantity = 0;
         for ($i = 0; $i < $count; $i++) {
-            if ($variation[$i]->type == $variant) {
-                $productQuantity = $variation[$i]->qty;
+            if (isset($variation[$i]->type) && $variation[$i]->type == $variant) {
+                $productQuantity = $variation[$i]->qty ?? 0;
             }
         }
-        return $productQuantity;
+        return (int)$productQuantity;
     }
 
     public function getCurrentQuantity($variation, $variant, $quantity): int
@@ -284,7 +287,7 @@ class CartService
 
     public function getNewCartId(): void
     {
-        $cartId = 'walk-in-customer-' . rand(10, 1000);
+        $cartId = 'walk-in-customer-' . Str::random(32);
         session()->put(SessionKey::CURRENT_USER, $cartId);
         if (!in_array($cartId, session(SessionKey::CART_NAME) ?? [])) {
             session()->push(SessionKey::CART_NAME, $cartId);

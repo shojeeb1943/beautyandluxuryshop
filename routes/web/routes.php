@@ -59,9 +59,61 @@ Route::get('/image-proxy', function () {
     if (!$url) {
         abort(400, 'Missing url parameter');
     }
-    $response = Http::withHeaders(['User-Agent' => 'Laravel-Image-Proxy'])->get($url);
+
+    // SSRF Protection: Validate URL
+    $parsedUrl = parse_url($url);
+
+    // Only allow http/https protocols
+    if (!isset($parsedUrl['scheme']) || !in_array(strtolower($parsedUrl['scheme']), ['http', 'https'])) {
+        abort(400, 'Invalid URL protocol');
+    }
+
+    // Block internal/private IP ranges and localhost
+    $host = $parsedUrl['host'] ?? '';
+    if (empty($host)) {
+        abort(400, 'Invalid URL');
+    }
+
+    // Resolve hostname to IP
+    $ip = gethostbyname($host);
+    if ($ip === $host && !filter_var($host, FILTER_VALIDATE_IP)) {
+        abort(400, 'Unable to resolve hostname');
+    }
+
+    // Block private/internal IP addresses
+    $blockedRanges = [
+        '127.0.0.0/8',      // Localhost
+        '10.0.0.0/8',       // Private network
+        '172.16.0.0/12',    // Private network
+        '192.168.0.0/16',   // Private network
+        '169.254.0.0/16',   // Link-local (AWS metadata)
+        '0.0.0.0/8',        // Current network
+        '100.64.0.0/10',    // Carrier-grade NAT
+        'fc00::/7',         // IPv6 private
+        '::1/128',          // IPv6 localhost
+    ];
+
+    foreach ($blockedRanges as $range) {
+        if (strpos($range, ':') !== false) {
+            continue; // Skip IPv6 for IPv4 addresses
+        }
+        list($subnet, $mask) = explode('/', $range);
+        if ((ip2long($ip) & ~((1 << (32 - $mask)) - 1)) === ip2long($subnet)) {
+            abort(403, 'Access to internal resources is forbidden');
+        }
+    }
+
+    // Make the request with timeout
+    $response = Http::timeout(10)->withHeaders(['User-Agent' => 'Laravel-Image-Proxy'])->get($url);
+
+    // Validate content type is an image
+    $contentType = $response->header('Content-Type') ?? '';
+    if (!str_starts_with($contentType, 'image/')) {
+        abort(400, 'URL does not point to a valid image');
+    }
+
     return response($response->body(), $response->status())
-        ->header('Content-Type', $response->header('Content-Type'))
+        ->header('Content-Type', $contentType)
         ->header('Access-Control-Allow-Origin', '*');
 });
 

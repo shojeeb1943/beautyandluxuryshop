@@ -63,10 +63,13 @@ class CartController extends Controller
         $productVariationCode = $request['product_variation_code'];
 
         if ($request->has('color')) {
-            $string = Color::where('code', $request['color'])->first()->name;
+            $colorCode = strtoupper($request['color']);
+            $color = Color::where('code', $colorCode)->first();
+            $string = $color?->name ?? '';
         }
 
-        foreach (json_decode(Product::find($request->id)->choice_options) as $key => $choice) {
+        $productChoiceOptions = Product::find($request->id)?->choice_options;
+        foreach (json_decode($productChoiceOptions ?? '[]') as $key => $choice) {
             if ($string != null) {
                 $string .= '-' . str_replace(' ', '', $request[$choice->name]);
             } else {
@@ -168,7 +171,9 @@ class CartController extends Controller
         }
 
         if ($request->has('color')) {
-            $color_name = Color::where(['code' => $request->color])->first()->name;
+            $colorCode = strtoupper($request->color);
+            $colorModel = Color::where(['code' => $colorCode])->first();
+            $color_name = $colorModel?->name ?? '';
         }
 
         $restockRequestStatus = 0;
@@ -446,13 +451,15 @@ class CartController extends Controller
         $price = 0;
         $discount = 0;
         if ($request->has('color')) {
-            $str = Color::where('code', $request['color'])->first()->name;
+            $colorCode = strtoupper($request['color']);
+            $colorObj = Color::where('code', $colorCode)->first();
+            $str = $colorObj?->name ?? '';
             $variations['color'] = $str;
         }
 
         //Gets all the choice values of customer choice option and generate a string like Black-S-Cotton
         $choices = [];
-        foreach (json_decode($product->choice_options) as $key => $choice) {
+        foreach (json_decode($product->choice_options ?? '[]') as $key => $choice) {
             $choices[$choice->name] = $request[$choice->name];
             $variations[$choice->title] = $request[$choice->name];
             if ($str != null) {

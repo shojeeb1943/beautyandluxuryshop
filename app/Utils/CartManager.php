@@ -439,11 +439,23 @@ class CartManager
         $user = Helpers::getCustomerInformation($request);
         $guestId = session('guest_id') ?? ($request->guest_id ?? 0);
 
-        if (($product['product_type'] == 'physical') && ($product['current_stock'] < $request['quantity'])) {
+        // Validate quantity
+        $quantity = (int)($request['quantity'] ?? 0);
+        $maxOrderQty = 1000; // Maximum quantity per order
+
+        if ($quantity <= 0) {
+            return ['status' => 0, 'message' => translate('quantity_must_be_greater_than_zero')];
+        }
+
+        if ($quantity > $maxOrderQty) {
+            return ['status' => 0, 'message' => translate('maximum_order_quantity_is') . ' ' . $maxOrderQty];
+        }
+
+        if (($product['product_type'] == 'physical') && ($product['current_stock'] < $quantity)) {
             return ['status' => 0, 'message' => translate('out_of_stock!')];
         }
 
-        if ($product['minimum_order_qty'] > $request['quantity']) {
+        if ($product['minimum_order_qty'] > $quantity) {
             return ['status' => 0, 'message' => translate('Minimum_order_quantity').' '. $product['minimum_order_qty']];
         }
 
@@ -456,7 +468,9 @@ class CartManager
         }
 
         if ($request->has('color')) {
-            $string .= Color::where(['code' => $request['color']])->first()->name;
+            $colorCode = strtoupper($request['color']);
+            $colorModel = Color::where(['code' => $colorCode])->first();
+            $string .= $colorModel?->name ?? '';
             $variations['color'] = $string;
         }
 
@@ -640,7 +654,19 @@ class CartManager
 
     public static function addToCartDigitalProduct($request, $product, $shippingType, $sellerShippingList): array
     {
-        if ($product['minimum_order_qty'] > $request['quantity']) {
+        // Validate quantity
+        $quantity = (int)($request['quantity'] ?? 0);
+        $maxOrderQty = 100; // Maximum quantity for digital products
+
+        if ($quantity <= 0) {
+            return ['status' => 0, 'message' => translate('quantity_must_be_greater_than_zero')];
+        }
+
+        if ($quantity > $maxOrderQty) {
+            return ['status' => 0, 'message' => translate('maximum_order_quantity_is') . ' ' . $maxOrderQty];
+        }
+
+        if ($product['minimum_order_qty'] > $quantity) {
             return ['status' => 0, 'message' => translate('Minimum_order_quantity').' '. $product['minimum_order_qty']];
         }
 

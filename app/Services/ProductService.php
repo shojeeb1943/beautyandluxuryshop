@@ -433,9 +433,16 @@ class ProductService
                 // Get discount value
                 $discountValue = $request->has('discount_' . $fieldName) ? abs($request['discount_' . $fieldName]) : 0;
 
+                // Get variation price for validation
+                $variationPrice = currencyConverter(abs($request['price_' . $fieldName] ?? 0));
+
                 // For flat discount, convert to USD; for percent, store as-is
                 if ($discountType == 'flat') {
                     $discountValue = currencyConverter($discountValue);
+                    // Ensure flat discount doesn't exceed product price
+                    if ($discountValue >= $variationPrice) {
+                        $discountValue = $variationPrice > 0 ? $variationPrice * 0.9 : 0; // Cap at 90% of price
+                    }
                 }
 
                 // Validate percent discount doesn't exceed 100
@@ -443,9 +450,12 @@ class ProductService
                     $discountValue = 100;
                 }
 
+                // Ensure discount is not negative
+                $discountValue = max(0, $discountValue);
+
                 $item = [];
                 $item['type'] = $str;
-                $item['price'] = currencyConverter(abs($request['price_' . $fieldName]));
+                $item['price'] = $variationPrice;
                 $item['discount'] = $discountValue;
                 $item['discount_type'] = $discountType;
                 $item['sku'] = $request['sku_' . $fieldName];

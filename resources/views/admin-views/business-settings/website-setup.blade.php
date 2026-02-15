@@ -58,7 +58,7 @@
                                                             </div>
                                                             <div class="upload-file">
                                                                 <input type="file" name="company_web_logo" class="upload-file__input single_file_input" id="imageInput" value="{{ getStorageImages(path:$businessSetting['web_logo'],type: 'backend-placeholder') ?? '' }}"
-                                                                       accept=".webp, .jpg, .jpeg, .png, .gif" {{ !empty($businessSetting['web_logo']) ? '' : 'required' }}>
+                                                                       accept=".webp, .jpg, .jpeg, .png, .gif, .svg" {{ !empty($businessSetting['web_logo']) ? '' : 'required' }}>
                                                                 <label
                                                                     class="upload-file__wrapper w-325">
                                                                     <div class="upload-file-textbox text-center {{ $businessSetting['web_logo']['path'] ? 'd-none' : '' }}">
@@ -83,7 +83,7 @@
                                                                 </div>
                                                             </div>
                                                             <p class="fs-10 mb-0 text-center text-capitalize">
-                                                                {{ translate('jpg,_jpeg,_png,_gif_image_size') }} : {{ translate('Max_1_MB') }} <span class="fw-medium">{{ "(325 x 100 px)" }}</span>
+                                                                {{ translate('jpg,_jpeg,_png,_gif,_webp,_svg_image_size') }} : {{ translate('Max_1_MB') }} <span class="fw-medium">{{ "(325 x 100 px)" }}</span>
                                                             </p>
                                                         </div>
                                                     </div>
@@ -104,7 +104,7 @@
                                                             </div>
                                                             <div class="upload-file">
                                                                 <input type="file" name="company_mobile_logo" class="upload-file__input single_file_input" value="{{ getStorageImages(path:$businessSetting['mob_logo'],type: 'backend-placeholder') ?? '' }}" {{ $businessSetting['mob_logo']['path'] ? '' : 'required' }}
-                                                                accept=".webp, .jpg, .jpeg, .png, .gif">
+                                                                accept=".webp, .jpg, .jpeg, .png, .gif, .svg">
                                                                 <label
                                                                     class="upload-file__wrapper">
                                                                     <div class="upload-file-textbox text-center">
@@ -128,7 +128,7 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <p class="fs-10 mb-0 text-center">{{ translate('jpg,_jpeg,_png,_gif_image_size') }} : {{ translate('Max_1_MB') }}<span class="fw-medium">({{ translate('Ratio') }} {{ "1:1" }})</span></p>
+                                                            <p class="fs-10 mb-0 text-center">{{ translate('jpg,_jpeg,_png,_gif,_webp,_svg_image_size') }} : {{ translate('Max_1_MB') }}<span class="fw-medium">({{ translate('Ratio') }} {{ "1:1" }})</span></p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -147,7 +147,7 @@
                                                             </div>
                                                             <div class="upload-file">
                                                                 <input type="file" name="company_footer_logo" class="upload-file__input single_file_input"
-                                                                       accept=".webp, .jpg, .jpeg, .png, .gif"  value="{{ getStorageImages(path:$businessSetting['footer_logo'],type: 'backend-placeholder') ?? '' }}" {{ !empty($businessSetting['footer_logo']) ? '' : 'required' }}>
+                                                                       accept=".webp, .jpg, .jpeg, .png, .gif, .svg"  value="{{ getStorageImages(path:$businessSetting['footer_logo'],type: 'backend-placeholder') ?? '' }}" {{ !empty($businessSetting['footer_logo']) ? '' : 'required' }}>
                                                                 <label
                                                                     class="upload-file__wrapper w-325">
                                                                     <div class="upload-file-textbox text-center {{ $businessSetting['footer_logo']['path'] ? 'd-none' : '' }}">
@@ -172,7 +172,7 @@
                                                                 </div>
                                                             </div>
                                                             <p class="fs-10 mb-0 text-center text-capitalize">
-                                                                {{ translate('jpg,_jpeg,_png,_gif_image_size') }} : {{ translate('Max_1_MB') }} <span class="fw-medium">{{ "(325 x 100 px)" }}</span>
+                                                                {{ translate('jpg,_jpeg,_png,_gif,_webp,_svg_image_size') }} : {{ translate('Max_1_MB') }} <span class="fw-medium">{{ "(325 x 100 px)" }}</span>
                                                             </p>
                                                         </div>
                                                     </div>
@@ -190,7 +190,7 @@
                                                             </div>
                                                             <div class="upload-file">
                                                                 <input type="file" name="company_fav_icon" class="upload-file__input single_file_input" value="{{ getStorageImages(path:$businessSetting['fav_icon'],type: 'backend-placeholder') ?? '' }}" {{ !empty($businessSetting['fav_icon']) ? '' : 'required' }}
-                                                                       accept=".webp, .jpg, .jpeg, .png, .gif">
+                                                                       accept=".webp, .jpg, .jpeg, .png, .gif, .svg">
                                                                 <label
                                                                     class="upload-file__wrapper">
                                                                     <div class="upload-file-textbox text-center {{ $businessSetting['fav_icon']['path'] ? 'd-none' : '' }}">
@@ -214,7 +214,7 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <p class="fs-10 mb-0 text-center">{{ translate('jpg,_jpeg,_png,_gif_image_size') }} : {{ translate('Max_1_MB') }}<span class="fw-medium">({{ translate('Ratio') }} {{ "1:1" }})</span></p>
+                                                            <p class="fs-10 mb-0 text-center">{{ translate('jpg,_jpeg,_png,_gif,_webp,_svg_image_size') }} : {{ translate('Max_1_MB') }}<span class="fw-medium">({{ translate('Ratio') }} {{ "1:1" }})</span></p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -255,7 +255,7 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <p class="fs-10 mb-0 text-center">{{ translate('jpg,_jpeg,_png,_gif_image_size') }} : {{ translate('Max_1_MB') }}<span class="fw-medium">({{ translate('Ratio') }} {{ "1:1" }})</span></p>
+                                                            <p class="fs-10 mb-0 text-center">{{ translate('jpg,_jpeg,_png,_gif,_webp_image_size') }} : {{ translate('Max_1_MB') }}<span class="fw-medium">({{ translate('Ratio') }} {{ "1:1" }})</span></p>
                                                         </div>
                                                     </div>
                                                 </div>

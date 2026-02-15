@@ -3441,4 +3441,11 @@ return [
 	"Percent" => "Percent",
 	"view_all_brands" => "View all brands",
 	"Variation_Image" => "Variation Image",
+	"jpg,_jpeg,_png,_gif,_webp,_svg_image_size" => "Jpg, jpeg, png, gif, webp, svg image size",
+	"jpg,_jpeg,_png,_gif,_webp_image_size" => "Jpg, jpeg, png, gif, webp image size",
+	"the_company_web_logo_must_be_a_file_of_type_jpg_jpeg_png_gif_webp_svg" => "The company web logo must be a file of type jpg jpeg png gif webp svg",
+	"the_company_footer_logo_must_be_a_file_of_type_jpg_jpeg_png_gif_webp_svg" => "The company footer logo must be a file of type jpg jpeg png gif webp svg",
+	"the_company_fav_icon_must_be_a_file_of_type_jpg_jpeg_png_gif_webp_svg" => "The company fav icon must be a file of type jpg jpeg png gif webp svg",
+	"the_loader_gif_must_be_a_file_of_type_jpg_jpeg_png_gif_webp" => "The loader gif must be a file of type jpg jpeg png gif webp",
+	"the_company_mobile_logo_must_be_a_file_of_type_jpg_jpeg_png_gif_webp_svg" => "The company mobile logo must be a file of type jpg jpeg png gif webp svg",
 ];

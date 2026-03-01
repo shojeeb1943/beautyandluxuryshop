@@ -3743,3 +3743,107 @@ section.bg-transparent {
         gap: 6px !important;
     }
 }
+
+/* ============================================
+   IMAGE CLARITY FIX
+   Prevents blurry images due to scaling and transforms
+   ============================================ */
+
+/* Product card images - improve rendering quality */
+.product-single-hover .inline_product img,
+.flash_deal_product img,
+.__img-125px,
+.product-single-hover img,
+.inline_product img,
+.flash-deals-background-image img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-font-smoothing: subpixel-antialiased;
+}
+
+/* Fix blur on hover transform by using will-change */
+.product-single-hover .inline_product img {
+    will-change: transform;
+}
+
+/* Ensure images scale properly without blur */
+.product-single-hover:hover .inline_product img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+}
+
+/* Product details page image clarity */
+.product-details-img img,
+.cz-preview-item img,
+.easyzoom img,
+.product-image img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+/* Mobile view image clarity */
+@media (max-width: 767px) {
+    .product-single-hover .inline_product img,
+    .inline_product img,
+    img[loading="lazy"] {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
+
+/* ============================================
+   PRODUCT DETAIL - WISHLIST & SHARE ICONS
+   Transparent background, black icons only
+   ============================================ */
+
+/* Icons container - positioned top right */
+.product-action-icons {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 99;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Action buttons - transparent, no border */
+.product-action-btn {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: none !important;
+}
+
+/* Icons - black color */
+.product-action-btn i {
+    color: #000 !important;
+    font-size: 22px !important;
+}
+
+/* Hover effect */
+.product-action-btn:hover i {
+    color: #555 !important;
+}
+
+/* Mobile adjustment */
+@media (max-width: 575px) {
+    .product-action-icons {
+        top: 10px;
+        right: 10px;
+    }
+
+    .product-action-btn i {
+        font-size: 20px !important;
+    }
+}

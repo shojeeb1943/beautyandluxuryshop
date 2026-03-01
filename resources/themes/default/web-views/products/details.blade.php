@@ -68,23 +68,16 @@
                                             </div>
                                         </div>
                                     @endif
-                                </div>
-
-                                <div class="d-flex flex-column gap-3">
-                                    <button type="button" data-product-id="{{ $product['id'] }}"
-                                            class="btn __text-18px border wishList-pos-btn d-sm-none product-action-add-wishlist">
-                                        <i class="fa {{($wishlistStatus == 1?'fa-heart':'fa-heart-o') }} wishlist_icon_{{ $product['id'] }} web-text-primary"
-                                           aria-hidden="true"></i>
-                                        <div class="wishlist-tooltip" x-placement="top">
-                                            <div class="arrow"></div>
-                                            <div class="inner">
-                                                <span class="add">{{ translate('added_to_wishlist') }}</span>
-                                                <span class="remove">{{ translate('removed_from_wishlist') }}</span>
-                                            </div>
-                                        </div>
-                                    </button>
-
-                                    <div class="sharethis-inline-share-buttons share--icons text-align-direction">
+                                    <!-- Wishlist & Share Icons -->
+                                    <div class="product-action-icons">
+                                        <button type="button" data-product-id="{{ $product['id'] }}"
+                                                class="product-action-btn product-action-add-wishlist">
+                                            <i class="fa {{($wishlistStatus == 1?'fa-heart':'fa-heart-o') }} wishlist_icon_{{ $product['id'] }}"
+                                               aria-hidden="true"></i>
+                                        </button>
+                                        <button type="button" class="product-action-btn product-share-btn" onclick="toggleShareModal()">
+                                            <i class="fa fa-share-alt" aria-hidden="true"></i>
+                                        </button>
                                     </div>
                                 </div>
 

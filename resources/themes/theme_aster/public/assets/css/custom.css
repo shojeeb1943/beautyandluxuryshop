@@ -2190,3 +2190,68 @@ body *::-webkit-scrollbar-thumb {
         top: 0 !important;
     }
 }
+
+/* ============================================
+   IMAGE CLARITY FIX
+   Prevents blurry images due to scaling and transforms
+   ============================================ */
+
+/* Product card images - improve rendering quality */
+.product img,
+.product__top img,
+.img-fit,
+.aspect-1,
+.product-card img,
+.product-card-style img,
+.product-img img,
+.product-thumb img,
+.swiper-slide img,
+.product-details-img img,
+.common-card img,
+img.product-image,
+img[loading="lazy"] {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-font-smoothing: subpixel-antialiased;
+    will-change: transform;
+}
+
+/* Product details page image clarity */
+.product-details-img img,
+.product-details-thumb img,
+.zoom-img img,
+.magnifier__image img,
+.product-details-image img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+/* Fix hover zoom blur - add will-change for GPU acceleration */
+.hover-zoom-in img {
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+}
+
+.hover-zoom-in:hover img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+}
+
+/* Mobile view image clarity */
+@media (max-width: 767px) {
+    .product img,
+    .product__top img,
+    img[loading="lazy"],
+    .swiper-slide img {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}

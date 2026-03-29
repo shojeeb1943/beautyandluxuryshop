@@ -705,13 +705,28 @@ class ProductController extends BaseController
                 $variations[] = $item;
             }
         }
-        $dataArray = [
-            'current_stock' => $stockCount,
-            'variation' => json_encode($variations),
-        ];
-
         if ($stockCount >= 0) {
             $product = $this->productRepo->getFirstWhere(params: ['id' => $request['product_id']]);
+
+            $existingVariations = json_decode($product->variation ?? '[]', true) ?? [];
+            $submittedTypes = array_column($variations, 'type');
+            foreach ($existingVariations as $key => $existing) {
+                $idx = array_search($existing['type'], $submittedTypes);
+                if ($idx !== false) {
+                    $existingVariations[$key] = $variations[$idx];
+                }
+            }
+            foreach ($variations as $newVar) {
+                if (!in_array($newVar['type'], array_column($existingVariations, 'type'))) {
+                    $existingVariations[] = $newVar;
+                }
+            }
+
+            $dataArray = [
+                'current_stock' => $stockCount,
+                'variation' => json_encode(array_values($existingVariations)),
+            ];
+
             $this->productRepo->updateByParams(params: ['id' => $request['product_id']], data: $dataArray);
             $updatedProduct = $this->productRepo->getFirstWhere(params: ['id' => $request['product_id']]);
             $this->updateRestockRequestListAndNotify(product: $product, updatedProduct: $updatedProduct);

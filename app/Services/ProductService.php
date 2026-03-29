@@ -636,6 +636,14 @@ class ProductService
         $variationImages = $this->getProcessedVariationImages(request: $request, product: $product);
         $combinations = $this->getCombinations($this->getOptions(request: $request));
         $variations = $this->getVariations(request: $request, combinations: $combinations);
+
+        if ($request['product_type'] == 'physical' && $product->variation) {
+            $existingVariations = json_decode($product->variation, true) ?? [];
+            $formVariationTypes = array_column($variations, 'type');
+            $preservedVariations = array_values(array_filter($existingVariations, fn($v) => !in_array($v['type'], $formVariationTypes)));
+            $variations = array_merge($preservedVariations, $variations);
+        }
+
         $stockCount = isset($combinations[0]) && count($combinations[0]) > 0 ? $this->getTotalQuantity(variations: $variations) : (integer)$request['current_stock'];
 
         if ($request->has('extensions_type') && $request->has('digital_product_variant_key')) {

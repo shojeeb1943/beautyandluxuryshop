@@ -144,6 +144,8 @@ Route::group(['middleware' => ['maintenance_mode', 'actch:admin_panel']], functi
                     Route::delete('delete/{id}', 'delete')->name('delete');
                     Route::get('stock-limit-list', 'getStockLimitListView')->name('stock-limit-list');
                     Route::post('update-quantity', 'updateQuantity')->name('update-quantity');
+                    Route::post('batch-save-variations', 'batchSaveVariations')->name('batch-save-variations');
+                    Route::post('clear-variations', 'clearVariations')->name('clear-variations');
                     Route::get('update/{id}', 'getUpdateView')->name('update');
                     Route::post('update/{id}', 'update');
                     Route::get('delete-image', 'deleteImage')->name('delete-image');

@@ -167,6 +167,7 @@
     <span id="message-cart-word" data-text="{{ translate('cart') }}"></span>
     <span id="message-stock-out" data-text="{{ translate('stock_out') }}"></span>
     <span id="message-stock-id" data-text="{{ translate('in_stock') }}"></span>
+    <span id="message-available" data-text="{{ translate('available') }}"></span>
     <span id="message-add-to-cart" data-text="{{ translate('add_to_cart') }}"></span>
     <span id="message-cart-updated" data-text="{{ translate('cart_updated') }}"></span>
     <span id="message-update-to-cart" data-text="{{ translate('update_to_cart') }}"></span>

@@ -1183,14 +1183,15 @@ function stockStatus(
 ) {
     let stockOutMessage = $("#message-stock-out").data("text");
     let stockInMessage = $("#message-stock-id").data("text");
+    let availableMessage = $("#message-available").data("text") || "Available";
     let elementStockStatusInQuickView = $(".stock-status-in-quick-view");
     let inputQuantity = $("." + inputQuantityClassName);
     if (quantity <= 0) {
         elementStockStatusInQuickView
-            .removeClass("text-success")
-            .addClass("text-danger");
+            .removeClass("text-success bg-success")
+            .addClass("text-danger bg-danger");
         elementStockStatusInQuickView.html(
-            `<i class="tio-checkmark-circle-outlined"></i> ` + stockOutMessage
+            `<i class="fi fi-rr-cross-circle"></i> ` + stockOutMessage
         );
         productStockMessage("out-of-stock");
         buttonDisableOrEnableFunction(buttonDisableOrEnableClassName, true);
@@ -1203,10 +1204,10 @@ function stockStatus(
     } else {
         $(".pos-alert-message").addClass("d-none");
         elementStockStatusInQuickView
-            .removeClass("text-danger")
-            .addClass("text-success");
+            .removeClass("text-danger bg-danger")
+            .addClass("text-success bg-success");
         elementStockStatusInQuickView.html(
-            `<i class="tio-checkmark-circle-outlined"></i> ` + stockInMessage
+            `<i class="fi fi-rr-check-circle"></i> ` + stockInMessage + ` (` + quantity + ` ` + availableMessage + `)`
         );
         buttonDisableOrEnableFunction(buttonDisableOrEnableClassName, false);
     }

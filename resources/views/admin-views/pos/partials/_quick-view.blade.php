@@ -49,11 +49,27 @@
                 <form id="add-to-cart-form" class="add-to-cart-details-form">
                     @csrf
                     <div class="details">
+                        @php
+                            $totalStock = $product->current_stock;
+                            if (!empty($product->variation)) {
+                                $variationStock = 0;
+                                foreach (json_decode($product->variation) as $variation) {
+                                    $variationStock += $variation->qty;
+                                }
+                                if ($variationStock > 0) {
+                                    $totalStock = $variationStock;
+                                }
+                            }
+                        @endphp
                         <div class="d-flex flex-wrap gap-3 mb-3">
                             <div
-                                class="d-flex gap-2 align-items-center text-success rounded-pill bg-success bg-opacity-10 px-2 py-1 stock-status-in-quick-view">
-                                <i class="fi fi-rr-check-circle"></i>
-                                {{ translate('in_stock') }}
+                                class="d-flex gap-2 align-items-center {{ $totalStock > 0 ? 'text-success bg-success' : 'text-danger bg-danger' }} rounded-pill bg-opacity-10 px-2 py-1 stock-status-in-quick-view">
+                                <i class="fi {{ $totalStock > 0 ? 'fi-rr-check-circle' : 'fi-rr-cross-circle' }}"></i>
+                                @if($totalStock > 0)
+                                    {{ translate('in_stock') }} ({{ $totalStock }} {{ translate('available') }})
+                                @else
+                                    {{ translate('stock_out') }}
+                                @endif
                             </div>
                         </div>
                         <h2 class="mb-3 product-title">{{ $product->name }}</h2>
@@ -109,17 +125,24 @@
 
                                     <div class="color-select d-flex gap-2 flex-wrap" id="option1">
                                         @foreach (json_decode($product->colors) as $key => $color)
-                                            <input class="btn-check action-color-change" type="radio"
-                                                id="{{ $product->id }}-color-{{ $key }}" name="color"
-                                                value="{{ $color }}"
-                                                @if ($key == 0) checked @endif autocomplete="off">
-                                            <label id="label-{{ $product->id }}-color-{{ $key }}"
-                                                class="color-ball mb-0 {{ $key == 0 ? 'border-add' : '' }}"
-                                                style="background: {{ $color }};"
-                                                for="{{ $product->id }}-color-{{ $key }}"
-                                                data-bs-toggle="tooltip">
-                                                <i class="fi fi-sr-check"></i>
-                                            </label>
+                                            @php
+                                                $colorName = getColorNameByCode(code: $color) ?? $color;
+                                            @endphp
+                                            <div class="d-flex flex-column align-items-center gap-1">
+                                                <input class="btn-check action-color-change" type="radio"
+                                                    id="{{ $product->id }}-color-{{ $key }}" name="color"
+                                                    value="{{ $color }}"
+                                                    @if ($key == 0) checked @endif autocomplete="off">
+                                                <label id="label-{{ $product->id }}-color-{{ $key }}"
+                                                    class="color-ball mb-0 {{ $key == 0 ? 'border-add' : '' }}"
+                                                    style="background: {{ $color }};"
+                                                    for="{{ $product->id }}-color-{{ $key }}"
+                                                    data-bs-toggle="tooltip"
+                                                    title="{{ $colorName }}">
+                                                    <i class="fi fi-sr-check"></i>
+                                                </label>
+                                                <span class="fs-10 text-muted text-center" style="max-width: 50px; word-wrap: break-word;">{{ $colorName }}</span>
+                                            </div>
                                         @endforeach
                                     </div>
                                 </div>

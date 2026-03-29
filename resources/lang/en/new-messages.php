@@ -3498,4 +3498,10 @@ return [
 	"qty_sold" => "Qty sold",
 	"calculations_only_include_products_with_buying_price_set" => "Calculations only include products with buying price set",
 	"products_without_buying_price_are_excluded_from_profit_and_cost_calculations" => "Products without buying price are excluded from profit and cost calculations",
+	"Walk-In-Customer" => "Walk-In-Customer",
+	"please_add_product_to_cart_before_applying_discount" => "Please add product to cart before applying discount",
+	"please_add_product_to_cart_before_applying_coupon" => "Please add product to cart before applying coupon",
+	"sku" => "Sku",
+	"available" => "Available",
+	"No_Product_Found" => "No Product Found",
 ];

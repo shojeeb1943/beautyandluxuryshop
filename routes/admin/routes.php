@@ -206,6 +206,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['admin', '
             Route::get('delete-image', 'deleteImage')->name('delete-image');
             Route::get('get-variations', 'getVariations')->name('get-variations');
             Route::post('update-quantity', 'updateQuantity')->name('update-quantity');
+            Route::post('batch-save-variations', 'batchSaveVariations')->name('batch-save-variations');
+            Route::post('clear-variations', 'clearVariations')->name('clear-variations');
             Route::get('bulk-import', 'getBulkImportView')->name('bulk-import');
             Route::post('bulk-import', 'importBulkProduct');
             Route::get('updated-product-list', 'updatedProductList')->name('updated-product-list');

@@ -687,6 +687,164 @@ class ProductController extends BaseController
         return back();
     }
 
+    /**
+     * Batch save variations - handles saving variants in chunks to avoid timeout
+     * This method processes a batch of variants and merges them with existing ones
+     */
+    public function batchSaveVariations(Request $request): JsonResponse
+    {
+        try {
+            $productId = $request->input('product_id');
+            $batchVariations = $request->input('variations', []);
+            $batchIndex = $request->input('batch_index', 0);
+            $isFirstBatch = $request->input('is_first_batch', false);
+            $isLastBatch = $request->input('is_last_batch', false);
+
+            if (!$productId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => translate('product_id_is_required')
+                ], 400);
+            }
+
+            $product = $this->productRepo->getFirstWhere(params: ['id' => $productId]);
+
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => translate('product_not_found')
+                ], 404);
+            }
+
+            // Get existing variations
+            $existingVariations = [];
+            if (!$isFirstBatch && $product->variation) {
+                $existingVariations = json_decode($product->variation, true) ?? [];
+            }
+
+            // Process batch variations
+            $processedBatch = [];
+            foreach ($batchVariations as $variation) {
+                $discountType = $variation['discount_type'] ?? 'flat';
+                $discountValue = abs($variation['discount'] ?? 0);
+                $price = currencyConverter(amount: abs($variation['price'] ?? 0));
+
+                // For flat discount, convert to USD
+                if ($discountType == 'flat') {
+                    $discountValue = currencyConverter($discountValue);
+                    // Cap flat discount at 90% of price
+                    if ($discountValue >= $price) {
+                        $discountValue = $price > 0 ? $price * 0.9 : 0;
+                    }
+                }
+
+                // Cap percent discount at 100
+                if ($discountType == 'percent' && $discountValue > 100) {
+                    $discountValue = 100;
+                }
+
+                $processedBatch[] = [
+                    'type' => $variation['type'],
+                    'price' => $price,
+                    'discount' => max(0, $discountValue),
+                    'discount_type' => $discountType,
+                    'sku' => $variation['sku'] ?? '',
+                    'qty' => abs($variation['qty'] ?? 1),
+                    'sort_order' => abs($variation['sort_order'] ?? 999),
+                ];
+            }
+
+            // Merge with existing variations (remove duplicates by type)
+            $existingTypes = array_column($existingVariations, 'type');
+            foreach ($processedBatch as $newVariation) {
+                $existingIndex = array_search($newVariation['type'], $existingTypes);
+                if ($existingIndex !== false) {
+                    // Replace existing variation
+                    $existingVariations[$existingIndex] = $newVariation;
+                } else {
+                    // Add new variation
+                    $existingVariations[] = $newVariation;
+                }
+            }
+
+            // Calculate total stock
+            $totalStock = 0;
+            foreach ($existingVariations as $variation) {
+                $totalStock += $variation['qty'] ?? 0;
+            }
+
+            // Save to database
+            $this->productRepo->updateByParams(
+                params: ['id' => $productId],
+                data: [
+                    'variation' => json_encode($existingVariations),
+                    'current_stock' => $totalStock,
+                ]
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => translate('batch_saved_successfully'),
+                'batch_index' => $batchIndex,
+                'total_variations' => count($existingVariations),
+                'total_stock' => $totalStock,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'batch_index' => $request->input('batch_index', 0),
+            ], 500);
+        }
+    }
+
+    /**
+     * Clear all variations for a product (called before batch save starts)
+     */
+    public function clearVariations(Request $request): JsonResponse
+    {
+        try {
+            $productId = $request->input('product_id');
+
+            if (!$productId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => translate('product_id_is_required')
+                ], 400);
+            }
+
+            $product = $this->productRepo->getFirstWhere(params: ['id' => $productId]);
+
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => translate('product_not_found')
+                ], 404);
+            }
+
+            // Clear variations
+            $this->productRepo->updateByParams(
+                params: ['id' => $productId],
+                data: [
+                    'variation' => json_encode([]),
+                    'current_stock' => 0,
+                ]
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => translate('variations_cleared_successfully'),
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function getBulkImportView(): View
     {
         return view(Product::BULK_IMPORT[VIEW]);

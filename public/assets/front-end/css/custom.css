@@ -3847,3 +3847,218 @@ section.bg-transparent {
         font-size: 20px !important;
     }
 }
+
+/* Remove header shadow on mobile devices */
+@media (max-width: 991px) {
+    .navbar-sticky,
+    .navbar-sticky.bg-light,
+    .mobile-head,
+    .navbar-sticky.bg-light.mobile-head,
+    header,
+    header .navbar,
+    header .navbar-sticky,
+    .topbar,
+    .navbar,
+    .navbar-light,
+    .navbar-expand-md,
+    .navbar-stuck-menu,
+    .navbar-sticky.navbar-stuck,
+    header *,
+    header::before,
+    header::after,
+    .navbar-sticky::before,
+    .navbar-sticky::after,
+    .mobile-head::before,
+    .mobile-head::after,
+    .rtl.__inline-10,
+    .rtl.__inline-10 *,
+    .__inline-10,
+    .__inline-10 > *,
+    body.toolbar-enabled > header,
+    body.toolbar-enabled > header * {
+        box-shadow: none !important;
+        -webkit-box-shadow: none !important;
+    }
+
+    header,
+    header .navbar-sticky,
+    .mobile-head,
+    .navbar-sticky.bg-light.mobile-head,
+    .navbar-sticky.navbar-stuck {
+        border-bottom: none !important;
+        filter: none !important;
+        -webkit-filter: none !important;
+    }
+
+    /* Force remove any shadow utility classes on mobile header */
+    header .shadow,
+    header .shadow-sm,
+    header .shadow-lg,
+    .navbar-sticky .shadow,
+    .navbar-sticky .shadow-sm {
+        box-shadow: none !important;
+    }
+
+    /* Remove shadow from content areas that appear after header */
+    header + *,
+    header + div,
+    header + section,
+    header + .container,
+    header ~ .row:first-of-type,
+    body,
+    body > *:not(header):not(script):not(style) {
+        box-shadow: none !important;
+    }
+
+    /* Remove any inset shadows */
+    body::before,
+    body::after,
+    .toolbar-enabled::before,
+    .toolbar-enabled::after {
+        box-shadow: none !important;
+        content: none !important;
+    }
+
+    /* Nuclear option: Remove ALL shadows from header area */
+    header,
+    header *,
+    header *::before,
+    header *::after,
+    .navbar-sticky,
+    .navbar-sticky *,
+    .mobile-head,
+    .mobile-head * {
+        box-shadow: none !important;
+        -webkit-box-shadow: none !important;
+        text-shadow: none !important;
+        filter: none !important;
+        -webkit-filter: none !important;
+    }
+}
+
+/* Flash Deal Timer in Header Section */
+.flash-deal-timer-header {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.countdown-card-header {
+    background: transparent;
+}
+
+.countdown-background-header {
+    background-color: #1a1a1a;
+    padding: 5px 8px;
+    border-radius: 5px;
+    color: #ffffff !important;
+}
+
+.countdown-background-header .cz-countdown {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+}
+
+.countdown-background-header .cz-countdown-days,
+.countdown-background-header .cz-countdown-hours,
+.countdown-background-header .cz-countdown-minutes,
+.countdown-background-header .cz-countdown-seconds {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #000;
+    padding: 4px 6px;
+    border-radius: 3px;
+    min-width: 32px;
+}
+
+.countdown-background-header .cz-countdown-value {
+    font-size: 13px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.countdown-background-header .cz-countdown-text {
+    font-size: 7px;
+    color: #aaa;
+    text-transform: capitalize;
+}
+
+.countdown-background-header .cz-countdown > .cz-countdown-value {
+    background: transparent;
+    padding: 0 1px;
+    min-width: auto;
+    font-size: 11px;
+}
+
+.countdown-background-header .__progress {
+    height: 2px;
+    margin-top: 4px;
+    background-color: #333;
+    border-radius: 1px;
+}
+
+/* Mobile responsive styles for header timer */
+@media screen and (max-width: 991px) {
+    .flash-deal-timer-header {
+        margin-left: auto;
+    }
+
+    .countdown-background-header {
+        padding: 4px 6px;
+    }
+
+    .countdown-background-header .cz-countdown-days,
+    .countdown-background-header .cz-countdown-hours,
+    .countdown-background-header .cz-countdown-minutes,
+    .countdown-background-header .cz-countdown-seconds {
+        padding: 3px 5px;
+        min-width: 28px;
+        border-radius: 2px;
+    }
+
+    .countdown-background-header .cz-countdown-value {
+        font-size: 11px;
+    }
+
+    .countdown-background-header .cz-countdown-text {
+        font-size: 6px;
+    }
+
+    .countdown-background-header .cz-countdown > .cz-countdown-value {
+        font-size: 9px;
+        padding: 0;
+    }
+
+    .countdown-background-header .__progress {
+        height: 2px;
+        margin-top: 3px;
+    }
+}
+
+@media screen and (max-width: 575px) {
+    .countdown-background-header {
+        padding: 3px 4px;
+    }
+
+    .countdown-background-header .cz-countdown-days,
+    .countdown-background-header .cz-countdown-hours,
+    .countdown-background-header .cz-countdown-minutes,
+    .countdown-background-header .cz-countdown-seconds {
+        padding: 2px 4px;
+        min-width: 24px;
+    }
+
+    .countdown-background-header .cz-countdown-value {
+        font-size: 10px;
+    }
+
+    .countdown-background-header .cz-countdown-text {
+        font-size: 5px;
+    }
+
+    .countdown-background-header .cz-countdown > .cz-countdown-value {
+        font-size: 9px;
+    }
+}

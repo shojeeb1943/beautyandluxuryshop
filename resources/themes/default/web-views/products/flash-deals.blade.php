@@ -34,6 +34,8 @@
                     'searchBarSection' => true,
                     'sortBySection' => true,
                     'showProductsFilter' => true,
+                    'showFlashDealTimer' => true,
+                    'flashDeals' => $web_config['flash_deals'],
             ])
             <div class="py-3 mb-2 mb-md-4 rtl __inline-35" dir="{{ session('direction') }}">
                 <div class="row">

@@ -53,6 +53,9 @@
     <span id="route-admin-products-sku-combination" data-url="{{ route('admin.products.sku-combination') }}"></span>
     <span id="route-admin-products-digital-variation-combination" data-url="{{ route('admin.products.digital-variation-combination') }}"></span>
     <span id="route-admin-products-digital-variation-file-delete" data-url="{{ route('admin.products.digital-variation-file-delete') }}"></span>
+    <span id="route-admin-products-batch-save-variations" data-url="{{ route('admin.products.batch-save-variations') }}"></span>
+    <span id="route-admin-products-clear-variations" data-url="{{ route('admin.products.clear-variations') }}"></span>
+    <span id="current-product-id" data-id="{{ $product->id ?? '' }}"></span>
     <span id="image-path-of-product-upload-icon" data-path="{{ dynamicAsset(path: 'public/assets/back-end/img/icons/product-upload-icon.svg') }}"></span>
 @endsection
 

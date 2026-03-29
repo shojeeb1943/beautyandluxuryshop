@@ -31,6 +31,50 @@
         </div>
     @endif
 
+    @if(isset($showFlashDealTimer) && $showFlashDealTimer && isset($flashDeals))
+        <div class="flash-deal-timer-header">
+            <div class="countdown-card-header">
+                <div class="countdown-background-header rounded p-2">
+                    <span class="cz-countdown d-flex justify-content-center align-items-center"
+                          data-countdown="{{ date('m/d/Y', strtotime($flashDeals['end_date'])) }} 23:59:00">
+                        <span class="cz-countdown-days">
+                            <span class="cz-countdown-value"></span>
+                            <span class="cz-countdown-text text-nowrap">{{ translate('days')}}</span>
+                        </span>
+                        <span class="cz-countdown-value p-1">:</span>
+                        <span class="cz-countdown-hours">
+                            <span class="cz-countdown-value"></span>
+                            <span class="cz-countdown-text text-nowrap">{{ translate('hours')}}</span>
+                        </span>
+                        <span class="cz-countdown-value p-1">:</span>
+                        <span class="cz-countdown-minutes">
+                            <span class="cz-countdown-value"></span>
+                            <span class="cz-countdown-text text-nowrap">{{ translate('minutes')}}</span>
+                        </span>
+                        <span class="cz-countdown-value p-1">:</span>
+                        <span class="cz-countdown-seconds">
+                            <span class="cz-countdown-value"></span>
+                            <span class="cz-countdown-text text-nowrap">{{ translate('sec')}}</span>
+                        </span>
+                    </span>
+                    @php
+                        $startDate = \Carbon\Carbon::parse($flashDeals['start_date']);
+                        $endDate = \Carbon\Carbon::parse($flashDeals['end_date']);
+                        $now = \Carbon\Carbon::now();
+                        $totalDuration = $endDate->diffInSeconds($startDate);
+                        $elapsedDuration = $now->diffInSeconds($startDate);
+                        $flashDealsPercentage = $totalDuration > 0 ? ($elapsedDuration / $totalDuration) * 100 : 0;
+                    @endphp
+                    <div class="progress __progress">
+                        <div class="progress-bar flash-deal-progress-bar" role="progressbar"
+                             style="width: {{ number_format($flashDealsPercentage, 2) }}%"
+                             aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
 
 
     <div class="d-flex flex-wrap gap-3">

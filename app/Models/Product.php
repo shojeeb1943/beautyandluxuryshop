@@ -35,6 +35,7 @@ use Illuminate\Support\Facades\DB;
  * @property string $tax_type
  * @property string $tax_model
  * @property float $unit_price
+ * @property float|null $buying_price
  * @property int $status
  * @property float $discount
  * @property int $current_stock
@@ -85,6 +86,7 @@ class Product extends Model
         'digital_product_file_types',
         'digital_product_extensions',
         'unit_price',
+        'buying_price',
         'purchase_price',
         'tax',
         'tax_type',
@@ -141,6 +143,7 @@ class Product extends Model
         'tax_type' => 'string',
         'tax_model' => 'string',
         'unit_price' => 'float',
+        'buying_price' => 'float',
         'status' => 'integer',
         'discount' => 'float',
         'current_stock' => 'integer',

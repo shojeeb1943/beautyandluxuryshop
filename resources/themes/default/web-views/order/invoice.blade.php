@@ -512,6 +512,16 @@ $orderTotalPriceSummary = \App\Utils\OrderManager::getOrderTotalPriceSummary(ord
                 <div class="font-normal">
                     {{getWebConfig('shop_address') }}
                 </div>
+                @if(getWebConfig('shop_phone'))
+                <div class="font-normal">
+                    {{ getWebConfig('shop_phone') }}
+                </div>
+                @endif
+                @if(getWebConfig('shop_email'))
+                <div class="font-normal">
+                    {{ getWebConfig('shop_email') }}
+                </div>
+                @endif
 
                 @if(isset($invoiceSettings['business_identity_status']) && $invoiceSettings['business_identity_status'])
                     <div>

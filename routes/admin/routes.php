@@ -43,6 +43,7 @@ use App\Http\Controllers\Admin\Settings\CurrencyController;
 use App\Http\Controllers\Admin\Settings\LanguageController;
 use App\Http\Controllers\Admin\TransactionReportController;
 use App\Http\Controllers\Admin\InhouseProductSaleController;
+use App\Http\Controllers\Admin\InHouseStoreReportController;
 use App\Http\Controllers\Admin\ProductStockReportController;
 use App\Http\Controllers\Admin\Settings\ErrorLogsController;
 use App\Http\Controllers\Admin\Employee\CustomRoleController;
@@ -375,6 +376,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['admin', '
     Route::group(['prefix' => 'report', 'as' => 'report.', 'middleware' => ['module:report']], function () {
         Route::controller(InhouseProductSaleController::class)->group(function () {
             Route::get('inhouse-product-sale', 'index')->name('inhouse-product-sale');
+        });
+
+        Route::controller(InHouseStoreReportController::class)->group(function () {
+            Route::get('inhouse-store-report', 'index')->name('inhouse-store-report');
         });
     });
 

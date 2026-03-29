@@ -668,8 +668,8 @@
                     </small>
                 </li>
 
-                <li class="{{ (Request::is('admin/report/admin-earning') || Request::is('admin/report/vendor-earning') || Request::is('admin/report/inhouse-product-sale') || Request::is('admin/report/vendor-report') || Request::is('admin/report/earning') || Request::is('admin/transaction/order-transaction-list') || Request::is('admin/transaction/expense-transaction-list') || Request::is('admin/report/transaction/refund-transaction-list') || Request::is('admin/transaction/wallet-bonus')) ? 'sub-menu-opened' : '' }}">
-                    <a class="nav-link nav-link-toggle {{ (Request::is('admin/report/admin-earning') || Request::is('admin/report/vendor-earning') || Request::is('admin/report/inhouse-product-sale') || Request::is('admin/report/vendor-report') || Request::is('admin/report/earning') || Request::is('admin/transaction/order-transaction-list') || Request::is('admin/transaction/expense-transaction-list') || Request::is('admin/report/transaction/refund-transaction-list') || Request::is('admin/transaction/wallet-bonus')) ? 'active' : '' }}"
+                <li class="{{ (Request::is('admin/report/admin-earning') || Request::is('admin/report/vendor-earning') || Request::is('admin/report/inhouse-product-sale') || Request::is('admin/report/inhouse-store-report') || Request::is('admin/report/vendor-report') || Request::is('admin/report/earning') || Request::is('admin/transaction/order-transaction-list') || Request::is('admin/transaction/expense-transaction-list') || Request::is('admin/report/transaction/refund-transaction-list') || Request::is('admin/transaction/wallet-bonus')) ? 'sub-menu-opened' : '' }}">
+                    <a class="nav-link nav-link-toggle {{ (Request::is('admin/report/admin-earning') || Request::is('admin/report/vendor-earning') || Request::is('admin/report/inhouse-product-sale') || Request::is('admin/report/inhouse-store-report') || Request::is('admin/report/vendor-report') || Request::is('admin/report/earning') || Request::is('admin/transaction/order-transaction-list') || Request::is('admin/transaction/expense-transaction-list') || Request::is('admin/report/transaction/refund-transaction-list') || Request::is('admin/transaction/wallet-bonus')) ? 'active' : '' }}"
                        href="javascript:" title="{{ translate('sales_&_Transaction_Report') }}">
                         <i class="fi fi-sr-stats"></i>
                         <span
@@ -697,6 +697,15 @@
                                title="{{ translate('inhouse_Sales') }}">
                                 <span class="text-truncate">
                                     {{ translate('inhouse_Sales') }}
+                                </span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ Request::is('admin/report/inhouse-store-report') ? 'active' : '' }}"
+                               href="{{ route('admin.report.inhouse-store-report') }}"
+                               title="{{ translate('in_House_Store_Report') }}">
+                                <span class="text-truncate">
+                                    {{ translate('in_House_Store_Report') }}
                                 </span>
                             </a>
                         </li>

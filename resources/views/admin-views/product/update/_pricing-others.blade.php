@@ -26,6 +26,24 @@
                            value="{{ usdToDefaultCurrency($product->unit_price) }}" class="form-control" required>
                 </div>
             </div>
+            <div class="col-md-6 col-lg-4 col-xl-3">
+                <div class="form-group">
+                    <label class="form-label">
+                        {{ translate('buying_price') }}
+                        ({{ getCurrencySymbol(currencyCode: getCurrencyCode()) }})
+                        <span class="tooltip-icon cursor-pointer" data-bs-toggle="tooltip"
+                              aria-label="{{ translate('internal_cost_price_for_profit_calculation._This_is_for_admin_reporting_only_and_will_not_be_shown_to_customers') }}"
+                              data-bs-title="{{ translate('internal_cost_price_for_profit_calculation._This_is_for_admin_reporting_only_and_will_not_be_shown_to_customers') }}"
+                        >
+                            <i class="fi fi-sr-info"></i>
+                        </span>
+                    </label>
+
+                    <input type="number" min="0" step="0.01"
+                           placeholder="{{ translate('buying_price') }}" name="buying_price"
+                           value="{{ $product->buying_price ? usdToDefaultCurrency($product->buying_price) : '' }}" class="form-control">
+                </div>
+            </div>
             <div class="col-md-6 col-lg-4 col-xl-3" id="minimum_order_qty">
                 <div class="form-group">
                     <label class="form-label" for="minimum_order_qty">

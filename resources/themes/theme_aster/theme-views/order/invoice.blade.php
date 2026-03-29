@@ -477,14 +477,14 @@ $orderTotalPriceSummary = \App\Utils\OrderManager::getOrderTotalPriceSummary(ord
                 <div class="font-normal">
                     {{ getWebConfig('shop_address') }}
                 </div>
-                @if(getWebConfig('shop_phone'))
+                @if(getWebConfig('company_phone'))
                 <div class="font-normal">
-                    {{ getWebConfig('shop_phone') }}
+                    {{ getWebConfig('company_phone') }}
                 </div>
                 @endif
-                @if(getWebConfig('shop_email'))
+                @if(getWebConfig('company_email'))
                 <div class="font-normal">
-                    {{ getWebConfig('shop_email') }}
+                    {{ getWebConfig('company_email') }}
                 </div>
                 @endif
 

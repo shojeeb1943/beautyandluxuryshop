@@ -81,6 +81,64 @@ body {
 .color_variants {
     width: 20px;
     height: 20px;
+    position: relative;
+}
+
+/* ── Out-of-stock indicators ──────────────────────────────── */
+
+/* Color swatches: red X cross */
+.color_variants.color-out-of-stock {
+    opacity: 0.7;
+}
+.color_variants.color-out-of-stock::before,
+.color_variants.color-out-of-stock::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 130%;
+    height: 2px;
+    background: #e53935;
+    border-radius: 1px;
+    pointer-events: none;
+    z-index: 2;
+}
+.color_variants.color-out-of-stock::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+.color_variants.color-out-of-stock::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+/* Active/selected: remove white inner border to avoid tick illusion */
+.color_variant_active.color-out-of-stock,
+.option-select-btn.custom_01_option label input:checked ~ .color-out-of-stock {
+    border-color: transparent !important;
+    outline-color: #e53935 !important;
+}
+
+/* Alphanumeric / pill variation option spans: red X cross */
+.option-select-btn.custom_01_option span.option-out-of-stock {
+    position: relative;
+    opacity: 0.6;
+}
+.option-select-btn.custom_01_option span.option-out-of-stock::before,
+.option-select-btn.custom_01_option span.option-out-of-stock::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 115%;
+    height: 2px;
+    background: #e53935;
+    border-radius: 1px;
+    pointer-events: none;
+    z-index: 2;
+}
+.option-select-btn.custom_01_option span.option-out-of-stock::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+.option-select-btn.custom_01_option span.option-out-of-stock::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
 }
 .color_variant_active {
     border: 3px solid #fff;

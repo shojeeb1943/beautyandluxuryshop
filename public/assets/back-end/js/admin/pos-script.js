@@ -1197,7 +1197,7 @@ function stockStatus(
         buttonDisableOrEnableFunction(buttonDisableOrEnableClassName, true);
         inputQuantity.val(1);
         $(".btn-number[data-type='minus']").attr("disabled", true);
-    } else if (inputQuantity.val() >= quantity) {
+    } else if (parseInt(inputQuantity.val()) > quantity) {
         productStockMessage("limited-stock");
         buttonDisableOrEnableFunction(buttonDisableOrEnableClassName, true);
         inputQuantity.val(quantity);
@@ -1209,7 +1209,7 @@ function stockStatus(
         elementStockStatusInQuickView.html(
             `<i class="fi fi-rr-check-circle"></i> ` + stockInMessage + ` (` + quantity + ` ` + availableMessage + `)`
         );
-        buttonDisableOrEnableFunction(buttonDisableOrEnableClassName, false);
+        buttonDisableOrEnableFunction(buttonDisableOrEnableClassName, parseInt(inputQuantity.val()) >= quantity);
     }
 }
 

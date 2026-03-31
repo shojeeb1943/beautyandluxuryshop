@@ -201,6 +201,22 @@
                     <input type="hidden" name="id" value="{{ $product->id }}">
                     <div class="position-relative {{Session::get('direction') === "rtl" ? 'ml-n4' : 'mr-n4'}} mb-3">
                         @if (count(json_decode($product->colors)) > 0)
+                            @php
+                                $colorStockMap = [];
+                                $decodedVariations = !empty($product->variation) ? json_decode($product->variation) : [];
+                                if (is_array($decodedVariations) && count($decodedVariations) > 0) {
+                                    foreach (json_decode($product->colors) as $c) {
+                                        $cName = getColorNameByCode(code: $c);
+                                        $cQty = 0;
+                                        foreach ($decodedVariations as $v) {
+                                            if (isset($v->type) && ($v->type === $cName || str_starts_with($v->type, $cName . '-'))) {
+                                                $cQty += $v->qty;
+                                            }
+                                        }
+                                        $colorStockMap[$c] = $cQty;
+                                    }
+                                }
+                            @endphp
                             <div class="flex-start">
                                 <div class="product-description-label text-dark font-bold">
                                     {{translate('color')}}:
@@ -214,7 +230,7 @@
                                                        name="color" value="{{ $color }}"
                                                        @if($key == 0) checked @endif>
                                                 <label style="background: {{ $color }};"
-                                                       class="quick-view-preview-image-by-color shadow-border"
+                                                       class="quick-view-preview-image-by-color shadow-border {{ (isset($colorStockMap[$color]) && $colorStockMap[$color] <= 0) ? 'color-out-of-stock' : '' }}"
                                                        for="{{ $product->id }}-color-{{ str_replace('#','',$color) }}"
                                                        data-toggle="tooltip"
                                                        data-key="{{ str_replace('#','',$color) }}"
@@ -237,8 +253,33 @@
 
                     </div>
 
+                    @php
+                        if (!isset($decodedVariations)) {
+                            $decodedVariations = !empty($product->variation) ? json_decode($product->variation) : [];
+                        }
+                        $hasColors = !empty($product->colors) && is_array(json_decode($product->colors)) && count(json_decode($product->colors)) > 0;
+                        $optionStockMap = [];
+                        if (is_array($decodedVariations) && count($decodedVariations) > 0) {
+                            foreach (json_decode($product->choice_options) as $choiceIdx => $choice) {
+                                $segIdx = $hasColors ? $choiceIdx + 1 : $choiceIdx;
+                                foreach ($choice->options as $opt) {
+                                    $optVal = str_replace(' ', '', $opt);
+                                    $oQty = 0;
+                                    foreach ($decodedVariations as $v) {
+                                        if (isset($v->type)) {
+                                            $segs = explode('-', $v->type);
+                                            if (isset($segs[$segIdx]) && $segs[$segIdx] === $optVal) {
+                                                $oQty += $v->qty;
+                                            }
+                                        }
+                                    }
+                                    $optionStockMap[$choice->name][$opt] = $oQty;
+                                }
+                            }
+                        }
+                    @endphp
                     @foreach (json_decode($product->choice_options) as $key => $choice)
-                        <div class="flex-start">
+                        <div class="flex-start mb-3">
                             <div class="product-description-label text-dark font-bold mt-1 text-capitalize">
                                 {{ $choice->title }}:
                             </div>
@@ -249,7 +290,7 @@
                                             <input type="radio" id="{{ $choice->name }}-{{ $option }}"
                                                    name="{{ $choice->name }}"
                                                    value="{{ $option }}" @if($index==0) checked @endif>
-                                            <label class="user-select-none"
+                                            <label class="user-select-none {{ (isset($optionStockMap[$choice->name][$option]) && $optionStockMap[$choice->name][$option] <= 0) ? 'option-out-of-stock' : '' }}"
                                                    for="{{ $choice->name }}-{{ $option }}">{{ $option }}</label>
                                         </span>
                                     @endforeach
@@ -293,7 +334,7 @@
                         @endforeach
                     @endif
 
-                    <div class="mb-3">
+                    <div class="mb-3 mt-3">
                         <div class="product-quantity d-flex flex-column __gap-15">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="product-description-label text-dark font-bold mt-0">

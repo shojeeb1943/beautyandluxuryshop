@@ -279,6 +279,22 @@
                                                 <div class="">
                                                     <input type="hidden" name="id" value="{{ $product->id }}">
                                                     @if (count(json_decode($product->colors)) > 0)
+                                                        @php
+                                                            $colorStockMap = [];
+                                                            $decodedVariations = !empty($product->variation) ? json_decode($product->variation) : [];
+                                                            if (is_array($decodedVariations) && count($decodedVariations) > 0) {
+                                                                foreach (json_decode($product->colors) as $c) {
+                                                                    $cName = getColorNameByCode(code: $c);
+                                                                    $cQty = 0;
+                                                                    foreach ($decodedVariations as $v) {
+                                                                        if (isset($v->type) && ($v->type === $cName || str_starts_with($v->type, $cName . '-'))) {
+                                                                            $cQty += $v->qty;
+                                                                        }
+                                                                    }
+                                                                    $colorStockMap[$c] = $cQty;
+                                                                }
+                                                            }
+                                                        @endphp
                                                         <div class="d-flex gap-4 flex-wrap align-items-center mb-3">
                                                             <h6 class="fw-semibold">{{translate('color')}}</h6>
                                                             <ul class="option-select-btn custom_01_option flex-wrap weight-style--two gap-2 pt-2">
@@ -291,7 +307,7 @@
                                                                                 {{ $key == 0 ? 'checked' : '' }}
                                                                             >
                                                                             <span
-                                                                                class="color_variants rounded-circle focus-preview-image-by-color p-0 {{ $key == 0 ? 'color_variant_active':''}}"
+                                                                                class="color_variants rounded-circle focus-preview-image-by-color p-0 {{ $key == 0 ? 'color_variant_active':''}} {{ (isset($colorStockMap[$color]) && $colorStockMap[$color] <= 0) ? 'color-out-of-stock' : '' }}"
                                                                                 style="background: {{ $color }};"
                                                                                 data-slide-id="preview-box-{{ str_replace('#','',$color) }}"
                                                                                 id="color_variants_preview-box-{{ str_replace('#','',$color) }}"
@@ -303,6 +319,31 @@
                                                         </div>
                                                     @endif
 
+                                                    @php
+                                                        if (!isset($decodedVariations)) {
+                                                            $decodedVariations = !empty($product->variation) ? json_decode($product->variation) : [];
+                                                        }
+                                                        $hasColors = !empty($product->colors) && is_array(json_decode($product->colors)) && count(json_decode($product->colors)) > 0;
+                                                        $optionStockMap = [];
+                                                        if (is_array($decodedVariations) && count($decodedVariations) > 0) {
+                                                            foreach (json_decode($product->choice_options) as $choiceIdx => $choice) {
+                                                                $segIdx = $hasColors ? $choiceIdx + 1 : $choiceIdx;
+                                                                foreach ($choice->options as $opt) {
+                                                                    $optVal = str_replace(' ', '', $opt);
+                                                                    $oQty = 0;
+                                                                    foreach ($decodedVariations as $v) {
+                                                                        if (isset($v->type)) {
+                                                                            $segs = explode('-', $v->type);
+                                                                            if (isset($segs[$segIdx]) && $segs[$segIdx] === $optVal) {
+                                                                                $oQty += $v->qty;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    $optionStockMap[$choice->name][$opt] = $oQty;
+                                                                }
+                                                            }
+                                                        }
+                                                    @endphp
                                                     @foreach (json_decode($product->choice_options) as  $choice)
                                                         <div class="d-flex gap-4 flex-wrap align-items-center mb-4">
                                                             <h6 class="fw-semibold">{{translate($choice->title)}}</h6>
@@ -315,7 +356,7 @@
                                                                                    name="{{ $choice->name }}"
                                                                                    value="{{ $option }}"
                                                                                    @if($key == 0) checked @endif >
-                                                                            <span>{{$option}}</span>
+                                                                            <span class="{{ (isset($optionStockMap[$choice->name][$option]) && $optionStockMap[$choice->name][$option] <= 0) ? 'option-out-of-stock' : '' }}">{{$option}}</span>
                                                                         </label>
                                                                     </li>
                                                                 @endforeach

@@ -26,6 +26,12 @@
                 </th>
                 <th class="text-center">
                     <label for="" class="control-label">
+                        {{ translate('Buying_Price') }}
+                        ({{ getCurrencySymbol() }})
+                    </label>
+                </th>
+                <th class="text-center">
+                    <label for="" class="control-label">
                         {{ translate('Discount_Type') }}
                     </label>
                 </th>
@@ -83,6 +89,13 @@
                                class="form-control w-max-content variation-price-input"
                                data-field="{{ $fieldName }}"
                                required placeholder="{{ translate('ex').': 100'}}">
+                    </td>
+                    <td>
+                        <input type="number" name="buying_price_{{ $fieldName }}"
+                               value="{{ $combination['buying_price'] ?? '' }}" min="0"
+                               step="0.01"
+                               class="form-control w-max-content"
+                               placeholder="{{ translate('ex').': 80'}}">
                     </td>
                     <td>
                         <select name="discount_type_{{ $fieldName }}"

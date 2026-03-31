@@ -59,6 +59,11 @@
                 <form action="{{ route('admin.report.inhouse-store-report') }}" method="GET">
                     <div class="row g-3 align-items-end">
                         <div class="col-sm-6 col-md-3">
+                            <label class="form-label">{{ translate('search_product') }}</label>
+                            <input type="text" name="search" value="{{ $search ?? '' }}" class="form-control"
+                                   placeholder="{{ translate('search_by_product_name') }}">
+                        </div>
+                        <div class="col-sm-6 col-md-3">
                             <label class="form-label">{{ translate('category') }}</label>
                             <select class="form-control" name="category_id">
                                 <option value="all">{{ translate('all_categories') }}</option>
@@ -69,7 +74,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-sm-6 col-md-3">
+                        <div class="col-sm-6 col-md-2">
                             <label class="form-label">{{ translate('date_range') }}</label>
                             <select class="form-control" name="date_type" id="date_type">
                                 <option value="this_year" {{ $dateType == 'this_year' ? 'selected' : '' }}>{{ translate('this_year') }}</option>
@@ -225,18 +230,67 @@
                             <tr>
                                 <th class="text-center" style="width: 50px">{{ translate('SL') }}</th>
                                 <th>{{ translate('product') }}</th>
-                                <th class="text-end">{{ translate('selling_price') }}</th>
-                                <th class="text-end">{{ translate('buying_price') }}</th>
+                                <th class="text-end">{{ translate('total_selling_value') }}</th>
+                                <th class="text-end">{{ translate('total_buying_cost') }}</th>
                                 <th class="text-center">{{ translate('stock') }}</th>
                                 <th class="text-center">{{ translate('sold') }}</th>
                                 <th class="text-end">{{ translate('revenue') }}</th>
-                                <th class="text-end">{{ translate('profit/unit') }}</th>
+                                <th class="text-end">{{ translate('total_profit') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($productsWithSales as $key => $product)
                                 @php
-                                    $profitPerUnit = $product->buying_price ? ($product->unit_price - $product->buying_price) : null;
+                                    $variationData = $product->variation
+                                        ? (is_array($product->variation) ? $product->variation : json_decode($product->variation, true))
+                                        : null;
+
+                                    // --- Stock value columns ---
+                                    // Total Selling Value = sum(variation.price × variation.qty)  [potential if all sold]
+                                    // Total Buying Cost   = sum(variation.buying_price × variation.qty) [investment in stock]
+                                    $totalSellingValue = null;
+                                    $totalBuyingCost   = null;
+
+                                    if (is_array($variationData) && count($variationData) > 0) {
+                                        $sumSell = 0;
+                                        $sumCost = 0;
+                                        $hasCost = false;
+
+                                        foreach ($variationData as $var) {
+                                            $varBP  = (float)($var['buying_price'] ?? 0);
+                                            $varSP  = (float)($var['price'] ?? 0);
+                                            $varQty = (int)($var['qty'] ?? 0);
+                                            $weight = $varQty > 0 ? $varQty : 1;
+
+                                            $sumSell += $varSP * $weight;
+                                            if ($varBP > 0) {
+                                                $hasCost  = true;
+                                                $sumCost += $varBP * $weight;
+                                            }
+                                        }
+
+                                        $totalSellingValue = $sumSell;
+                                        if ($hasCost) {
+                                            $totalBuyingCost = $sumCost;
+                                        }
+                                    }
+
+                                    // Fallback for no-variation products
+                                    if ($totalSellingValue === null) {
+                                        $totalSellingValue = $product->unit_price * $product->current_stock;
+                                    }
+                                    if ($totalBuyingCost === null && $product->buying_price > 0) {
+                                        $totalBuyingCost = $product->buying_price * $product->current_stock;
+                                    }
+
+                                    // --- Sold-based columns ---
+                                    // Sold     = total_sold_qty  (from delivered order_details)
+                                    // Revenue  = total_revenue   (price × qty from delivered order_details)
+                                    // Total Profit = Revenue - COGS
+                                    //   COGS = sum(buying_price_of_variant × qty_sold) per delivered order_detail
+                                    $revenue   = (float)($product->total_revenue ?? 0);
+                                    $cogs      = isset($productCogs[$product->id]) ? (float)$productCogs[$product->id] : null;
+                                    $totalProfit = ($cogs !== null) ? ($revenue - $cogs) : null;
                                 @endphp
                                 <tr>
                                     <td class="text-center">{{ $productsWithSales->firstItem() + $key }}</td>
@@ -253,11 +307,11 @@
                                         </div>
                                     </td>
                                     <td class="text-end">
-                                        {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $product->unit_price), currencyCode: getCurrencyCode()) }}
+                                        {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $totalSellingValue), currencyCode: getCurrencyCode()) }}
                                     </td>
                                     <td class="text-end">
-                                        @if($product->buying_price && $product->buying_price > 0)
-                                            {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $product->buying_price), currencyCode: getCurrencyCode()) }}
+                                        @if($totalBuyingCost !== null)
+                                            {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $totalBuyingCost), currencyCode: getCurrencyCode()) }}
                                         @else
                                             <span class="badge badge-not-set">--</span>
                                         @endif
@@ -272,9 +326,9 @@
                                         {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $product->total_revenue ?? 0), currencyCode: getCurrencyCode()) }}
                                     </td>
                                     <td class="text-end">
-                                        @if($profitPerUnit !== null)
-                                            <span class="fw-semibold {{ $profitPerUnit >= 0 ? 'text-success' : 'text-danger' }}">
-                                                {{ $profitPerUnit >= 0 ? '+' : '' }}{{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $profitPerUnit), currencyCode: getCurrencyCode()) }}
+                                        @if($totalProfit !== null)
+                                            <span class="fw-semibold {{ $totalProfit >= 0 ? 'text-success' : 'text-danger' }}">
+                                                {{ $totalProfit >= 0 ? '+' : '' }}{{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $totalProfit), currencyCode: getCurrencyCode()) }}
                                             </span>
                                         @else
                                             <span class="text-muted">--</span>

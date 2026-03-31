@@ -69,11 +69,20 @@ $("#product-choice-attributes").on("change", function() {
     $("#sku_combination")
         .empty()
         .html("");
+
+    const existingValues = {};
+    $("#customer-choice-options-container input[name^='choice_options_']").each(function() {
+        const match = $(this).attr("name").match(/choice_options_(\d+)\[\]/);
+        if (match && $(this).val()) {
+            existingValues[match[1]] = $(this).val();
+        }
+    });
+
     $("#customer-choice-options-container")
         .empty()
         .html("");
     $.each($("#product-choice-attributes option:selected"), function() {
-        addMoreCustomerChoiceOption($(this).val(), $(this).text());
+        addMoreCustomerChoiceOption($(this).val(), $(this).text(), existingValues[$(this).val()] || "");
     });
     getUpdateSKUFunctionality();
 });
@@ -105,7 +114,7 @@ document
 $(document).on('change', 'input[name^="choice_options_"]', function() {
     getUpdateSKUFunctionality();
 });
-function addMoreCustomerChoiceOption(index, name) {
+function addMoreCustomerChoiceOption(index, name, existingValue = "") {
     let nameSplit = name.split(" ").join("");
     let genHtml = `<div class="col-md-6"><div class="form-group">
                 <input type="hidden" name="choice_no[]" value="${index}">
@@ -113,15 +122,16 @@ function addMoreCustomerChoiceOption(index, name) {
                     <input type="text" name="choice[]" value="${nameSplit}" hidden>
                     <div class="">
                         <input type="text" class="form-control" name="choice_options_${index}[]"
-                        placeholder="${$("#message-enter-choice-values").data("text")}" 
-                        data-role="tagsinput">
+                        placeholder="${$("#message-enter-choice-values").data("text")}"
+                        data-role="tagsinput"
+                        value="${existingValue}">
                     </div>
                 </div>
         </div>`;
-    
+
     document.getElementById("customer-choice-options-container")
         .insertAdjacentHTML("beforeend", genHtml);
-    
+
     document.querySelectorAll("input[data-role=tagsinput], select[multiple][data-role=tagsinput]")
         .forEach(function(input) {
             $(input).tagsinput();

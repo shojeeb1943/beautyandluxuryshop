@@ -461,6 +461,8 @@ class ProductService
                 $item['sku'] = $request['sku_' . $fieldName];
                 $item['qty'] = abs($request['qty_' . $fieldName]);
                 $item['sort_order'] = $request->has('sort_order_' . $fieldName) ? abs($request['sort_order_' . $fieldName]) : 999;
+                $rawBuyingPrice = $request->has('buying_price_' . $fieldName) && $request['buying_price_' . $fieldName] !== '' ? (float) $request['buying_price_' . $fieldName] : null;
+                $item['buying_price'] = $rawBuyingPrice !== null ? currencyConverter($rawBuyingPrice) : null;
                 $variations[] = $item;
             }
         }
@@ -679,7 +681,9 @@ class ProductService
             'digital_product_type' => $request['product_type'] == 'digital' ? $request['digital_product_type'] : null,
             'details' => $request['description'][array_search('en', $request['lang'])],
             'colors' => $this->getColorsObject(request: $request),
-            'choice_options' => $request['product_type'] == 'physical' ? json_encode($this->getChoiceOptions(request: $request)) : json_encode([]),
+            'choice_options' => $request['product_type'] == 'physical'
+                ? (($choiceOptions = $this->getChoiceOptions(request: $request)) ? json_encode($choiceOptions) : $product->choice_options)
+                : json_encode([]),
             'variation' => $request['product_type'] == 'physical' ? json_encode($variations) : json_encode([]),
             'digital_product_file_types' => $request->has('extensions_type') ? $request->get('extensions_type') : [],
             'digital_product_extensions' => $digitalFileCombinations,
@@ -691,7 +695,9 @@ class ProductService
             'tax_model' => $request['tax_model'],
             'discount' => $request['discount_type'] == 'flat' ? currencyConverter(amount: $request['discount']) : $request['discount'],
             'discount_type' => $request['discount_type'],
-            'attributes' => $request['product_type'] == 'physical' ? json_encode($request['choice_attributes']) : json_encode([]),
+            'attributes' => $request['product_type'] == 'physical'
+                ? ((!empty($request['choice_attributes'])) ? json_encode($request['choice_attributes']) : $product->attributes)
+                : json_encode([]),
             'current_stock' => $request['product_type'] == 'physical' ? abs($stockCount) : 999999999,
             'minimum_order_qty' => $request['minimum_order_qty'],
             'video_provider' => 'youtube',
@@ -951,6 +957,7 @@ class ProductService
                                 'discount' => $existingVariation['discount'] ?? 0,
                                 'discount_type' => $existingVariation['discount_type'] ?? 'flat',
                                 'sort_order' => $existingVariation['sort_order'] ?? 999,
+                                'buying_price' => $existingVariation['buying_price'] ?? null,
                             ];
                             $generateCombination[] = $variationData;
                         }

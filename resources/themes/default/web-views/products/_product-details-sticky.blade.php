@@ -11,6 +11,22 @@
             <div class="product-details-sticky-top">
                 <div class="border-bottom d-flex flex-column gap-3 mb-3 pb-3">
                     @if (json_decode($productDetails->colors) && is_array(json_decode($productDetails->colors)) && count(json_decode($productDetails->colors)) > 0)
+                    @php
+                        $colorStockMap = [];
+                        $decodedVariations = !empty($productDetails->variation) ? json_decode($productDetails->variation) : [];
+                        if (is_array($decodedVariations) && count($decodedVariations) > 0) {
+                            foreach (json_decode($productDetails->colors) as $c) {
+                                $cName = getColorNameByCode(code: $c);
+                                $cQty = 0;
+                                foreach ($decodedVariations as $v) {
+                                    if (isset($v->type) && ($v->type === $cName || str_starts_with($v->type, $cName . '-'))) {
+                                        $cQty += $v->qty;
+                                    }
+                                }
+                                $colorStockMap[$c] = $cQty;
+                            }
+                        }
+                    @endphp
                     <div class="position-relative ps-1">
                         <h6 class="fs-14 mb-2">
                             {{ translate('color')}}
@@ -25,7 +41,7 @@
                                                name="color" value="{{ $color }}"
                                                @if($key == 0) checked @endif>
                                         <label style="background: {{ $color }};"
-                                               class="focus-preview-image-by-color shadow-border m-0"
+                                               class="focus-preview-image-by-color shadow-border m-0 {{ (isset($colorStockMap[$color]) && $colorStockMap[$color] <= 0) ? 'color-out-of-stock' : '' }}"
                                                for="sticky-{{ str_replace(' ', '', ($productDetails->id. '-color-'. str_replace('#','',$color))) }}"
                                                data-toggle="tooltip"
                                                data-key="{{ str_replace('#','',$color) }}"
@@ -38,7 +54,7 @@
                     </div>
                     @endif
 
-                    @php($extensionIndex=0)
+                    @php $extensionIndex = 0; @endphp
                     @if($productDetails['product_type'] == 'digital' && $productDetails['digital_product_file_types'] && count($productDetails['digital_product_file_types']) > 0 && $productDetails['digital_product_extensions'])
                         @foreach($productDetails['digital_product_extensions'] as $extensionKey => $extensionGroup)
                         <div>
@@ -62,7 +78,7 @@
                                             </label>
                                         </div>
                                     </div>
-                                    @php($extensionIndex++)
+                                    @php $extensionIndex++; @endphp
                                 @endforeach
                             </div>
                             @endif
@@ -70,6 +86,31 @@
                         @endforeach
                     @endif
 
+                    @php
+                        if (!isset($decodedVariations)) {
+                            $decodedVariations = !empty($productDetails->variation) ? json_decode($productDetails->variation) : [];
+                        }
+                        $hasColors = !empty($productDetails->colors) && is_array(json_decode($productDetails->colors)) && count(json_decode($productDetails->colors)) > 0;
+                        $optionStockMap = [];
+                        if (is_array($decodedVariations) && count($decodedVariations) > 0) {
+                            foreach (json_decode($productDetails->choice_options) as $choiceIdx => $choice) {
+                                $segIdx = $hasColors ? $choiceIdx + 1 : $choiceIdx;
+                                foreach ($choice->options as $opt) {
+                                    $optVal = str_replace(' ', '', $opt);
+                                    $oQty = 0;
+                                    foreach ($decodedVariations as $v) {
+                                        if (isset($v->type)) {
+                                            $segs = explode('-', $v->type);
+                                            if (isset($segs[$segIdx]) && $segs[$segIdx] === $optVal) {
+                                                $oQty += $v->qty;
+                                            }
+                                        }
+                                    }
+                                    $optionStockMap[$choice->name][$opt] = $oQty;
+                                }
+                            }
+                        }
+                    @endphp
                     @foreach (json_decode($productDetails->choice_options) as $key => $choice)
                     <div>
                         <h6 class="fs-14 mb-2 text-capitalize">
@@ -83,7 +124,7 @@
                                                id="sticky-{{ str_replace(' ', '', ($choice->name. '-'. $option)) }}"
                                                name="{{ $choice->name }}" value="{{ $option }}"
                                                @if($index == 0) checked @endif >
-                                        <label class="__text-12px max-content"
+                                        <label class="__text-12px max-content {{ (isset($optionStockMap[$choice->name][$option]) && $optionStockMap[$choice->name][$option] <= 0) ? 'option-out-of-stock' : '' }}"
                                                for="sticky-{{ str_replace(' ', '', ($choice->name. '-'. $option)) }}">{{ $option }}</label>
                                     </div>
                                 </div>

@@ -933,6 +933,58 @@ class WebController extends Controller
         $decimal_point_settings = getWebConfig(name: 'decimal_point_settings');
         $more_product_from_seller = Product::active()->withCount('reviews')->where('added_by', $product->added_by)->where('id', '!=', $product->id)->where('user_id', $product->user_id)->latest()->take(5)->get();
 
+        // Sort variations and colors by sort_order (same as ProductDetailsController)
+        if ($product['variation']) {
+            $variations = json_decode($product['variation'], true);
+            if (is_array($variations) && count($variations) > 0) {
+                usort($variations, function($a, $b) {
+                    $orderA = $a['sort_order'] ?? 999;
+                    $orderB = $b['sort_order'] ?? 999;
+                    return $orderA <=> $orderB;
+                });
+                $product['variation'] = json_encode($variations);
+
+                $sortOrderMap = [];
+                foreach ($variations as $variation) {
+                    $sortOrderMap[$variation['type']] = $variation['sort_order'] ?? 999;
+                }
+
+                if ($product['choice_options']) {
+                    $choiceOptions = json_decode($product['choice_options'], true);
+                    if (is_array($choiceOptions) && count($choiceOptions) > 0) {
+                        foreach ($choiceOptions as &$choice) {
+                            if (isset($choice['options']) && is_array($choice['options'])) {
+                                usort($choice['options'], function($a, $b) use ($sortOrderMap) {
+                                    $orderA = $sortOrderMap[$a] ?? 999;
+                                    $orderB = $sortOrderMap[$b] ?? 999;
+                                    return $orderA <=> $orderB;
+                                });
+                            }
+                        }
+                        unset($choice);
+                        $product['choice_options'] = json_encode($choiceOptions);
+                    }
+                }
+
+                if ($product['colors']) {
+                    $colors = json_decode($product['colors'], true);
+                    if (is_array($colors) && count($colors) > 0) {
+                        $colorOrderMap = [];
+                        foreach ($colors as $colorCode) {
+                            $colorName = getColorNameByCode(code: $colorCode);
+                            $colorOrderMap[$colorCode] = $sortOrderMap[$colorName] ?? 999;
+                        }
+                        usort($colors, function($a, $b) use ($colorOrderMap) {
+                            $orderA = $colorOrderMap[$a] ?? 999;
+                            $orderB = $colorOrderMap[$b] ?? 999;
+                            return $orderA <=> $orderB;
+                        });
+                        $product['colors'] = json_encode($colors);
+                    }
+                }
+            }
+        }
+
         $firstVariationQuantity = $product['current_stock'];
         if (count(json_decode($product['variation'], true)) > 0) {
             $firstVariationQuantity = json_decode($product['variation'], true)[0]['qty'];

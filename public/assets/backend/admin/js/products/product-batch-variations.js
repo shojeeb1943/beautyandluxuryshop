@@ -95,6 +95,7 @@ const BatchVariationSaver = (function() {
             const discountInput = document.querySelector(`input[name="discount_${fieldName}"]`);
             const discountTypeInput = document.querySelector(`input[name="discount_type_${fieldName}"]`);
             const sortOrderInput = document.querySelector(`input[name="sort_order_${fieldName}"]`);
+            const buyingPriceInput = document.querySelector(`input[name="buying_price_${fieldName}"]`);
 
             variations.push({
                 type: type,
@@ -103,7 +104,8 @@ const BatchVariationSaver = (function() {
                 qty: qtyInput ? parseInt(qtyInput.value) || 1 : 1,
                 discount: discountInput ? parseFloat(discountInput.value) || 0 : 0,
                 discount_type: discountTypeInput ? discountTypeInput.value : 'flat',
-                sort_order: sortOrderInput ? parseInt(sortOrderInput.value) || 999 : 999
+                sort_order: sortOrderInput ? parseInt(sortOrderInput.value) || 999 : 999,
+                buying_price: buyingPriceInput && buyingPriceInput.value !== '' ? parseFloat(buyingPriceInput.value) || null : null
             });
         });
 

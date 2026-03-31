@@ -31,26 +31,53 @@ class InHouseStoreReportController extends BaseController
         $from = $request?->from;
         $to = $request?->to;
         $categoryId = $request?->category_id;
+        $search = $request?->search;
 
         $categories = $this->categoryRepo->getListWhere(filters: ['parent_id' => 0], dataLimit: 'all');
 
-        // Get in-house products with their order details
+        // Base query for in-house products
         $productsQuery = Product::where('added_by', 'admin')
-            ->when($categoryId && $categoryId != 'all', function ($query) use ($categoryId) {
-                $query->where('category_id', $categoryId);
-            });
+            ->when($categoryId && $categoryId != 'all', fn($q) => $q->where('category_id', $categoryId))
+            ->when($search, fn($q) => $q->where('name', 'like', "%{$search}%"));
 
-        // Count products with and without buying price
+        // Count products with and without buying price (product-level or any variation-level)
         $totalInhouseProducts = (clone $productsQuery)->count();
-        $productsWithBuyingPrice = (clone $productsQuery)->whereNotNull('buying_price')->where('buying_price', '>', 0)->count();
+        $allProductsForCount = (clone $productsQuery)->select('id', 'buying_price', 'variation')->get();
+        $productsWithBuyingPrice = $allProductsForCount->filter(function ($p) {
+            if ($p->buying_price > 0) {
+                return true;
+            }
+            $variationData = $p->variation ? (is_array($p->variation) ? $p->variation : json_decode($p->variation, true)) : null;
+            if (is_array($variationData)) {
+                foreach ($variationData as $var) {
+                    if (($var['buying_price'] ?? 0) > 0) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        })->count();
         $productsMissingBuyingPrice = $totalInhouseProducts - $productsWithBuyingPrice;
 
-        // Calculate total asset value (only for products with buying_price)
-        $totalAssetValue = (clone $productsQuery)
-            ->whereNotNull('buying_price')
-            ->where('buying_price', '>', 0)
-            ->selectRaw('SUM(current_stock * buying_price) as total_asset')
-            ->value('total_asset') ?? 0;
+        // Calculate total asset value using variation-level buying_price when available,
+        // falling back to product-level buying_price × current_stock.
+        $productsForAsset = (clone $productsQuery)->select('id', 'buying_price', 'current_stock', 'variation')->get();
+        $totalAssetValue = 0;
+        foreach ($productsForAsset as $p) {
+            $variationData = $p->variation ? (is_array($p->variation) ? $p->variation : json_decode($p->variation, true)) : null;
+            if (is_array($variationData) && count($variationData) > 0) {
+                foreach ($variationData as $var) {
+                    $varBuyingPrice = $var['buying_price'] ?? null;
+                    if ($varBuyingPrice > 0) {
+                        $totalAssetValue += ($var['qty'] ?? 0) * $varBuyingPrice;
+                    } elseif ($p->buying_price > 0) {
+                        $totalAssetValue += ($var['qty'] ?? 0) * $p->buying_price;
+                    }
+                }
+            } elseif ($p->buying_price > 0) {
+                $totalAssetValue += $p->current_stock * $p->buying_price;
+            }
+        }
 
         // Get order details for in-house products with date filtering
         $orderDetailsQuery = OrderDetail::whereHas('product', function ($query) use ($categoryId) {
@@ -67,23 +94,54 @@ class InHouseStoreReportController extends BaseController
         // Get total sales revenue (price * qty for all delivered orders)
         $totalSalesRevenue = (clone $orderDetailsQuery)->sum(DB::raw('price * qty'));
 
-        // Calculate profit: We need to join with products to get buying_price
-        // Profit = (selling_price * qty) - (buying_price * qty) for products with buying_price
-        $profitData = (clone $orderDetailsQuery)
-            ->join('products', 'order_details.product_id', '=', 'products.id')
-            ->whereNotNull('products.buying_price')
-            ->where('products.buying_price', '>', 0)
-            ->selectRaw('
-                SUM(order_details.price * order_details.qty) as revenue,
-                SUM(products.buying_price * order_details.qty) as cost,
-                SUM(order_details.qty) as total_qty
-            ')
-            ->first();
+        // Calculate profit using variation-level buying_price when available,
+        // falling back to product-level buying_price.
+        $orderDetailsForProfit = (clone $orderDetailsQuery)
+            ->with('product:id,buying_price,variation')
+            ->select('order_details.product_id', 'order_details.price', 'order_details.qty', 'order_details.variant')
+            ->get();
 
-        $revenueWithCost = $profitData->revenue ?? 0;
-        $totalCost = $profitData->cost ?? 0;
+        $revenueWithCost = 0;
+        $totalCost = 0;
+        $profitableItemsQty = 0;
+
+        foreach ($orderDetailsForProfit as $detail) {
+            $product = $detail->product;
+            if (!$product) {
+                continue;
+            }
+
+            // Resolve effective buying price: check variation JSON first
+            $effectiveBuyingPrice = null;
+
+            if ($detail->variant && $product->variation) {
+                $variationData = is_array($product->variation)
+                    ? $product->variation
+                    : json_decode($product->variation, true);
+
+                if (is_array($variationData)) {
+                    foreach ($variationData as $var) {
+                        if (isset($var['type']) && $var['type'] === $detail->variant && isset($var['buying_price']) && $var['buying_price'] > 0) {
+                            $effectiveBuyingPrice = $var['buying_price'];
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Fall back to product-level buying_price
+            if ($effectiveBuyingPrice === null && $product->buying_price > 0) {
+                $effectiveBuyingPrice = $product->buying_price;
+            }
+
+            if ($effectiveBuyingPrice !== null) {
+                $revenueWithCost += $detail->price * $detail->qty;
+                $totalCost += $effectiveBuyingPrice * $detail->qty;
+                $profitableItemsQty += $detail->qty;
+            }
+        }
+
         $profitAmount = $revenueWithCost - $totalCost;
-        $profitableItemsQty = $profitData->total_qty ?? 0;
 
         // Count sold items excluded from profit calculation (due to missing buying_price)
         $totalSoldItemsQty = (clone $orderDetailsQuery)->sum('qty');
@@ -102,10 +160,7 @@ class InHouseStoreReportController extends BaseController
             ->get();
 
         // Get products list with their sales data for the table
-        $productsWithSales = Product::where('added_by', 'admin')
-            ->when($categoryId && $categoryId != 'all', function ($query) use ($categoryId) {
-                $query->where('category_id', $categoryId);
-            })
+        $productsWithSales = (clone $productsQuery)
             ->withSum(['orderDelivered as total_sold_qty' => function ($query) use ($dateType, $from, $to) {
                 $this->applyDateFilterOnRelation($query, $dateType, $from, $to);
             }], 'qty')
@@ -114,6 +169,57 @@ class InHouseStoreReportController extends BaseController
             }], DB::raw('price * qty'))
             ->paginate(Helpers::pagination_limit())
             ->appends($request?->all() ?? []);
+
+        // Compute per-product COGS (cost of goods actually sold) for Total Profit = Revenue - COGS
+        // Load all delivered order_details for the current page of products (single query, no N+1)
+        $pageProductIds = $productsWithSales->pluck('id');
+
+        $soldDetails = OrderDetail::whereIn('product_id', $pageProductIds)
+            ->where('delivery_status', 'delivered')
+            ->select('product_id', 'price', 'qty', 'variant');
+        $soldDetails = $this->applyDateFilter($soldDetails, $dateType, $from, $to);
+        $soldDetails = $soldDetails->get()->groupBy('product_id');
+
+        // Build variation buying_price lookup keyed by [product_id][variant_type]
+        $varBuyingMap = [];
+        foreach ($productsWithSales as $p) {
+            $vars = $p->variation
+                ? (is_array($p->variation) ? $p->variation : json_decode($p->variation, true))
+                : null;
+            if (is_array($vars)) {
+                foreach ($vars as $var) {
+                    if (!empty($var['type'])) {
+                        $varBuyingMap[$p->id][$var['type']] = (float)($var['buying_price'] ?? 0);
+                    }
+                }
+            }
+        }
+
+        // Per-product COGS: sum(buying_price × qty_sold) matched by variant
+        $productCogs = [];
+        foreach ($soldDetails as $productId => $details) {
+            $product = $productsWithSales->firstWhere('id', $productId);
+            $cogs = 0;
+            $hasCost = false;
+
+            foreach ($details as $detail) {
+                $bp = null;
+                $varType = $detail->variant;
+
+                if ($varType && isset($varBuyingMap[$productId][$varType]) && $varBuyingMap[$productId][$varType] > 0) {
+                    $bp = $varBuyingMap[$productId][$varType];
+                } elseif (!$varType && $product && $product->buying_price > 0) {
+                    $bp = $product->buying_price;
+                }
+
+                if ($bp !== null) {
+                    $cogs += $bp * $detail->qty;
+                    $hasCost = true;
+                }
+            }
+
+            $productCogs[$productId] = $hasCost ? $cogs : null;
+        }
 
         return view('admin-views.report.inhouse-store-report', compact(
             'categories',
@@ -132,7 +238,9 @@ class InHouseStoreReportController extends BaseController
             'dateType',
             'from',
             'to',
-            'categoryId'
+            'categoryId',
+            'search',
+            'productCogs'
         ));
     }
 

@@ -18,6 +18,8 @@ class SocialMediaService
             $icon = 'fa fa-instagram';
         }else if ($request['name'] == 'linkedin') {
             $icon = 'fa fa-linkedin';
+        }else if ($request['name'] == 'tiktok') {
+            $icon = 'fa-brands fa-tiktok';
         }else{
             $icon = '';
         }

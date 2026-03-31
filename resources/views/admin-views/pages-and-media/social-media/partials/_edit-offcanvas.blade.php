@@ -23,6 +23,7 @@
                             <option value="linkedin" {{ $socialMediaLink['name'] == 'linkedin' ? 'selected' : '' }}>{{ translate('linkedIn') }}</option>
                             <option value="pinterest" {{ $socialMediaLink['name'] == 'pinterest' ? 'selected' : '' }}>{{ translate('pinterest') }}</option>
                             <option value="google-plus" {{ $socialMediaLink['name'] == 'google-plus' ? 'selected' : '' }}>{{ translate('google_plus') }}</option>
+                            <option value="tiktok" {{ $socialMediaLink['name'] == 'tiktok' ? 'selected' : '' }}>{{ translate('tiktok') }}</option>
                         </select>
                     </div>
                     <div class="form-group">

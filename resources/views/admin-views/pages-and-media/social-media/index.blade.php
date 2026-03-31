@@ -36,6 +36,7 @@
                                         <option value="linkedin">{{ translate('linkedIn') }}</option>
                                         <option value="pinterest">{{ translate('pinterest') }}</option>
                                         <option value="google-plus">{{ translate('google_plus') }}</option>
+                                        <option value="tiktok">{{ translate('tiktok') }}</option>
                                     </select>
                                 </div>
                             </div>

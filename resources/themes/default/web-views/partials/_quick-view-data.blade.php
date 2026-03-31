@@ -283,7 +283,7 @@
                             <div class="product-description-label text-dark font-bold mt-1 text-capitalize">
                                 {{ $choice->title }}:
                             </div>
-                            <div>
+                            <div class="ms-2">
                                 <ul class="checkbox-alphanumeric checkbox-alphanumeric--style-1 mt-1">
                                     @foreach ($choice->options as $index => $option)
                                         <span>

@@ -249,6 +249,16 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="row py-3">
+                    <div class="col-12 text-center">
+                        <img src="{{ asset('storage/company/ssl-commerz-footer-image.png') }}"
+                             alt="SSL Commerz Payment"
+                             class="img-fluid"
+                             style="max-height: 60px;">
+                    </div>
+                </div>
+
                 <div class="row g-4 {{Session::get('direction') === "rtl" ? ' flex-row-reverse' : ''}}">
                     <div class="col-xl-5 col-md-6">
                         <div

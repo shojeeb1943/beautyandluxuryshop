@@ -255,7 +255,7 @@
                         <img src="{{ theme_asset(path: 'public/assets/front-end/img/ssl-commerz-footer-image.png') }}"
                              alt="SSL Commerz Payment"
                              class="img-fluid"
-                             style="max-height: 120px; width: auto;">
+                             style="max-height: 150px; width: auto;">
                     </div>
                 </div>
 

@@ -111,8 +111,20 @@ document
         });
     });
 
+// Guard: do not let tagsinput auto-initialization change events trigger an SKU
+// rebuild on page load.  Tagsinput fires one jQuery `change` per tag it adds
+// during initialization, which causes multiple racing AJAX calls that can
+// overwrite the server-rendered table with partial/empty data.
+// We enable the handler only after a short post-load window.
+let _skuUpdateReady = false;
+window.addEventListener('load', function () {
+    setTimeout(function () { _skuUpdateReady = true; }, 400);
+});
+
 $(document).on('change', 'input[name^="choice_options_"]', function() {
-    getUpdateSKUFunctionality();
+    if (_skuUpdateReady) {
+        getUpdateSKUFunctionality();
+    }
 });
 function addMoreCustomerChoiceOption(index, name, existingValue = "") {
     let nameSplit = name.split(" ").join("");

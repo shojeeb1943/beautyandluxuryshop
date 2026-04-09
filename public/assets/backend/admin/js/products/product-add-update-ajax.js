@@ -49,29 +49,44 @@ function deleteDigitalVariationFileFunctionality() {
     });
 }
 
+let _skuDebounceTimer = null;
+let _skuPendingXHR = null;
+
 function getUpdateSKUFunctionality() {
-    renderProductAjaxSetup();
-    $.ajax({
-        type: "POST",
-        url: $("#route-admin-products-sku-combination").data("url"),
-        data: $("#product_form").serialize(),
-        success: function (data) {
-            console.log(data);
-            $("#sku_combination").html(data.view);
-            updateProductQuantity();
-            updateProductQuantityByKeyUp();
-            let productType = $("#product_type").val();
-            if (productType && productType.toString() === "physical") {
-                if (data.length > 1) {
-                    $("#quantity").hide();
-                } else {
-                    $("#quantity").show();
+    // Debounce: collapse rapid successive calls (e.g. tagsinput firing per-tag
+    // during initialization) into a single request.
+    clearTimeout(_skuDebounceTimer);
+    _skuDebounceTimer = setTimeout(function () {
+        // Abort any in-flight request so the most recent call always wins.
+        if (_skuPendingXHR) {
+            _skuPendingXHR.abort();
+            _skuPendingXHR = null;
+        }
+
+        renderProductAjaxSetup();
+        _skuPendingXHR = $.ajax({
+            type: "POST",
+            url: $("#route-admin-products-sku-combination").data("url"),
+            data: $("#product_form").serialize(),
+            success: function (data) {
+                _skuPendingXHR = null;
+                console.log(data);
+                $("#sku_combination").html(data.view);
+                updateProductQuantity();
+                updateProductQuantityByKeyUp();
+                let productType = $("#product_type").val();
+                if (productType && productType.toString() === "physical") {
+                    if (data.length > 1) {
+                        $("#quantity").hide();
+                    } else {
+                        $("#quantity").show();
+                    }
                 }
-            }
-            generateSKUPlaceHolder();
-            removeSymbol();
-        },
-    });
+                generateSKUPlaceHolder();
+                removeSymbol();
+            },
+        });
+    }, 350);
 }
 
 let productAddUpdateMessages = $('#product-add-update-messages');

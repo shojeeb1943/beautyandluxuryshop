@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
     getProductTypeFunctionality();
     getUpdateDigitalVariationFunctionality();
     productColorSwitcherFunctionalityRender();
+    pageLoadFirstTime = false;
 });
 
 function productColorSwitcherFunctionalityRender() {
@@ -58,10 +59,15 @@ function elementProductColorSwitcherByIDFunctionality(action = null) {
         let colors = $("#colors-selector-input");
         let choiceAttributes = $("#choice_attributes");
 
-        colors.val(null).trigger("change");
-        if (pageLoadFirstTime === false && action === "reset") {
-            choiceAttributes.val(null).trigger("change");
-            pageLoadFirstTime = false;
+        if (pageLoadFirstTime === false) {
+            colors.val(null).trigger("change");
+            if (action === "reset") {
+                choiceAttributes.val(null).trigger("change");
+            }
+        } else {
+            // On initial page load, clear the select value silently without
+            // triggering AJAX — the server has already rendered the correct table.
+            colors.val(null);
         }
 
         $(".color_image_column").addClass("d-none");

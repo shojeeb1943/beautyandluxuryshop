@@ -223,33 +223,45 @@ $('input[name="unit_price"]').on("keyup", function() {
     }, 500);
 });
 
-function getUpdateSKUFunctionality() {
-    $.ajaxSetup({
-        headers: {
-            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
-        }
-    });
+let _skuDebounceTimer = null;
+let _skuPendingXHR = null;
 
-    $.ajax({
-        type: "POST",
-        url: $("#route-vendor-products-sku-combination").data("url"),
-        data: $("#product_form").serialize(),
-        success: function(data) {
-            $("#sku_combination").html(data.view);
-            updateProductQuantity();
-            updateProductQuantityByKeyUp();
-            let productType = elementProductTypeByID.val();
-            if (productType && productType.toString() === "physical") {
-                if (data.length > 1) {
-                    $("#quantity").hide();
-                } else {
-                    $("#quantity").show();
-                }
-            }
-            generateSKUPlaceHolder();
-            removeSymbol();
+function getUpdateSKUFunctionality() {
+    clearTimeout(_skuDebounceTimer);
+    _skuDebounceTimer = setTimeout(function () {
+        if (_skuPendingXHR) {
+            _skuPendingXHR.abort();
+            _skuPendingXHR = null;
         }
-    });
+
+        $.ajaxSetup({
+            headers: {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
+            }
+        });
+
+        _skuPendingXHR = $.ajax({
+            type: "POST",
+            url: $("#route-vendor-products-sku-combination").data("url"),
+            data: $("#product_form").serialize(),
+            success: function(data) {
+                _skuPendingXHR = null;
+                $("#sku_combination").html(data.view);
+                updateProductQuantity();
+                updateProductQuantityByKeyUp();
+                let productType = elementProductTypeByID.val();
+                if (productType && productType.toString() === "physical") {
+                    if (data.length > 1) {
+                        $("#quantity").hide();
+                    } else {
+                        $("#quantity").show();
+                    }
+                }
+                generateSKUPlaceHolder();
+                removeSymbol();
+            }
+        });
+    }, 350);
 }
 
 $("#discount_type").on("change", function() {
@@ -375,8 +387,15 @@ $(function() {
         }
     });
 });
+let _skuUpdateReady = false;
+window.addEventListener('load', function () {
+    setTimeout(function () { _skuUpdateReady = true; }, 400);
+});
+
 $(document).on('change', 'input[name^="choice_options_"]', function() {
-    getUpdateSKUFunctionality();
+    if (_skuUpdateReady) {
+        getUpdateSKUFunctionality();
+    }
 });
 function addMoreCustomerChoiceOption(index, name) {
     let nameSplit = name.split(" ").join("");

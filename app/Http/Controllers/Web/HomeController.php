@@ -72,8 +72,16 @@ class HomeController extends Controller
         $flashDeal = ProductManager::getPriorityWiseFlashDealsProductsQuery(userId: $userId);
         $current_date = date('Y-m-d H:i:s');
 
-        $bestSellProduct = $bestSellProduct->count() == 0 ? $latestProductsList : $bestSellProduct;
-        $topRatedProducts = $topRatedProducts->count() == 0 ? $bestSellProduct : $topRatedProducts;
+        if ($bestSellProduct->count() == 0) {
+            $bestSellProduct = Product::active()->with(['reviews', 'seller.shop', 'clearanceSale' => function ($q) {
+                return $q->active();
+            }])->where('discount', '>', 0)->orderByDesc('discount')->take(10)->get();
+        }
+        if ($topRatedProducts->count() == 0) {
+            $topRatedProducts = Product::active()->with(['seller.shop', 'clearanceSale' => function ($q) {
+                return $q->active();
+            }])->inRandomOrder()->take(10)->get();
+        }
 
         $featuredProductsList = ProductManager::getPriorityWiseFeaturedProductsQuery(query: $this->product->active()->with(['clearanceSale' => function ($query) {
             return $query->active();
@@ -260,11 +268,12 @@ class HomeController extends Controller
         $topRatedProducts = $this->cacheTopRatedProductList();
 
         if ($bestSellProduct->count() == 0) {
-            $bestSellProduct = $latestProductsList;
+            $bestSellProduct = Product::active()->with(['reviews', 'rating', 'seller.shop', 'flashDealProducts.flashDeal'])->withCount(['reviews'])->where('discount', '>', 0)->orderByDesc('discount')->take(10)->get();
         }
-
         if ($topRatedProducts->count() == 0) {
-            $topRatedProducts = $bestSellProduct;
+            $topRatedProducts = Product::active()->with(['seller.shop', 'clearanceSale' => function ($q) {
+                return $q->active();
+            }])->inRandomOrder()->take(10)->get();
         }
         $dealOfTheDay = $this->dealOfTheDay->with(['product' => function ($query) {
             return $query->active()->with(['clearanceSale' => function ($query) {

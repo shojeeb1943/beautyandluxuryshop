@@ -29,10 +29,9 @@
                         </div>
                         <div class="col-12 col-lg-6">
                             <div class="form-group">
-                                <label class="form-label mb-1">{{ translate('email') }} <span
-                                        class="input-label-secondary text-danger">*</span></label>
+                                <label class="form-label mb-1">{{ translate('email') }}</label>
                                 <input type="email" name="email" class="form-control" value="{{ old('email') }}"
-                                       placeholder="{{ translate('ex').': ex@example.com' }}" required>
+                                       placeholder="{{ translate('ex').': ex@example.com' }}">
                             </div>
                         </div>
                         <div class="col-12 col-lg-6">

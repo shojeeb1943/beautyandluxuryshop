@@ -269,7 +269,7 @@
                                                                 @else
                                                                     <input type="text" class="form-control" id="zip"
                                                                            name="zip"
-                                                                           placeholder="{{ translate('ex') }}: {{translate('1216')}}" {{$shipping_addresses->count()==0?'required':''}}>
+                                                                           placeholder="{{ translate('ex') }}: {{translate('1216')}}">
                                                                 @endif
                                                             </div>
                                                         </div>
@@ -636,7 +636,7 @@
                                                                         @else
                                                                             <input type="text" class="form-control"
                                                                                    id="billing-zip" name="billing_zip"
-                                                                                   placeholder="{{ translate('ex') }}: {{translate('1216')}}" {{$billing_addresses->count()==0?'required':''}}>
+                                                                                   placeholder="{{ translate('ex') }}: {{translate('1216')}}">
                                                                         @endif
                                                                     </div>
                                                                 </div>

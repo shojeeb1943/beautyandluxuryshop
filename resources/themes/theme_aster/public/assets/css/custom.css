@@ -86,9 +86,10 @@ body {
 
 /* ── Out-of-stock indicators ──────────────────────────────── */
 
-/* Color swatches: red X cross */
+/* Color swatches: black X cross */
 .color_variants.color-out-of-stock {
     opacity: 0.7;
+    outline: 2px solid #000000;
 }
 .color_variants.color-out-of-stock::before,
 .color_variants.color-out-of-stock::after {
@@ -98,7 +99,7 @@ body {
     left: 50%;
     width: 130%;
     height: 2px;
-    background: #e53935;
+    background: #000000;
     border-radius: 1px;
     pointer-events: none;
     z-index: 2;
@@ -113,13 +114,14 @@ body {
 .color_variant_active.color-out-of-stock,
 .option-select-btn.custom_01_option label input:checked ~ .color-out-of-stock {
     border-color: transparent !important;
-    outline-color: #e53935 !important;
+    outline-color: #000000 !important;
 }
 
-/* Alphanumeric / pill variation option spans: red X cross */
+/* Alphanumeric / pill variation option spans: black X cross */
 .option-select-btn.custom_01_option span.option-out-of-stock {
     position: relative;
     opacity: 0.6;
+    border: 1px solid #000000 !important;
 }
 .option-select-btn.custom_01_option span.option-out-of-stock::before,
 .option-select-btn.custom_01_option span.option-out-of-stock::after {
@@ -129,7 +131,7 @@ body {
     left: 50%;
     width: 115%;
     height: 2px;
-    background: #e53935;
+    background: #000000;
     border-radius: 1px;
     pointer-events: none;
     z-index: 2;

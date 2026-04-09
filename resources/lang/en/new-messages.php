@@ -3512,4 +3512,8 @@ return [
 	"Buying_Price" => "Buying Price",
 	"Variation_price_are_required" => "Variation price are required",
 	"Variation price are required!" => "Variation price are required!",
+	"Currently_no_product_available_by_this_name" => "Currently no product available by this name",
+	"email_is_required" => "Email is required",
+	"email_must_be_valid" => "Email must be valid",
+	"email_already_in_use" => "Email already in use",
 ];

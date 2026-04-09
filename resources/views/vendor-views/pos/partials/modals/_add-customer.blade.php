@@ -31,10 +31,9 @@
                     <div class="row pl-2">
                         <div class="col-12 col-lg-6">
                             <div class="form-group">
-                                <label class="input-label">{{ translate('email') }}<span
-                                        class="input-label-secondary text-danger">*</span></label>
+                                <label class="input-label">{{ translate('email') }}</label>
                                 <input type="email" name="email" class="form-control" value="{{ old('email') }}"
-                                       placeholder="{{ translate('ex').': ex@example.com' }}" required>
+                                       placeholder="{{ translate('ex').': ex@example.com' }}">
                             </div>
                         </div>
                         <div class="col-12 col-lg-6">

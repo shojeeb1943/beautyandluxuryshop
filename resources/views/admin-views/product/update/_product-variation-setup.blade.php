@@ -39,9 +39,10 @@
                         data-placeholder="{{ translate('choose_attributes') }}">
                     <option></option>
                     @foreach ($attributes as $key => $attribute)
-                        @if($product['attributes']!='null')
+                        @php $decodedAttributes = json_decode($product['attributes'], true); @endphp
+                        @if(!empty($decodedAttributes))
                             <option value="{{ $attribute['id'] }}"
-                                {{ in_array($attribute->id, json_decode($product['attributes'], true)) ? 'selected' : '' }}>
+                                {{ in_array($attribute->id, $decodedAttributes) ? 'selected' : '' }}>
                                 {{ $attribute['name']}}
                             </option>
                         @else

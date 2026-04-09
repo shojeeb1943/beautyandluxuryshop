@@ -318,11 +318,19 @@ class ProductService
         return $category;
     }
 
-    public function getColorsObject(object $request): bool|string
+    public function getColorsObject(object $request, object|null $product = null): bool|string
     {
-        if ($request->has('colors_active') && $request->has('colors') && count($request['colors']) > 0) {
-            $colors = $request['product_type'] == 'physical' ? json_encode($request['colors']) : json_encode([]);
+        if ($request->has('colors_active')) {
+            if ($request->has('colors') && count($request['colors']) > 0) {
+                // Toggle is on and colors are selected — save them
+                $colors = $request['product_type'] == 'physical' ? json_encode($request['colors']) : json_encode([]);
+            } else {
+                // Toggle is on but colors[] was not submitted (disabled select or Select2 not serialised).
+                // Preserve the existing product's colors to prevent accidental data loss.
+                $colors = $product ? $product->colors : json_encode([]);
+            }
         } else {
+            // Toggle is off — user explicitly disabled color variations, wipe colors.
             $colors = json_encode([]);
         }
         return $colors;
@@ -339,9 +347,13 @@ class ProductService
         if ($request->has('choice')) {
             foreach ($request->choice_no as $key => $no) {
                 $str = 'choice_options_' . $no;
+                $options = array_values(array_filter(explode(',', implode('|', $request[$str])), fn($v) => $v !== ''));
+                if (empty($options)) {
+                    continue;
+                }
                 $item['name'] = 'choice_' . $no;
                 $item['title'] = $request->choice[$key];
-                $item['options'] = explode(',', implode('|', $request[$str]));
+                $item['options'] = $options;
                 $choice_options[] = $item;
             }
         }
@@ -358,10 +370,12 @@ class ProductService
             foreach ($request->choice_no as $no) {
                 $name = 'choice_options_' . $no;
                 $myString = implode('|', $request[$name]);
-                $optionArray = array_filter(explode(',', $myString), function ($value) {
+                $optionArray = array_values(array_filter(explode(',', $myString), function ($value) {
                     return $value !== '';
-                });
-                $options[] = $optionArray;
+                }));
+                if (!empty($optionArray)) {
+                    $options[] = $optionArray;
+                }
             }
         }
         return $options;
@@ -639,14 +653,13 @@ class ProductService
         $combinations = $this->getCombinations($this->getOptions(request: $request));
         $variations = $this->getVariations(request: $request, combinations: $combinations);
 
-        if ($request['product_type'] == 'physical' && $product->variation) {
-            $existingVariations = json_decode($product->variation, true) ?? [];
-            $formVariationTypes = array_column($variations, 'type');
-            $preservedVariations = array_values(array_filter($existingVariations, fn($v) => !in_array($v['type'], $formVariationTypes)));
-            $variations = array_merge($preservedVariations, $variations);
+        if ($request['product_type'] == 'physical' && empty($variations) && $product->variation) {
+            // No valid combinations were submitted (e.g. all attribute options were cleared).
+            // Fall back to the existing variations to prevent accidental data loss.
+            $variations = json_decode($product->variation, true) ?? [];
         }
 
-        $stockCount = isset($combinations[0]) && count($combinations[0]) > 0 ? $this->getTotalQuantity(variations: $variations) : (integer)$request['current_stock'];
+        $stockCount = !empty($variations) ? $this->getTotalQuantity(variations: $variations) : (integer)$request['current_stock'];
 
         if ($request->has('extensions_type') && $request->has('digital_product_variant_key')) {
             $digitalFile = null;
@@ -680,7 +693,7 @@ class ProductService
             'unit' => $request['product_type'] == 'physical' ? $request['unit'] : null,
             'digital_product_type' => $request['product_type'] == 'digital' ? $request['digital_product_type'] : null,
             'details' => $request['description'][array_search('en', $request['lang'])],
-            'colors' => $this->getColorsObject(request: $request),
+            'colors' => $this->getColorsObject(request: $request, product: $product),
             'choice_options' => $request['product_type'] == 'physical'
                 ? (($choiceOptions = $this->getChoiceOptions(request: $request)) ? json_encode($choiceOptions) : $product->choice_options)
                 : json_encode([]),

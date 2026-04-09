@@ -33,14 +33,6 @@
                     </div>
                 @endif
 
-                @if (count($product->tags) > 0)
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <div class="fw-bold text-dark">{{ translate('tag') }}:</div>
-                        @foreach ($product->tags as $tag)
-                            <div>{{ $tag->tag }},</div>
-                        @endforeach
-                    </div>
-                @endif
             </div>
         </div>
         <div class="col-md-7">

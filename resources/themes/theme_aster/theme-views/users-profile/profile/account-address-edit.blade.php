@@ -100,7 +100,7 @@
                                                     </select>
                                                 @else
                                                     <input class="form-control" type="text" id="zip_code" name="zip"
-                                                           value="{{$shippingAddress->zip}}" required>
+                                                           value="{{$shippingAddress->zip}}">
                                                 @endif
                                             </div>
                                         </div>

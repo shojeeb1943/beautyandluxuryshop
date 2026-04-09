@@ -87,8 +87,7 @@
                                                         @endforeach
                                                     </select>
                                                 @else
-                                                    <input class="form-control" type="text" id="zip" name="zip"
-                                                           required>
+                                                    <input class="form-control" type="text" id="zip" name="zip">
                                                 @endif
                                             </div>
                                         </div>

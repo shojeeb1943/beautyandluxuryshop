@@ -83,7 +83,7 @@
                                         @endforeach
                                     </select>
                                 @else
-                                    <input class="form-control" type="text" id="zip_code" name="zip" value="{{$shippingAddress->zip}}" required>
+                                    <input class="form-control" type="text" id="zip_code" name="zip" value="{{$shippingAddress->zip}}">
                                 @endif
                             </div>
                         </div>

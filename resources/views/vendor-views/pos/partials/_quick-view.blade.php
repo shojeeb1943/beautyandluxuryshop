@@ -34,14 +34,6 @@
                     </div>
                 @endif
 
-                @if (count($product->tags) > 0)
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <div class="font-weight-bold text-dark">{{ translate('tag') }}:</div>
-                        @foreach ($product->tags as $tag)
-                            <div>{{ $tag->tag }},</div>
-                        @endforeach
-                    </div>
-                @endif
 
                 @if ($product->product_type == 'digital')
                     @php

@@ -167,7 +167,7 @@ class UserProfileController extends Controller
             'name' => 'required',
             'phone' => 'required|max:20',
             'city' => 'required',
-            'zip' => 'required',
+            'zip' => 'nullable',
             'country' => 'required',
             'address' => 'required',
         ]);
@@ -255,7 +255,7 @@ class UserProfileController extends Controller
             'name' => 'required',
             'phone' => 'required|max:20',
             'city' => 'required',
-            'zip' => 'required',
+            'zip' => 'nullable',
             'country' => 'required',
             'address' => 'required',
         ]);

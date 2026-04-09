@@ -54,6 +54,13 @@ class ProductController extends Controller
 
     public function get_latest_products(Request $request): JsonResponse
     {
+        $validator = Validator::make($request->all(), [
+            'limit' => 'integer|min:1|max:200',
+            'offset' => 'integer|min:1',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => Helpers::validationErrorProcessor($validator)], 422);
+        }
         $products = ProductManager::get_latest_products($request, $request['limit'], $request['offset']);
         $products['products'] = Helpers::product_data_formatting($products['products'], true);
         return response()->json($products, 200);
@@ -61,6 +68,13 @@ class ProductController extends Controller
 
     public function getNewArrivalProducts(Request $request): JsonResponse
     {
+        $validator = Validator::make($request->all(), [
+            'limit' => 'integer|min:1|max:200',
+            'offset' => 'integer|min:1',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => Helpers::validationErrorProcessor($validator)], 422);
+        }
         $products = ProductManager::getNewArrivalProducts($request, $request['limit'], $request['offset']);
         $productsList = $products->total() > 0 ? Helpers::product_data_formatting($products->items(), true) : [];
         return response()->json([
@@ -73,6 +87,13 @@ class ProductController extends Controller
 
     public function getFeaturedProductsList(Request $request): JsonResponse
     {
+        $validator = Validator::make($request->all(), [
+            'limit' => 'integer|min:1|max:200',
+            'offset' => 'integer|min:1',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => Helpers::validationErrorProcessor($validator)], 422);
+        }
         $products = ProductManager::getFeaturedProductsList($request, $request['limit'], $request['offset']);
         $products['products'] = Helpers::product_data_formatting($products['products'], true);
         return response()->json($products, 200);
@@ -80,6 +101,13 @@ class ProductController extends Controller
 
     public function getTopRatedProducts(Request $request): JsonResponse
     {
+        $validator = Validator::make($request->all(), [
+            'limit' => 'integer|min:1|max:200',
+            'offset' => 'integer|min:1',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => Helpers::validationErrorProcessor($validator)], 422);
+        }
         $products = ProductManager::getTopRatedProducts($request, $request['limit'], $request['offset']);
         $productsList = count($products->items()) > 0 ? Helpers::product_data_formatting($products->items(), true) : [];
         return response()->json([
@@ -93,7 +121,9 @@ class ProductController extends Controller
     public function get_searched_products(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required',
+            'name' => 'required|string|max:255',
+            'limit' => 'integer|min:1|max:200',
+            'offset' => 'integer|min:1',
         ]);
 
         if ($validator->fails()) {
@@ -348,6 +378,13 @@ class ProductController extends Controller
 
     public function getBestSellingProducts(Request $request): JsonResponse
     {
+        $validator = Validator::make($request->all(), [
+            'limit' => 'integer|min:1|max:200',
+            'offset' => 'integer|min:1',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => Helpers::validationErrorProcessor($validator)], 422);
+        }
         $products = ProductManager::getBestSellingProductsList($request, $request['limit'], $request['offset']);
         $productsList = $products->total() > 0 ? Helpers::product_data_formatting($products->items(), true) : [];
         return response()->json([
@@ -628,6 +665,13 @@ class ProductController extends Controller
 
     public function get_discounted_product(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'limit' => 'integer|min:1|max:200',
+            'offset' => 'integer|min:1',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => Helpers::validationErrorProcessor($validator)], 422);
+        }
         $products = ProductManager::get_discounted_product($request, $request['limit'], $request['offset']);
         $products['products'] = Helpers::product_data_formatting($products['products'], true);
         return response()->json($products, 200);
@@ -789,6 +833,13 @@ class ProductController extends Controller
 
     public function getMostSearchingProductsList(Request $request): JsonResponse
     {
+        $validator = Validator::make($request->all(), [
+            'limit' => 'integer|min:1|max:200',
+            'offset' => 'integer|min:1',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => Helpers::validationErrorProcessor($validator)], 422);
+        }
         $products = ProductManager::getBestSellingProductsList($request, $request['limit'], $request['offset']);
         $productsList = $products->total() > 0 ? Helpers::product_data_formatting($products->items(), true) : [];
         return response()->json([

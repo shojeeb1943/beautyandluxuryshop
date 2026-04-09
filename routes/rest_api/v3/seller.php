@@ -32,18 +32,18 @@ Route::group(['namespace' => 'RestAPI\v3\seller', 'prefix' => 'v3/seller', 'midd
     Route::group(['prefix' => 'auth', 'namespace' => 'auth'], function () {
 
         Route::controller(VendorLoginController::class)->group(function () {
-            Route::post('login', 'login');
+            Route::post('login', 'login')->middleware('throttle:10,1');
         });
         Route::controller(ForgotPasswordController::class)->group(function () {
-            Route::post('forgot-password', 'reset_password_request');
-            Route::post('verify-otp', 'otp_verification_submit');
+            Route::post('forgot-password', 'reset_password_request')->middleware('throttle:5,1');
+            Route::post('verify-otp', 'otp_verification_submit')->middleware('throttle:10,1');
             Route::put('reset-password', 'reset_password_submit');
         });
     });
 
     Route::group(['prefix' => 'registration', 'namespace' => 'auth'], function () {
         Route::controller(RegisterController::class)->group(function () {
-            Route::post('/', 'store');
+            Route::post('/', 'store')->middleware('throttle:10,1');
         });
     });
 

@@ -64,7 +64,6 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'id',
         'name',
         'f_name',
         'l_name',
@@ -74,8 +73,6 @@ class User extends Authenticatable
         'email_verified_at',
         'password',
         'remember_token',
-        'created_at',
-        'updated_at',
         'street_address',
         'country',
         'city',
@@ -92,8 +89,6 @@ class User extends Authenticatable
         'is_phone_verified',
         'temporary_token',
         'is_email_verified',
-        'wallet_balance',
-        'loyalty_point',
         'login_hit_count',
         'is_temp_blocked',
         'temp_block_time',

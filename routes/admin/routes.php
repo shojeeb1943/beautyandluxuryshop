@@ -120,7 +120,7 @@ Route::controller(FirebaseController::class)->group(function () {
 Route::group(['prefix' => 'login'], function () {
     Route::get('{loginUrl}', [LoginController::class, 'index']);
     Route::get('recaptcha/{tmp}', [LoginController::class, 'generateReCaptcha'])->name('recaptcha');
-    Route::post('/', [LoginController::class, 'login'])->name('login');
+    Route::post('/', [LoginController::class, 'login'])->middleware('throttle:10,1')->name('login');
 });
 
 Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['admin', 'actch:admin_panel']], function () {

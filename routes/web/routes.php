@@ -54,7 +54,7 @@ use App\Http\Controllers\Payment_Methods\PaystackController;
 */
 
 
-Route::get('/image-proxy', function () {
+Route::middleware('throttle:60,1')->get('/image-proxy', function () {
     $url = request('url');
     if (!$url) {
         abort(400, 'Missing url parameter');

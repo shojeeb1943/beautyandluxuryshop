@@ -111,15 +111,15 @@ Route::group(['namespace' => 'RestAPI\v2', 'prefix' => 'v2', 'middleware' => ['a
         });
 
         Route::group(['prefix' => 'auth', 'namespace' => 'auth'], function () {
-            Route::post('login', 'LoginController@login');
+            Route::post('login', 'LoginController@login')->middleware('throttle:10,1');
 
-            Route::post('forgot-password', 'ForgotPasswordController@reset_password_request');
-            Route::post('verify-otp', 'ForgotPasswordController@otp_verification_submit');
+            Route::post('forgot-password', 'ForgotPasswordController@reset_password_request')->middleware('throttle:5,1');
+            Route::post('verify-otp', 'ForgotPasswordController@otp_verification_submit')->middleware('throttle:10,1');
             Route::put('reset-password', 'ForgotPasswordController@reset_password_submit');
         });
 
         Route::group(['prefix' => 'registration', 'namespace' => 'auth'], function () {
-            Route::post('/', 'RegisterController@store');
+            Route::post('/', 'RegisterController@store')->middleware('throttle:10,1');
         });
     });
 
@@ -129,9 +129,9 @@ Route::group(['namespace' => 'RestAPI\v2', 'prefix' => 'v2', 'middleware' => ['a
 
         Route::group(['prefix' => 'auth', 'namespace' => 'auth'], function () {
             Route::controller(LoginController::class)->group(function () {
-                Route::post('login', 'login');
-                Route::post('forgot-password', 'reset_password_request');
-                Route::post('verify-otp', 'otp_verification_submit');
+                Route::post('login', 'login')->middleware('throttle:10,1');
+                Route::post('forgot-password', 'reset_password_request')->middleware('throttle:5,1');
+                Route::post('verify-otp', 'otp_verification_submit')->middleware('throttle:10,1');
                 Route::post('reset-password', 'reset_password_submit');
             });
         });

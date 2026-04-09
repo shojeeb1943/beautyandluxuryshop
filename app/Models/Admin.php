@@ -48,11 +48,8 @@ class Admin extends Authenticatable
         'identify_type',
         'identify_number',
         'email',
-        'email_verified_at',
         'password',
         'remember_token',
-        'created_at',
-        'updated_at',
         'status',
     ];
 

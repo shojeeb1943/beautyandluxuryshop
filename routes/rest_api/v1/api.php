@@ -54,19 +54,19 @@ Route::group(['namespace' => 'RestAPI\v1', 'prefix' => 'v1', 'middleware' => ['a
         });
 
         Route::controller(CustomerAPIAuthController::class)->group(function () {
-            Route::post('register', 'register');
-            Route::post('login', 'login');
+            Route::post('register', 'register')->middleware('throttle:10,1');
+            Route::post('login', 'login')->middleware('throttle:10,1');
             Route::post('check-email', 'checkEmail');
             Route::post('check-phone', 'checkPhone');
             Route::post('firebase-auth-verify', 'firebaseAuthVerify');
             Route::post('firebase-auth-token-store', 'firebaseAuthTokenStore');
-            Route::post('verify-otp', 'verifyOTP');
+            Route::post('verify-otp', 'verifyOTP')->middleware('throttle:10,1');
             Route::post('verify-email', 'verifyEmail');
             Route::post('verify-phone', 'verifyPhone');
-            Route::post('registration-with-otp', 'registrationWithOTP');
+            Route::post('registration-with-otp', 'registrationWithOTP')->middleware('throttle:10,1');
             Route::post('existing-account-check', 'existingAccountCheck');
             Route::post('registration-with-social-media', 'registrationWithSocialMedia');
-            Route::post('forgot-password', 'passwordResetRequest');
+            Route::post('forgot-password', 'passwordResetRequest')->middleware('throttle:5,1');
         });
 
         Route::group(['middleware' => 'apiGuestCheck'], function () {

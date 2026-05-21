@@ -259,6 +259,13 @@
                     </div>
                 </div>
 
+                <div class="row pb-3">
+                    <div class="col-12 text-center">
+                        <p class="mb-1 text-white" style="font-size: 13px; font-weight: 600;">TRAD/DNCC/035634/2024</p>
+                        <p class="mb-0 text-white" style="font-size: 13px;">Delivery Time Inside Dhaka - 5 days &amp; Outside Dhaka - 10 days</p>
+                    </div>
+                </div>
+
                 <div class="row g-4 {{Session::get('direction') === "rtl" ? ' flex-row-reverse' : ''}}">
                     <div class="col-xl-5 col-md-6">
                         <div

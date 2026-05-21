@@ -40,3 +40,7 @@ composer-setup.php
 # uncomment the lines below:
 /storage/app/public/*
 # /storage/logs/*
+
+# Cloned external repos (not part of this project)
+/graphify
+/mem0

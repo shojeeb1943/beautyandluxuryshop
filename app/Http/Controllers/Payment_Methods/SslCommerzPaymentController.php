@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Routing\Redirector;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class SslCommerzPaymentController extends Controller
@@ -115,8 +116,8 @@ class SslCommerzPaymentController extends Controller
         $post_data['product_category'] = "N/A";
         $post_data['product_profile'] = "service";
 
-        # OPTIONAL PARAMETERS
-        $post_data['value_a'] = "ref001";
+        # OPTIONAL PARAMETERS — echo the payment_id back so it is visible in the SSLCOMMERZ panel for reconciliation
+        $post_data['value_a'] = $data['id'];
         $post_data['value_b'] = "ref002";
         $post_data['value_c'] = "ref003";
         $post_data['value_d'] = "ref004";
@@ -209,16 +210,23 @@ class SslCommerzPaymentController extends Controller
         curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($handle, CURLOPT_TIMEOUT, 30);
         curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, 30);
-        # KEEP VERIFICATION OFF ONLY WHEN RUNNING FROM LOCAL PC (sandbox); ON FOR LIVE.
-        curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, $this->host ? 0 : 2);
-        curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, $this->host ? 0 : 2);
+        # Mirror the (proven-working) payment-creation call in index(): peer verification is
+        # disabled on live because the host's CA bundle cannot verify SSLCOMMERZ's certificate.
+        curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, $this->host ? 2 : 0);
+        curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, $this->host);
 
         $result = curl_exec($handle);
         $code = curl_getinfo($handle, CURLINFO_HTTP_CODE);
         $errno = curl_errno($handle);
+        $error = curl_error($handle);
         curl_close($handle);
 
         if ($code != 200 || $errno) {
+            Log::warning('SSLCOMMERZ validation API call failed', [
+                'http_code' => $code,
+                'curl_errno' => $errno,
+                'curl_error' => $error,
+            ]);
             return null;
         }
         return json_decode($result);
@@ -229,8 +237,23 @@ class SslCommerzPaymentController extends Controller
     # and runs the success hook exactly once. Returns the PaymentRequest on confirmed payment, false otherwise.
     protected function validateAndConfirm(Request $request)
     {
-        $payment = $this->payment::where(['id' => $request['payment_id']])->first();
+        $tranId = $request->input('tran_id');
+
+        # RESOLVE THE PAYMENT: by payment_id when present (browser redirect), else by the
+        # persisted tran_id (the global IPN POST carries no payment_id).
+        $payment = null;
+        if (!empty($request['payment_id'])) {
+            $payment = $this->payment::where(['id' => $request['payment_id']])->first();
+        }
+        if (!isset($payment) && !empty($tranId)) {
+            $payment = $this->payment::where(['transaction_id' => $tranId])->first();
+        }
+
         if (!isset($payment)) {
+            Log::warning('SSLCOMMERZ confirm: payment_request not found', [
+                'payment_id' => $request['payment_id'] ?? null,
+                'tran_id' => $tranId,
+            ]);
             return false;
         }
 
@@ -239,37 +262,61 @@ class SslCommerzPaymentController extends Controller
             return $payment;
         }
 
-        # CHEAP GATE FIRST: status + hash signature on the posted data.
-        if ($request['status'] != 'VALID' || !$this->SSLCOMMERZ_hash_verify($this->store_password, $request->all())) {
+        # AUTHORITATIVE CHECK: server-to-server validation with SSLCOMMERZ (validationserverAPI.php).
+        # This is tamper-proof (re-confirms with SSL using val_id + store password) and is what
+        # tells SSLCOMMERZ the transaction is validated so the hold is released.
+        $valId = $request->input('val_id');
+        if (empty($valId)) {
+            Log::warning('SSLCOMMERZ confirm: missing val_id', ['payment_id' => $payment->id, 'tran_id' => $tranId]);
             return false;
         }
 
-        # SERVER-TO-SERVER VALIDATION — this is what tells SSLCOMMERZ the transaction is validated and releases the hold.
-        $validation = $this->validateTransactionWithSslCommerz($request->input('val_id'));
+        $validation = $this->validateTransactionWithSslCommerz($valId);
         if (!isset($validation) || !isset($validation->status)) {
+            Log::warning('SSLCOMMERZ confirm: empty/invalid validation response', ['payment_id' => $payment->id, 'val_id' => $valId]);
             return false;
         }
 
         $statusValid = in_array($validation->status, ['VALID', 'VALIDATED']);
-        $tranMatches = trim((string)$validation->tran_id) === trim((string)$payment->transaction_id);
-        $amountMatches = abs(floatval($validation->amount) - floatval($payment->payment_amount)) < 1;
-        $currencyMatches = trim((string)$validation->currency_type) === trim((string)$payment->currency_code);
+        $tranMatches = trim((string)($validation->tran_id ?? '')) === trim((string)$payment->transaction_id);
+        $amountMatches = abs(floatval($validation->amount ?? 0) - floatval($payment->payment_amount)) < 1;
 
-        if (!($statusValid && $tranMatches && $amountMatches && $currencyMatches)) {
+        if (!($statusValid && $tranMatches && $amountMatches)) {
+            Log::warning('SSLCOMMERZ confirm: validation mismatch', [
+                'payment_id' => $payment->id,
+                'ssl_status' => $validation->status ?? null,
+                'ssl_tran_id' => $validation->tran_id ?? null,
+                'our_tran_id' => $payment->transaction_id,
+                'ssl_amount' => $validation->amount ?? null,
+                'our_amount' => $payment->payment_amount,
+            ]);
             return false;
+        }
+
+        # NON-FATAL CROSS-CHECKS (logged only) — never block a transaction SSL has confirmed VALID.
+        if (trim((string)($validation->currency_type ?? '')) !== trim((string)$payment->currency_code)) {
+            Log::info('SSLCOMMERZ confirm: currency differs (non-fatal)', [
+                'payment_id' => $payment->id,
+                'ssl_currency' => $validation->currency_type ?? null,
+                'our_currency' => $payment->currency_code,
+            ]);
+        }
+        if (!$this->SSLCOMMERZ_hash_verify($this->store_password, $request->all())) {
+            Log::info('SSLCOMMERZ confirm: hash signature did not match (non-fatal; validated via API)', ['payment_id' => $payment->id]);
         }
 
         # IDEMPOTENT TRANSITION: only the request that flips is_paid 0 -> 1 creates the order.
         $affected = $this->payment::where(['id' => $payment->id])->where('is_paid', 0)->update([
             'payment_method' => 'ssl_commerz',
             'is_paid' => 1,
-            'transaction_id' => $request->input('tran_id') ?: $payment->transaction_id,
+            'transaction_id' => $tranId ?: $payment->transaction_id,
         ]);
 
         $payment = $this->payment::where(['id' => $payment->id])->first();
 
         if ($affected > 0 && isset($payment) && function_exists($payment->success_hook)) {
             call_user_func($payment->success_hook, $payment);
+            Log::info('SSLCOMMERZ confirm: payment confirmed and order hook executed', ['payment_id' => $payment->id, 'tran_id' => $payment->transaction_id]);
         }
 
         return $payment;

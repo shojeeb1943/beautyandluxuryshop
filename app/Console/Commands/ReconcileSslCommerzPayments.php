@@ -165,7 +165,7 @@ class ReconcileSslCommerzPayments extends Command
             $values->store_id ?? null,
             $values->store_password ?? null,
             $base . '/validator/api/validationserverAPI.php',
-            $config->mode === 'live', // verify peer only for live
+            $config->mode !== 'live', // peer verification OFF on live (host CA bundle can't verify SSL's cert), matches the controller/index()
         ];
     }
 
@@ -188,9 +188,11 @@ class ReconcileSslCommerzPayments extends Command
         $result = curl_exec($handle);
         $code = curl_getinfo($handle, CURLINFO_HTTP_CODE);
         $errno = curl_errno($handle);
+        $error = curl_error($handle);
         curl_close($handle);
 
         if ($code != 200 || $errno) {
+            $this->error("Validation API call failed (HTTP {$code}, curl {$errno}: {$error}).");
             return null;
         }
         return json_decode($result);

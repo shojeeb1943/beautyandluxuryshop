@@ -54,6 +54,17 @@ class ReconcileSslCommerzPayments extends Command
             define('DOMAIN_POINTED_DIRECTORY', 'root');
         }
 
+        # ThemeServiceProvider only defines VIEW_FILE_NAMES + theme view paths for web requests
+        # (skipped in console). Order notifications/invoice rendering need them under artisan.
+        if (!defined('VIEW_FILE_NAMES')) {
+            $theme = env('WEB_THEME') ?: 'default';
+            $themePath = base_path('resources/themes/' . $theme);
+            if (file_exists($themePath . '/file_names.php')) {
+                define('VIEW_FILE_NAMES', include($themePath . '/file_names.php'));
+                view()->addLocation($themePath);
+            }
+        }
+
         if ($this->option('report')) {
             return $this->report((int)$this->option('days'), (bool)$this->option('all'));
         }

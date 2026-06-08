@@ -96,9 +96,14 @@ class ReconcileSslCommerzPayments extends Command
 
         if ((int)$payment->is_paid === 1) {
             $existing = Order::where('transaction_ref', $payment->transaction_id)->pluck('id')->all();
-            $this->warn("Already marked paid. " . (count($existing)
-                    ? "Existing order(s): " . implode(', ', $existing)
-                    : "No order found by transaction_ref — inspect manually."));
+            if (count($existing)) {
+                $this->warn("Already marked paid. Existing order(s): " . implode(', ', $existing));
+                return self::SUCCESS;
+            }
+            # Paid flag set but no order (e.g. an earlier recovery whose cart was gone). Roll the
+            # flag back so the row reappears in --report for manual order creation.
+            PaymentRequest::where('id', $payment->id)->update(['is_paid' => 0]);
+            $this->warn("Was marked paid but has NO order — is_paid rolled back to 0 so it shows in --report. Create the order manually in admin.");
             return self::SUCCESS;
         }
 
@@ -111,52 +116,65 @@ class ReconcileSslCommerzPayments extends Command
 
         $tranId = $tranId ?: $payment->transaction_id;
 
-        # PREFERRED: query SSLCOMMERZ by the stored tran_id (authoritative; no hand-typed val_id).
-        $txn = null;
-        if (!empty($tranId)) {
-            $txn = $this->queryByTranId($base, $tranId, $storeId, $storePass, $verifyPeer);
-        }
-        # FALLBACK: a directly-supplied val_id (for old rows that never stored a tran_id).
-        if (!isset($txn->status) && !empty($valId)) {
-            $txn = $this->callValidationApi($base . '/validator/api/validationserverAPI.php', $valId, $storeId, $storePass, $verifyPeer);
+        # Determine the val_id to validate with. Prefer querying SSL by the stored tran_id
+        # (no hand-typed val_id needed); fall back to a directly-supplied --val_id.
+        if (empty($valId) && !empty($tranId)) {
+            $el = $this->queryByTranId($base, $tranId, $storeId, $storePass, $verifyPeer);
+            if (isset($el->val_id) && $el->val_id !== '') {
+                $valId = $el->val_id;
+            }
         }
 
-        if (!isset($txn->status)) {
-            $this->error('No usable validation result from SSLCOMMERZ for '
-                . ($tranId ? "tran_id={$tranId}" : '')
-                . ($valId ? " val_id={$valId}" : '')
-                . '. Confirm the SSL config mode/credentials and that this transaction shows Success in the panel.');
+        if (empty($valId)) {
+            $this->error('Could not determine a val_id (no tran_id match at SSLCOMMERZ and no --val_id given). '
+                . 'Copy the "SSL Id" from the panel transaction details and pass --val_id=...');
             return self::FAILURE;
         }
 
-        if (!in_array($txn->status, ['VALID', 'VALIDATED'])) {
-            $this->error("Transaction is not valid at SSLCOMMERZ (status: {$txn->status}).");
+        # AUTHORITATIVE VALIDATION via validationserverAPI — this is what marks the transaction
+        # "API Validated = Yes" at SSLCOMMERZ and releases the held funds.
+        $validation = $this->callValidationApi($base . '/validator/api/validationserverAPI.php', $valId, $storeId, $storePass, $verifyPeer);
+        if (!isset($validation->status)) {
+            $this->error("No validation response from SSLCOMMERZ for val_id={$valId}.");
             return self::FAILURE;
         }
-
-        $amountMatches = abs(floatval($txn->amount ?? 0) - floatval($payment->payment_amount)) < 1;
+        if (!in_array($validation->status, ['VALID', 'VALIDATED'])) {
+            $this->error("Transaction is not valid at SSLCOMMERZ (status: {$validation->status}).");
+            return self::FAILURE;
+        }
+        $amountMatches = abs(floatval($validation->amount ?? 0) - floatval($payment->payment_amount)) < 1;
         if (!$amountMatches && !$force) {
-            $this->error("Amount mismatch: validated " . ($txn->amount ?? 'null') . " vs requested {$payment->payment_amount}. Use --force to override.");
+            $this->error("Amount mismatch: validated " . ($validation->amount ?? 'null') . " vs requested {$payment->payment_amount}. Use --force to override.");
             return self::FAILURE;
         }
+        $this->info("Validated at SSLCOMMERZ (status {$validation->status}) — hold released.");
 
         # IDEMPOTENT TRANSITION — only proceed if still unpaid.
         $affected = PaymentRequest::where('id', $payment->id)->where('is_paid', 0)->update([
             'payment_method' => 'ssl_commerz',
             'is_paid' => 1,
-            'transaction_id' => $payment->transaction_id ?: ($txn->tran_id ?? $tranId),
+            'transaction_id' => $payment->transaction_id ?: ($validation->tran_id ?? $tranId),
         ]);
 
         $payment = PaymentRequest::find($payment->id);
 
         if ($affected > 0 && function_exists($payment->success_hook)) {
             call_user_func($payment->success_hook, $payment);
-            $orders = Order::where('transaction_ref', $payment->transaction_id)->pluck('id')->all();
-            $this->info("Recovered payment {$payment->id}. Order(s) created: " . (count($orders) ? implode(', ', $orders) : '(check success hook output)'));
+        }
+
+        $orders = Order::where('transaction_ref', $payment->transaction_id)->pluck('id')->all();
+        if (count($orders)) {
+            $this->info("Recovered payment {$payment->id}. Order(s) created: " . implode(', ', $orders));
             return self::SUCCESS;
         }
 
-        $this->warn('No state change (already processed concurrently) or success hook missing.');
+        # No order was produced — the shopping cart that the order is built from no longer
+        # exists for this old payment. Roll back is_paid so the row stays visible/honest, and
+        # tell the operator to create the order manually. (SSL is already validated above.)
+        PaymentRequest::where('id', $payment->id)->update(['is_paid' => 0]);
+        $payer = json_decode($payment->payer_information, true) ?? [];
+        $this->warn("SSL validated & hold released, but NO order was created because the shopping cart for this old payment no longer exists.");
+        $this->warn("=> Create this order MANUALLY in admin: payer '" . ($payer['name'] ?? '?') . "' (" . ($payer['phone'] ?? '?') . "), amount {$payment->payment_amount} {$payment->currency_code}, tran_id {$payment->transaction_id}. (is_paid left at 0.)");
         return self::SUCCESS;
     }
 

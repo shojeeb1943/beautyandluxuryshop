@@ -314,6 +314,13 @@ class ReconcileSslCommerzPayments extends Command
             $this->line("--rebuild-all: marked {$marked} cart row(s) checked.");
         }
 
+        # IDEMPOTENT TRANSITION — only the run that flips is_paid 0 -> 1 builds the order.
+        $affected = PaymentRequest::where('id', $payment->id)->where('is_paid', 0)->update([
+            'payment_method' => 'ssl_commerz',
+            'is_paid' => 1,
+            'transaction_id' => $payment->transaction_id ?: ($validation->tran_id ?? $tranId),
+        ]);
+
         $payment = PaymentRequest::find($payment->id);
 
         if ($affected > 0 && function_exists($payment->success_hook)) {

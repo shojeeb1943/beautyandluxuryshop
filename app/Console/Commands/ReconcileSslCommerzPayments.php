@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\PaymentRequest;
+use App\Models\ShippingAddress;
 use App\Models\User;
 use App\Utils\CartManager;
 use Illuminate\Console\Command;
@@ -40,6 +41,7 @@ class ReconcileSslCommerzPayments extends Command
                             {--payment_id= : The payment_requests.id (UUID) to recover/inspect}
                             {--val_id= : SSLCOMMERZ val_id (required for --validate-only; optional for recover when no stored tran_id)}
                             {--tran_id= : Optional tran_id to query SSL with (defaults to the stored one)}
+                            {--rebuild-all : When recovering, mark all of the customer\'s cart rows checked (use if items exist but are unchecked)}
                             {--force : Recover even if the validated amount differs from the requested amount}';
 
     protected $description = 'Validate and recover SSLCOMMERZ payments that were paid but never turned into an order.';
@@ -70,7 +72,7 @@ class ReconcileSslCommerzPayments extends Command
             return $this->inspect($paymentId);
         }
 
-        return $this->recover($paymentId, $this->option('val_id'), $this->option('tran_id'), (bool)$this->option('force'));
+        return $this->recover($paymentId, $this->option('val_id'), $this->option('tran_id'), (bool)$this->option('force'), (bool)$this->option('rebuild-all'));
     }
 
     # Validate a val_id at SSLCOMMERZ to flip it to "API Validated: Yes" and release the held
@@ -127,19 +129,31 @@ class ReconcileSslCommerzPayments extends Command
         $customerId = $ad['customer_id'] ?? null;
         $isGuest = $ad['is_guest'] ?? null;
 
+        # Old guest payments stored customer_id=null. The guest's id still lives on the saved
+        # shipping address — recover it so we can locate the (uncleared) guest cart.
+        $effectiveId = $customerId;
+        $idSource = 'additional_data.customer_id';
+        if (empty($effectiveId)) {
+            $effectiveId = $this->resolveGuestIdFromAddress($ad);
+            $idSource = $effectiveId ? 'recovered from shipping address' : 'unresolved';
+        }
+
         # Recreate the same customer context the live callback uses, so the cart resolves identically.
-        if (isset($ad['is_guest']) && $ad['is_guest'] == 0 && $customerId) {
-            request()->merge(['user' => User::find($customerId)]);
+        if (isset($ad['is_guest']) && $ad['is_guest'] == 0 && $effectiveId) {
+            request()->merge(['user' => User::find($effectiveId)]);
         }
         request()->merge([
-            'customer_id' => $customerId,
+            'customer_id' => $effectiveId,
             'is_guest' => $ad['is_guest'] ?? 0,
-            'guest_id' => ($ad['is_guest_in_order'] ?? 0) ? $customerId : null,
+            'guest_id' => $effectiveId,
             'payment_request_from' => $ad['payment_mode'] ?? 'web',
         ]);
 
-        $checkedCount = $customerId !== null
-            ? Cart::where('customer_id', $customerId)->where('is_checked', 1)->count()
+        $checkedCount = $effectiveId !== null
+            ? Cart::where('customer_id', $effectiveId)->where('is_checked', 1)->count()
+            : 0;
+        $totalForCustomer = $effectiveId !== null
+            ? Cart::where('customer_id', $effectiveId)->count()
             : 0;
         $productSubtotal = 0;
         try {
@@ -152,17 +166,35 @@ class ReconcileSslCommerzPayments extends Command
         $this->line("  is_paid:        " . (int)$payment->is_paid);
         $this->line("  paid amount:    {$payment->payment_amount} {$payment->currency_code}");
         $this->line("  payer:          " . ($payer['name'] ?? '?') . " (" . ($payer['phone'] ?? '?') . ")");
-        $this->line("  customer_id:    " . ($customerId ?? 'null') . "   is_guest: " . ($isGuest ?? '?'));
-        $this->line("  checked items:  {$checkedCount}");
+        $this->line("  effective id:   " . ($effectiveId ?? 'null') . "   ({$idSource}); is_guest: " . ($isGuest ?? '?'));
+        $this->line("  cart rows:      {$totalForCustomer} total, {$checkedCount} checked");
         $this->line("  cart subtotal:  {$productSubtotal}");
 
         if ($checkedCount > 0) {
-            $this->info("=> Cart still has items. Recover should rebuild the order — verify the order amount matches the paid amount after:");
-            $this->line("   php artisan sslcommerz:reconcile --payment_id={$payment->id} --val_id=<SSL Id>");
+            $this->info("=> Cart still has items. Rebuild with (it auto-recovers the guest id too):");
+            $this->line("   php artisan sslcommerz:reconcile --payment_id={$payment->id} --tran_id=<Transaction ID>");
+        } elseif ($totalForCustomer > 0) {
+            $this->warn("=> Cart has {$totalForCustomer} item(s) but none are CHECKED. Run with --rebuild-all to include them, or create the order manually.");
         } else {
-            $this->warn("=> Cart is empty for this customer. Auto-rebuild not possible — release funds with --validate-only and create the order manually in admin.");
+            $this->warn("=> No cart rows survive for this customer. Auto-rebuild not possible — create the order manually in admin (funds already released).");
         }
         return self::SUCCESS;
+    }
+
+    # Old guest payments stored customer_id=null; recover the guest id from the shipping address
+    # that was saved with the checkout (ShippingAddress.customer_id holds the guest id).
+    private function resolveGuestIdFromAddress(array $ad): ?string
+    {
+        foreach (['address_id', 'billing_address_id'] as $key) {
+            $addressId = $ad[$key] ?? null;
+            if (!empty($addressId)) {
+                $address = ShippingAddress::find($addressId);
+                if ($address && !empty($address->customer_id)) {
+                    return (string)$address->customer_id;
+                }
+            }
+        }
+        return null;
     }
 
     private function report(int $days, bool $all = false): int
@@ -199,7 +231,7 @@ class ReconcileSslCommerzPayments extends Command
         return self::SUCCESS;
     }
 
-    private function recover(string $paymentId, ?string $valId, ?string $tranId, bool $force): int
+    private function recover(string $paymentId, ?string $valId, ?string $tranId, bool $force, bool $rebuildAll = false): int
     {
         $payment = PaymentRequest::find($paymentId);
         if (!$payment) {
@@ -213,11 +245,10 @@ class ReconcileSslCommerzPayments extends Command
                 $this->warn("Already marked paid. Existing order(s): " . implode(', ', $existing));
                 return self::SUCCESS;
             }
-            # Paid flag set but no order (e.g. an earlier recovery whose cart was gone). Roll the
-            # flag back so the row reappears in --report for manual order creation.
+            # Paid flag set but no order — reset it and continue to the rebuild below in one pass.
             PaymentRequest::where('id', $payment->id)->update(['is_paid' => 0]);
-            $this->warn("Was marked paid but has NO order — is_paid rolled back to 0 so it shows in --report. Create the order manually in admin.");
-            return self::SUCCESS;
+            $payment = PaymentRequest::find($payment->id);
+            $this->line("Was marked paid with no order — reset is_paid=0 and retrying the rebuild.");
         }
 
         [$storeId, $storePass, $base, $verifyPeer, $mode] = $this->resolveCredentials();
@@ -262,12 +293,26 @@ class ReconcileSslCommerzPayments extends Command
         }
         $this->info("Validated at SSLCOMMERZ (status {$validation->status}) — hold released.");
 
-        # IDEMPOTENT TRANSITION — only proceed if still unpaid.
-        $affected = PaymentRequest::where('id', $payment->id)->where('is_paid', 0)->update([
-            'payment_method' => 'ssl_commerz',
-            'is_paid' => 1,
-            'transaction_id' => $payment->transaction_id ?: ($validation->tran_id ?? $tranId),
-        ]);
+        # For old guest payments (customer_id=null), inject the guest id recovered from the saved
+        # shipping address so the order hook can locate the guest's (uncleared) cart.
+        $ad = json_decode($payment->additional_data, true) ?? [];
+        if (empty($ad['customer_id'])) {
+            $gid = $this->resolveGuestIdFromAddress($ad);
+            if ($gid) {
+                $ad['customer_id'] = $gid;
+                $ad['is_guest_in_order'] = 1;
+                PaymentRequest::where('id', $payment->id)->update(['additional_data' => json_encode($ad)]);
+                $this->line("Recovered guest id {$gid} from shipping address for cart lookup.");
+            }
+        }
+        $effectiveId = $ad['customer_id'] ?? null;
+
+        # Optionally re-check all of this customer's cart rows (an order is built only from CHECKED
+        # items; old carts may have been left unchecked).
+        if ($rebuildAll && $effectiveId) {
+            $marked = Cart::where('customer_id', $effectiveId)->update(['is_checked' => 1]);
+            $this->line("--rebuild-all: marked {$marked} cart row(s) checked.");
+        }
 
         $payment = PaymentRequest::find($payment->id);
 

@@ -147,6 +147,14 @@ class SslCommerzPaymentController extends Controller
             echo "<meta http-equiv='refresh' content='0;url=" . $sslcz['GatewayPageURL'] . "'>";
             exit;
         } else {
+            # SSLCOMMERZ refused to create the gateway page (e.g. amount below the 10.00 BDT
+            # minimum, or invalid params). Log the real reason instead of a blank "not found".
+            Log::warning('SSLCOMMERZ session create returned no GatewayPageURL', [
+                'payment_id' => $data['id'],
+                'amount' => round($payment_amount, 2),
+                'ssl_status' => $sslcz['status'] ?? null,
+                'ssl_failedreason' => $sslcz['failedreason'] ?? null,
+            ]);
             return response()->json($this->response_formatter(GATEWAYS_DEFAULT_204), 200);
         }
     }

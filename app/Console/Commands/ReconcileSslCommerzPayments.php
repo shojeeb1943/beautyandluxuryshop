@@ -2,8 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Cart;
 use App\Models\Order;
 use App\Models\PaymentRequest;
+use App\Models\User;
+use App\Utils\CartManager;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -30,9 +33,12 @@ class ReconcileSslCommerzPayments extends Command
 {
     protected $signature = 'sslcommerz:reconcile
                             {--report : List recent unpaid order payment-requests to reconcile against the SSLCOMMERZ panel}
+                            {--all : In --report mode, also include already-paid rows (shows an is_paid column)}
                             {--days=30 : How many days back to scan in --report mode}
-                            {--payment_id= : The payment_requests.id (UUID) to recover}
-                            {--val_id= : Optional SSLCOMMERZ val_id (only needed when the row has no stored tran_id)}
+                            {--validate-only : Only validate a --val_id at SSLCOMMERZ to release the held funds; no DB writes, no order}
+                            {--inspect : Read-only: show a payment\'s amount + the customer\'s current checked-cart state (is it auto-recoverable?)}
+                            {--payment_id= : The payment_requests.id (UUID) to recover/inspect}
+                            {--val_id= : SSLCOMMERZ val_id (required for --validate-only; optional for recover when no stored tran_id)}
                             {--tran_id= : Optional tran_id to query SSL with (defaults to the stored one)}
                             {--force : Recover even if the validated amount differs from the requested amount}';
 
@@ -41,28 +47,119 @@ class ReconcileSslCommerzPayments extends Command
     public function handle(): int
     {
         if ($this->option('report')) {
-            return $this->report((int)$this->option('days'));
+            return $this->report((int)$this->option('days'), (bool)$this->option('all'));
+        }
+
+        if ($this->option('validate-only')) {
+            $valId = $this->option('val_id');
+            if (!$valId) {
+                $this->error('--validate-only requires --val_id=<SSL Id from panel>.');
+                return self::INVALID;
+            }
+            return $this->validateOnly($valId);
         }
 
         $paymentId = $this->option('payment_id');
         if (!$paymentId) {
-            $this->error('Provide --report, or --payment_id (with optional --val_id). See: php artisan help sslcommerz:reconcile');
+            $this->error('Provide --report, --validate-only --val_id=..., or --payment_id (with --inspect or --val_id).');
             return self::INVALID;
+        }
+
+        if ($this->option('inspect')) {
+            return $this->inspect($paymentId);
         }
 
         return $this->recover($paymentId, $this->option('val_id'), $this->option('tran_id'), (bool)$this->option('force'));
     }
 
-    private function report(int $days): int
+    # Validate a val_id at SSLCOMMERZ to flip it to "API Validated: Yes" and release the held
+    # funds. Pure money release — no payment_requests change, no order. Idempotent.
+    private function validateOnly(string $valId): int
     {
-        $candidates = PaymentRequest::where('is_paid', 0)
-            ->where('attribute', 'order')
+        [$storeId, $storePass, $base, $verifyPeer, $mode] = $this->resolveCredentials();
+        if (!$storeId) {
+            $this->error('Could not resolve SSLCOMMERZ credentials from addon_settings (key_name=ssl_commerz).');
+            return self::FAILURE;
+        }
+        $this->line("Using SSLCOMMERZ '{$mode}' store '{$storeId}'.");
+
+        $validation = $this->callValidationApi($base . '/validator/api/validationserverAPI.php', $valId, $storeId, $storePass, $verifyPeer);
+        if (!isset($validation->status)) {
+            $this->error("No validation response from SSLCOMMERZ for val_id={$valId}.");
+            return self::FAILURE;
+        }
+        if (!in_array($validation->status, ['VALID', 'VALIDATED'])) {
+            $this->error("Not valid at SSLCOMMERZ (status: {$validation->status}). Check the val_id was copied exactly from the panel.");
+            return self::FAILURE;
+        }
+        $this->info("OK — status {$validation->status}, amount " . ($validation->amount ?? '?')
+            . ", tran_id " . ($validation->tran_id ?? '?') . ". Funds released; panel should now show API Validated: Yes.");
+        return self::SUCCESS;
+    }
+
+    # Read-only preview: is this payment auto-recoverable (does the customer's checked cart still
+    # exist and roughly match what they paid)? Writes nothing.
+    private function inspect(string $paymentId): int
+    {
+        $payment = PaymentRequest::find($paymentId);
+        if (!$payment) {
+            $this->error("payment_requests row not found: {$paymentId}");
+            return self::FAILURE;
+        }
+
+        $ad = json_decode($payment->additional_data, true) ?? [];
+        $payer = json_decode($payment->payer_information, true) ?? [];
+        $customerId = $ad['customer_id'] ?? null;
+        $isGuest = $ad['is_guest'] ?? null;
+
+        # Recreate the same customer context the live callback uses, so the cart resolves identically.
+        if (isset($ad['is_guest']) && $ad['is_guest'] == 0 && $customerId) {
+            request()->merge(['user' => User::find($customerId)]);
+        }
+        request()->merge([
+            'customer_id' => $customerId,
+            'is_guest' => $ad['is_guest'] ?? 0,
+            'guest_id' => ($ad['is_guest_in_order'] ?? 0) ? $customerId : null,
+            'payment_request_from' => $ad['payment_mode'] ?? 'web',
+        ]);
+
+        $checkedCount = $customerId !== null
+            ? Cart::where('customer_id', $customerId)->where('is_checked', 1)->count()
+            : 0;
+        $productSubtotal = 0;
+        try {
+            $productSubtotal = CartManager::getOnlyCartProductPriceGrandTotal(type: 'checked');
+        } catch (\Throwable $e) {
+            // leave 0
+        }
+
+        $this->info("Payment {$payment->id}");
+        $this->line("  is_paid:        " . (int)$payment->is_paid);
+        $this->line("  paid amount:    {$payment->payment_amount} {$payment->currency_code}");
+        $this->line("  payer:          " . ($payer['name'] ?? '?') . " (" . ($payer['phone'] ?? '?') . ")");
+        $this->line("  customer_id:    " . ($customerId ?? 'null') . "   is_guest: " . ($isGuest ?? '?'));
+        $this->line("  checked items:  {$checkedCount}");
+        $this->line("  cart subtotal:  {$productSubtotal}");
+
+        if ($checkedCount > 0) {
+            $this->info("=> Cart still has items. Recover should rebuild the order — verify the order amount matches the paid amount after:");
+            $this->line("   php artisan sslcommerz:reconcile --payment_id={$payment->id} --val_id=<SSL Id>");
+        } else {
+            $this->warn("=> Cart is empty for this customer. Auto-rebuild not possible — release funds with --validate-only and create the order manually in admin.");
+        }
+        return self::SUCCESS;
+    }
+
+    private function report(int $days, bool $all = false): int
+    {
+        $candidates = PaymentRequest::where('attribute', 'order')
+            ->when(!$all, fn($q) => $q->where('is_paid', 0))
             ->where('created_at', '>=', now()->subDays($days))
             ->orderByDesc('created_at')
             ->get();
 
         if ($candidates->isEmpty()) {
-            $this->info("No unpaid 'order' payment-requests in the last {$days} days.");
+            $this->info("No matching 'order' payment-requests in the last {$days} days.");
             return self::SUCCESS;
         }
 
@@ -70,6 +167,7 @@ class ReconcileSslCommerzPayments extends Command
             $payer = json_decode($p->payer_information, true) ?? [];
             return [
                 $p->id,
+                (int)$p->is_paid,
                 $p->payment_amount . ' ' . $p->currency_code,
                 $payer['name'] ?? '-',
                 $payer['phone'] ?? '-',
@@ -78,7 +176,7 @@ class ReconcileSslCommerzPayments extends Command
             ];
         })->toArray();
 
-        $this->table(['payment_id', 'amount', 'payer', 'phone', 'tran_id', 'created_at'], $rows);
+        $this->table(['payment_id', 'is_paid', 'amount', 'payer', 'phone', 'tran_id', 'created_at'], $rows);
         $this->info("Found {$candidates->count()} candidate(s). For rows with a tran_id, just run:");
         $this->line('  php artisan sslcommerz:reconcile --payment_id=<id>');
         $this->info("For old rows showing tran_id = '-', copy the val_id (SSL Id) from the panel and run:");
@@ -162,9 +260,15 @@ class ReconcileSslCommerzPayments extends Command
             call_user_func($payment->success_hook, $payment);
         }
 
-        $orders = Order::where('transaction_ref', $payment->transaction_id)->pluck('id')->all();
-        if (count($orders)) {
-            $this->info("Recovered payment {$payment->id}. Order(s) created: " . implode(', ', $orders));
+        $createdOrders = Order::where('transaction_ref', $payment->transaction_id)->get(['id', 'order_amount']);
+        if ($createdOrders->count()) {
+            $orderIds = $createdOrders->pluck('id')->implode(', ');
+            $ordersTotal = (float)$createdOrders->sum('order_amount');
+            $this->info("Recovered payment {$payment->id}. Order(s) created: {$orderIds}");
+            if (abs($ordersTotal - (float)$payment->payment_amount) >= 1) {
+                $this->warn("⚠ Created order total ({$ordersTotal}) differs from the paid amount ({$payment->payment_amount}) — "
+                    . "the customer's cart likely changed since payment. REVIEW order(s) {$orderIds} in admin and cancel/correct if the items are wrong.");
+            }
             return self::SUCCESS;
         }
 

@@ -96,8 +96,9 @@
                             <div class="media">
                                 <a class="d-block me-2 position-relative overflow-hidden"
                                    href="{{route('product',$cartItem['slug'])}}">
+                                    @php($cartItemVariationImage = getProductVariationImage($product, $cartItem->variant))
                                     <img width="64" class="{{ $product ? ($product->status == 0?'blur-section':'') : 'blur-section' }}"
-                                         src="{{ getStorageImages(path: $product->thumbnail_full_url, type: 'backend-product') }}"
+                                         src="{{ getStorageImages(path: $cartItemVariationImage ?? $product->thumbnail_full_url, type: 'backend-product') }}"
                                          alt="{{ translate('product') }}"/>
                                     @if (!$product || $product->status == 0)
                                         <span class="temporary-closed position-absolute text-center p-2">

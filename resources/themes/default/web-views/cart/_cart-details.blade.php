@@ -250,8 +250,9 @@
                                             <div class="">
                                                 <a href="{{ $checkProductStatus == 1 ? route('product', $cartItem['slug']) : 'javascript:'}}"
                                                    class="position-relative overflow-hidden">
+                                                    @php($cartItemVariationImage = getProductVariationImage($cartItem?->product, $cartItem->variant))
                                                     <img class="rounded __img-62 {{ $checkProductStatus == 0?'custom-cart-opacity-50':'' }}"
-                                                         src="{{ getStorageImages(path: $cartItem?->product?->thumbnail_full_url, type: 'product') }}"
+                                                         src="{{ getStorageImages(path: $cartItemVariationImage ?? $cartItem?->product?->thumbnail_full_url, type: 'product') }}"
                                                         alt="{{ translate('product') }}">
                                                     @if ($checkProductStatus == 0)
                                                         <span class="temporary-closed position-absolute text-center p-2">
@@ -567,8 +568,9 @@
                                 <div class="">
                                     <a href="{{ $checkProductStatus == 1 ? route('product',$cartItem['slug']) : 'javascript:'}}"
                                     class="position-relative overflow-hidden">
+                                        @php($cartItemVariationImageMobile = getProductVariationImage($cartItem?->product, $cartItem->variant))
                                         <img class="rounded __img-48 {{ $checkProductStatus == 0?'custom-cart-opacity-50':'' }}"
-                                            src="{{ getStorageImages(path: $cartItem?->product?->thumbnail_full_url, type: 'product') }}"
+                                            src="{{ getStorageImages(path: $cartItemVariationImageMobile ?? $cartItem?->product?->thumbnail_full_url, type: 'product') }}"
                                             alt="{{ translate('product') }}">
                                         @if ($checkProductStatus == 0)
                                             <span class="temporary-closed position-absolute text-center p-2">

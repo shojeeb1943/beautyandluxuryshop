@@ -151,7 +151,22 @@ if (!function_exists('getProductVariationImage')) {
             return null;
         }
         $variationImages = $product->variation_images_full_url ?? [];
-        return $variationImages[$variant]['image_name'] ?? null;
+        if (empty($variationImages)) {
+            return null;
+        }
+        # Exact key match first.
+        if (isset($variationImages[$variant]['image_name'])) {
+            return $variationImages[$variant]['image_name'];
+        }
+        # Tolerant match: ignore spaces/case in case the stored key formatting differs slightly
+        # from the cart's variant string.
+        $needle = strtolower(str_replace(' ', '', $variant));
+        foreach ($variationImages as $key => $img) {
+            if (strtolower(str_replace(' ', '', (string)$key)) === $needle && isset($img['image_name'])) {
+                return $img['image_name'];
+            }
+        }
+        return null;
     }
 }
 

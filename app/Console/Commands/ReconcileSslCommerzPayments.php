@@ -175,6 +175,18 @@ class ReconcileSslCommerzPayments extends Command
         $this->line("  effective id:   " . ($effectiveId ?? 'null') . "   ({$idSource}); is_guest: " . ($isGuest ?? '?'));
         $this->line("  cart rows:      {$totalForCustomer} total, {$checkedCount} checked");
         $this->line("  cart subtotal:  {$productSubtotal}");
+        $this->line("  address_id:     " . ($ad['address_id'] ?? '?') . "   billing: " . ($ad['billing_address_id'] ?? '?'));
+
+        if ($effectiveId !== null && $totalForCustomer > 0) {
+            $this->line("  cart line items (raw):");
+            $items = Cart::where('customer_id', $effectiveId)
+                ->get(['product_id', 'name', 'variant', 'quantity', 'price', 'is_checked', 'created_at']);
+            foreach ($items as $it) {
+                $chk = $it->is_checked ? 'x' : ' ';
+                $this->line("    [{$chk}] {$it->name} | variant: " . ($it->variant ?: '-')
+                    . " | qty: {$it->quantity} | unit price: {$it->price} | product#{$it->product_id} | added {$it->created_at}");
+            }
+        }
 
         if ($checkedCount > 0) {
             $this->info("=> Cart still has items. Rebuild with (it auto-recovers the guest id too):");

@@ -170,6 +170,50 @@ if (!function_exists('getProductVariationImage')) {
     }
 }
 
+if (!function_exists('getCartItemImage')) {
+    /**
+     * Best image for a cart/order line item: variation image (by variant) first, then the
+     * colour image (by the item's colour), else null to fall back to the base thumbnail.
+     * The cart stores colour with a leading '#', while colour-image keys have none.
+     *
+     * @param object|array $cartItem Cart item (with ->product, ->variant, ->color)
+     * @param object|null $product Optional product (when not loaded on the cart item)
+     * @return mixed storageLink image (pass straight to getStorageImages), or null
+     */
+    function getCartItemImage($cartItem, $product = null)
+    {
+        if (empty($cartItem)) {
+            return null;
+        }
+        $product = $product ?: (is_object($cartItem) ? ($cartItem->product ?? null) : ($cartItem['product'] ?? null));
+        if (empty($product)) {
+            return null;
+        }
+        $variant = is_object($cartItem) ? ($cartItem->variant ?? null) : ($cartItem['variant'] ?? null);
+        $color = is_object($cartItem) ? ($cartItem->color ?? null) : ($cartItem['color'] ?? null);
+
+        # 1) Variation image keyed by the variant string.
+        $variationImage = getProductVariationImage($product, $variant);
+        if (!empty($variationImage)) {
+            return $variationImage;
+        }
+
+        # 2) Colour image: match the item's colour to the product's colour images. Cart colour has
+        # a leading '#'; the stored colour-image key does not.
+        if (!empty($color)) {
+            $needleColor = strtolower(ltrim((string)$color, '#'));
+            foreach (($product->color_images_full_url ?? []) as $colorImage) {
+                $key = $colorImage['color'] ?? null;
+                if ($key !== null && strtolower(ltrim((string)$key, '#')) === $needleColor && isset($colorImage['image_name'])) {
+                    return $colorImage['image_name'];
+                }
+            }
+        }
+
+        return null;
+    }
+}
+
 if (!function_exists('getVariationFromProduct')) {
     /**
      * Get variation object from product by variant string

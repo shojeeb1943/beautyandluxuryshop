@@ -250,7 +250,7 @@
                                             <div class="">
                                                 <a href="{{ $checkProductStatus == 1 ? route('product', $cartItem['slug']) : 'javascript:'}}"
                                                    class="position-relative overflow-hidden">
-                                                    @php($cartItemVariationImage = getProductVariationImage($cartItem?->product, $cartItem->variant))
+                                                    @php($cartItemVariationImage = getCartItemImage($cartItem))
                                                     <img class="rounded __img-62 {{ $checkProductStatus == 0?'custom-cart-opacity-50':'' }}"
                                                          src="{{ getStorageImages(path: $cartItemVariationImage ?? $cartItem?->product?->thumbnail_full_url, type: 'product') }}"
                                                         alt="{{ translate('product') }}">
@@ -568,7 +568,7 @@
                                 <div class="">
                                     <a href="{{ $checkProductStatus == 1 ? route('product',$cartItem['slug']) : 'javascript:'}}"
                                     class="position-relative overflow-hidden">
-                                        @php($cartItemVariationImageMobile = getProductVariationImage($cartItem?->product, $cartItem->variant))
+                                        @php($cartItemVariationImageMobile = getCartItemImage($cartItem))
                                         <img class="rounded __img-48 {{ $checkProductStatus == 0?'custom-cart-opacity-50':'' }}"
                                             src="{{ getStorageImages(path: $cartItemVariationImageMobile ?? $cartItem?->product?->thumbnail_full_url, type: 'product') }}"
                                             alt="{{ translate('product') }}">

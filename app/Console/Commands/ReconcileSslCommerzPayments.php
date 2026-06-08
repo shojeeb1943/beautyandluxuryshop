@@ -48,6 +48,12 @@ class ReconcileSslCommerzPayments extends Command
 
     public function handle(): int
     {
+        # The web entry (index.php) defines this constant; artisan does not. Order generation
+        # (invoice/image paths in file_path.php) needs it. Match the server's index.php ('root').
+        if (!defined('DOMAIN_POINTED_DIRECTORY')) {
+            define('DOMAIN_POINTED_DIRECTORY', 'root');
+        }
+
         if ($this->option('report')) {
             return $this->report((int)$this->option('days'), (bool)$this->option('all'));
         }

@@ -136,6 +136,25 @@ if (!function_exists('getVariationDiscount')) {
     }
 }
 
+if (!function_exists('getProductVariationImage')) {
+    /**
+     * Variation-specific image for a cart/order line item, or null to fall back to the base
+     * thumbnail. The variation images are keyed by the same variant string stored on the cart.
+     *
+     * @param object|array|null $product Product model with the variation_images_full_url accessor
+     * @param string|null $variant The selected variation type string (Cart.variant)
+     * @return mixed storageLink image (pass straight to getStorageImages), or null
+     */
+    function getProductVariationImage($product, $variant)
+    {
+        if (empty($product) || empty($variant)) {
+            return null;
+        }
+        $variationImages = $product->variation_images_full_url ?? [];
+        return $variationImages[$variant]['image_name'] ?? null;
+    }
+}
+
 if (!function_exists('getVariationFromProduct')) {
     /**
      * Get variation object from product by variant string

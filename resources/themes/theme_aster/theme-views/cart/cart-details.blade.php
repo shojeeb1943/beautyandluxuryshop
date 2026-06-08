@@ -217,8 +217,9 @@
                                                         <div class="media align-items-center gap-3">
                                                             <div
                                                                     class="avatar avatar-xxl rounded border position-relative overflow-hidden">
+                                                                @php($cartItemVariationImage = getProductVariationImage($cartItem->product, $cartItem->variant))
                                                                 <img alt="{{ translate('product') }}"
-                                                                     src="{{ getStorageImages(path: $cartItem->product->thumbnail_full_url, type: 'product') }}"
+                                                                     src="{{ getStorageImages(path: $cartItemVariationImage ?? $cartItem->product->thumbnail_full_url, type: 'product') }}"
                                                                      class="dark-support img-fit rounded img-fluid overflow-hidden {{ $cartItem->allProducts ? ($product->status == 0 ?'custom-cart-opacity-50':'') : 'custom-cart-opacity-50' }}">
 
                                                                 @if ($checkProductStatus == 0)
@@ -367,8 +368,9 @@
                                                 <div class="media align-items-center gap-2">
                                                     <div
                                                         class="avatar avatar-lg rounded border position-relative overflow-hidden">
+                                                        @php($cartItemVariationImage = getProductVariationImage($cartItem?->product, $cartItem->variant))
                                                         <img
-                                                            src="{{ getStorageImages(path: $cartItem?->product?->thumbnail_full_url, type: 'product') }}"
+                                                            src="{{ getStorageImages(path: $cartItemVariationImage ?? $cartItem?->product?->thumbnail_full_url, type: 'product') }}"
                                                             class="dark-support img-fit rounded img-fluid overflow-hidden {{ $checkProductStatus == 0 ? 'custom-cart-opacity-50' : '' }}"
                                                             alt="">
                                                         @if ($checkProductStatus == 0)

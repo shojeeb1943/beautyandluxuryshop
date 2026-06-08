@@ -14,11 +14,14 @@ use Illuminate\Support\Facades\DB;
  * therefore the order — never ran, while SSLCOMMERZ held the funds).
  *
  * Usage:
- *   # 1) List recent unpaid order payment-requests to map against the SSLCOMMERZ panel:
+ *   # 1) List recent unpaid order payment-requests:
  *   php artisan sslcommerz:reconcile --report --days=30
  *
- *   # 2) Recover one transaction (val_id is taken from the SSLCOMMERZ panel/IPN email):
- *   php artisan sslcommerz:reconcile --payment_id=<uuid> --val_id=<val_id> [--tran_id=<tran_id>] [--force]
+ *   # 2a) Recover by payment_id alone — looks up SSL by the stored tran_id (preferred):
+ *   php artisan sslcommerz:reconcile --payment_id=<uuid>
+ *
+ *   # 2b) Or force a specific val_id (e.g. for old rows that never stored a tran_id):
+ *   php artisan sslcommerz:reconcile --payment_id=<uuid> --val_id=<val_id> [--force]
  *
  * Recovery is idempotent: it only acts when is_paid is still 0 and SSLCOMMERZ confirms
  * the transaction as VALID/VALIDATED with a matching amount.
@@ -29,8 +32,8 @@ class ReconcileSslCommerzPayments extends Command
                             {--report : List recent unpaid order payment-requests to reconcile against the SSLCOMMERZ panel}
                             {--days=30 : How many days back to scan in --report mode}
                             {--payment_id= : The payment_requests.id (UUID) to recover}
-                            {--val_id= : The SSLCOMMERZ val_id of the successful transaction (from the panel)}
-                            {--tran_id= : Optional tran_id to store (defaults to the one returned by SSLCOMMERZ)}
+                            {--val_id= : Optional SSLCOMMERZ val_id (only needed when the row has no stored tran_id)}
+                            {--tran_id= : Optional tran_id to query SSL with (defaults to the stored one)}
                             {--force : Recover even if the validated amount differs from the requested amount}';
 
     protected $description = 'Validate and recover SSLCOMMERZ payments that were paid but never turned into an order.';
@@ -42,14 +45,12 @@ class ReconcileSslCommerzPayments extends Command
         }
 
         $paymentId = $this->option('payment_id');
-        $valId = $this->option('val_id');
-
-        if (!$paymentId || !$valId) {
-            $this->error('Provide --report, or both --payment_id and --val_id. See: php artisan help sslcommerz:reconcile');
+        if (!$paymentId) {
+            $this->error('Provide --report, or --payment_id (with optional --val_id). See: php artisan help sslcommerz:reconcile');
             return self::INVALID;
         }
 
-        return $this->recover($paymentId, $valId, $this->option('tran_id'), (bool)$this->option('force'));
+        return $this->recover($paymentId, $this->option('val_id'), $this->option('tran_id'), (bool)$this->option('force'));
     }
 
     private function report(int $days): int
@@ -78,12 +79,14 @@ class ReconcileSslCommerzPayments extends Command
         })->toArray();
 
         $this->table(['payment_id', 'amount', 'payer', 'phone', 'tran_id', 'created_at'], $rows);
-        $this->info("Found {$candidates->count()} candidate(s). Match each against a successful transaction in the SSLCOMMERZ panel, then run:");
+        $this->info("Found {$candidates->count()} candidate(s). For rows with a tran_id, just run:");
+        $this->line('  php artisan sslcommerz:reconcile --payment_id=<id>');
+        $this->info("For old rows showing tran_id = '-', copy the val_id (SSL Id) from the panel and run:");
         $this->line('  php artisan sslcommerz:reconcile --payment_id=<id> --val_id=<val_id_from_panel>');
         return self::SUCCESS;
     }
 
-    private function recover(string $paymentId, string $valId, ?string $tranId, bool $force): int
+    private function recover(string $paymentId, ?string $valId, ?string $tranId, bool $force): int
     {
         $payment = PaymentRequest::find($paymentId);
         if (!$payment) {
@@ -99,26 +102,41 @@ class ReconcileSslCommerzPayments extends Command
             return self::SUCCESS;
         }
 
-        [$storeId, $storePass, $validationUrl, $verifyPeer] = $this->resolveCredentials();
+        [$storeId, $storePass, $base, $verifyPeer, $mode] = $this->resolveCredentials();
         if (!$storeId) {
             $this->error('Could not resolve SSLCOMMERZ credentials from addon_settings (key_name=ssl_commerz).');
             return self::FAILURE;
         }
+        $this->line("Using SSLCOMMERZ '{$mode}' store '{$storeId}' ({$base}).");
 
-        $validation = $this->callValidationApi($validationUrl, $valId, $storeId, $storePass, $verifyPeer);
-        if (!isset($validation->status)) {
-            $this->error('Failed to reach the SSLCOMMERZ validation API or empty response.');
+        $tranId = $tranId ?: $payment->transaction_id;
+
+        # PREFERRED: query SSLCOMMERZ by the stored tran_id (authoritative; no hand-typed val_id).
+        $txn = null;
+        if (!empty($tranId)) {
+            $txn = $this->queryByTranId($base, $tranId, $storeId, $storePass, $verifyPeer);
+        }
+        # FALLBACK: a directly-supplied val_id (for old rows that never stored a tran_id).
+        if (!isset($txn->status) && !empty($valId)) {
+            $txn = $this->callValidationApi($base . '/validator/api/validationserverAPI.php', $valId, $storeId, $storePass, $verifyPeer);
+        }
+
+        if (!isset($txn->status)) {
+            $this->error('No usable validation result from SSLCOMMERZ for '
+                . ($tranId ? "tran_id={$tranId}" : '')
+                . ($valId ? " val_id={$valId}" : '')
+                . '. Confirm the SSL config mode/credentials and that this transaction shows Success in the panel.');
             return self::FAILURE;
         }
 
-        if (!in_array($validation->status, ['VALID', 'VALIDATED'])) {
-            $this->error("Transaction is not valid at SSLCOMMERZ (status: {$validation->status}).");
+        if (!in_array($txn->status, ['VALID', 'VALIDATED'])) {
+            $this->error("Transaction is not valid at SSLCOMMERZ (status: {$txn->status}).");
             return self::FAILURE;
         }
 
-        $amountMatches = abs(floatval($validation->amount) - floatval($payment->payment_amount)) < 1;
+        $amountMatches = abs(floatval($txn->amount ?? 0) - floatval($payment->payment_amount)) < 1;
         if (!$amountMatches && !$force) {
-            $this->error("Amount mismatch: validated {$validation->amount} vs requested {$payment->payment_amount}. Use --force to override.");
+            $this->error("Amount mismatch: validated " . ($txn->amount ?? 'null') . " vs requested {$payment->payment_amount}. Use --force to override.");
             return self::FAILURE;
         }
 
@@ -126,7 +144,7 @@ class ReconcileSslCommerzPayments extends Command
         $affected = PaymentRequest::where('id', $payment->id)->where('is_paid', 0)->update([
             'payment_method' => 'ssl_commerz',
             'is_paid' => 1,
-            'transaction_id' => $tranId ?: ($validation->tran_id ?? $payment->transaction_id),
+            'transaction_id' => $payment->transaction_id ?: ($txn->tran_id ?? $tranId),
         ]);
 
         $payment = PaymentRequest::find($payment->id);
@@ -143,7 +161,7 @@ class ReconcileSslCommerzPayments extends Command
     }
 
     /**
-     * @return array{0:?string,1:?string,2:string,3:bool} [store_id, store_password, validation_url, verifyPeer]
+     * @return array{0:?string,1:?string,2:string,3:bool,4:string} [store_id, store_password, base_url, verifyPeer, mode]
      */
     private function resolveCredentials(): array
     {
@@ -153,7 +171,7 @@ class ReconcileSslCommerzPayments extends Command
             ->first();
 
         if (!$config) {
-            return [null, null, '', true];
+            return [null, null, '', true, 'unknown'];
         }
 
         $values = json_decode($config->mode === 'live' ? $config->live_values : $config->test_values);
@@ -164,9 +182,39 @@ class ReconcileSslCommerzPayments extends Command
         return [
             $values->store_id ?? null,
             $values->store_password ?? null,
-            $base . '/validator/api/validationserverAPI.php',
+            $base,
             $config->mode !== 'live', // peer verification OFF on live (host CA bundle can't verify SSL's cert), matches the controller/index()
+            $config->mode ?? 'unknown',
         ];
+    }
+
+    # Query SSLCOMMERZ by merchant tran_id (merchantTransIDvalidationAPI.php) and return the
+    # matching transaction element (with status, val_id, amount), or null.
+    private function queryByTranId(string $base, string $tranId, string $storeId, string $storePass, bool $verifyPeer)
+    {
+        $url = $base . '/validator/api/merchantTransIDvalidationAPI.php'
+            . '?tran_id=' . urlencode($tranId)
+            . '&store_id=' . urlencode($storeId)
+            . '&store_passwd=' . urlencode($storePass)
+            . '&v=1&format=json';
+
+        $resp = $this->httpGetJson($url, $verifyPeer);
+        if (!$resp) {
+            return null;
+        }
+        if (isset($resp->APIConnect) && $resp->APIConnect !== 'DONE') {
+            $this->warn("merchantTransID API returned APIConnect={$resp->APIConnect}.");
+        }
+        if (!empty($resp->element) && is_array($resp->element)) {
+            foreach ($resp->element as $el) {
+                if (isset($el->tran_id) && $el->tran_id == $tranId) {
+                    return $el;
+                }
+            }
+            return $resp->element[0];
+        }
+        $this->warn("No transaction found at SSLCOMMERZ for tran_id={$tranId}.");
+        return null;
     }
 
     private function callValidationApi(string $url, string $valId, string $storeId, string $storePass, bool $verifyPeer)
@@ -177,8 +225,13 @@ class ReconcileSslCommerzPayments extends Command
             . '&store_passwd=' . urlencode($storePass)
             . '&v=1&format=json';
 
+        return $this->httpGetJson($requested, $verifyPeer);
+    }
+
+    private function httpGetJson(string $url, bool $verifyPeer)
+    {
         $handle = curl_init();
-        curl_setopt($handle, CURLOPT_URL, $requested);
+        curl_setopt($handle, CURLOPT_URL, $url);
         curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($handle, CURLOPT_TIMEOUT, 30);
         curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, 30);
@@ -192,7 +245,7 @@ class ReconcileSslCommerzPayments extends Command
         curl_close($handle);
 
         if ($code != 200 || $errno) {
-            $this->error("Validation API call failed (HTTP {$code}, curl {$errno}: {$error}).");
+            $this->error("SSLCOMMERZ API call failed (HTTP {$code}, curl {$errno}: {$error}).");
             return null;
         }
         return json_decode($result);

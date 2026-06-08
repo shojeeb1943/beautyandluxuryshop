@@ -831,7 +831,7 @@ class OrderManager
             }
 
             $price = $cartSingleItem['tax_model'] == 'include' ? $cartSingleItem['price'] - $cartSingleItem['tax'] : $cartSingleItem['price'];
-            $productDiscount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $cartSingleItem['price']);
+            $productDiscount = getCartItemDiscount(product: $product, variant: $cartSingleItem['variant'], price: $cartSingleItem['price']);
             $orderDetails = [
                 'order_id' => $orderId,
                 'product_id' => $cartSingleItem['product_id'],
@@ -1274,7 +1274,7 @@ class OrderManager
                             $cart['slug'] = $product->slug;
                             $cart['name'] = $product->name;
                             $cart['is_checked'] = 1;
-                            $cart['discount'] = Helpers::getProductDiscount($product, $price);
+                            $cart['discount'] = getCartItemDiscount($product, $orderProduct->variant, $price);
                             $cart['thumbnail'] = $product->thumbnail;
                             $cart['seller_id'] = ($product->added_by == 'admin') ? 1 : $product->user_id;
                             $cart['seller_is'] = $product->added_by;

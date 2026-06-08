@@ -378,3 +378,40 @@ if (!function_exists('getProductPriceByType')) {
     }
 }
 
+if (!function_exists('getCartItemDiscount')) {
+    /**
+     * Variation-aware per-unit discount for a cart/order line item.
+     *
+     * Mirrors the discount priority used on the product detail page
+     * (CartController::getVariantPrice): clearance sale > variation-specific
+     * discount > product-level discount. Used by the cart, checkout totals and
+     * order generation so the price shown on the product page, in the cart, at
+     * checkout, the amount charged via the gateway, and the stored order all match.
+     *
+     * @param mixed  $product  Product model/array (with optional clearanceSale + variation JSON)
+     * @param string|null $variant  The selected variation type string (Cart.variant), null/empty for no variation
+     * @param float|int $price  The raw unit/variation price the discount applies to
+     */
+    function getCartItemDiscount($product, $variant, $price): float
+    {
+        # RESOLVE THE SELECTED VARIATION OBJECT FROM THE STORED VARIANT STRING (physical products only)
+        $matchedVariation = null;
+        if (!empty($variant)) {
+            $variationData = $product['variation'] ?? null;
+            $variations = is_string($variationData) ? json_decode($variationData) : $variationData;
+            if (!empty($variations)) {
+                foreach ($variations as $variation) {
+                    $variationType = is_object($variation) ? ($variation->type ?? null) : ($variation['type'] ?? null);
+                    if ($variationType !== null && $variationType == $variant) {
+                        $matchedVariation = $variation;
+                        break;
+                    }
+                }
+            }
+        }
+
+        # DELEGATE TO THE CANONICAL PRIORITY LOGIC: clearance sale > variation discount > product discount
+        return (float)getVariationDiscount(product: $product, variation: $matchedVariation, variationPrice: $price)['discount'];
+    }
+}
+

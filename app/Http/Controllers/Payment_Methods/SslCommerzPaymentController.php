@@ -21,6 +21,7 @@ class SslCommerzPaymentController extends Controller
     private $store_password;
     private bool $host;
     private string $direct_api_url;
+    private string $validation_api_url;
     private PaymentRequest $payment;
     private $user;
 
@@ -39,10 +40,12 @@ class SslCommerzPaymentController extends Controller
 
             # REQUEST SEND TO SSLCOMMERZ
             $this->direct_api_url = "https://sandbox.sslcommerz.com/gwprocess/v4/api.php";
+            $this->validation_api_url = "https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php";
             $this->host = true;
 
             if ($config->mode == 'live') {
                 $this->direct_api_url = "https://securepay.sslcommerz.com/gwprocess/v4/api.php";
+                $this->validation_api_url = "https://securepay.sslcommerz.com/validator/api/validationserverAPI.php";
                 $this->host = false;
             }
         }
@@ -69,16 +72,21 @@ class SslCommerzPaymentController extends Controller
 
         $payer_information = json_decode($data['payer_information']);
 
+        # GENERATE AND PERSIST THE TRANSACTION ID SO IT CAN BE MATCHED, VALIDATED AND RECONCILED LATER
+        $tran_id = uniqid();
+        $this->payment::where(['id' => $data['id']])->update(['transaction_id' => $tran_id]);
+
         $post_data = array();
         $post_data['store_id'] = $this->store_id;
         $post_data['store_passwd'] = $this->store_password;
         $post_data['total_amount'] = round($payment_amount, 2);
         $post_data['currency'] = $data['currency_code'];
-        $post_data['tran_id'] = uniqid();
+        $post_data['tran_id'] = $tran_id;
 
         $post_data['success_url'] = url('/') . '/payment/sslcommerz/success?payment_id=' . $data['id'];
         $post_data['fail_url'] = url('/') . '/payment/sslcommerz/failed?payment_id=' . $data['id'];
         $post_data['cancel_url'] = url('/') . '/payment/sslcommerz/canceled?payment_id=' . $data['id'];
+        $post_data['ipn_url'] = url('/') . '/payment/sslcommerz/ipn?payment_id=' . $data['id'];
 
         # CUSTOMER INFORMATION
         $post_data['cus_name'] = $payer_information->name;
@@ -182,28 +190,114 @@ class SslCommerzPaymentController extends Controller
         }
     }
 
+    # SERVER-TO-SERVER VALIDATION CALL TO SSLCOMMERZ (validationserverAPI.php)
+    # Returns the decoded validation response object, or null on failure to connect.
+    protected function validateTransactionWithSslCommerz($val_id)
+    {
+        if (empty($val_id)) {
+            return null;
+        }
+
+        $requested_url = $this->validation_api_url
+            . "?val_id=" . urlencode($val_id)
+            . "&store_id=" . urlencode($this->store_id)
+            . "&store_passwd=" . urlencode($this->store_password)
+            . "&v=1&format=json";
+
+        $handle = curl_init();
+        curl_setopt($handle, CURLOPT_URL, $requested_url);
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($handle, CURLOPT_TIMEOUT, 30);
+        curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, 30);
+        # KEEP VERIFICATION OFF ONLY WHEN RUNNING FROM LOCAL PC (sandbox); ON FOR LIVE.
+        curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, $this->host ? 0 : 2);
+        curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, $this->host ? 0 : 2);
+
+        $result = curl_exec($handle);
+        $code = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+        $errno = curl_errno($handle);
+        curl_close($handle);
+
+        if ($code != 200 || $errno) {
+            return null;
+        }
+        return json_decode($result);
+    }
+
+    # SHARED VALIDATE-THEN-CONFIRM LOGIC USED BY BOTH success() (browser redirect) AND ipn() (server-to-server).
+    # Performs hash check + server-side validation, then atomically/idempotently marks the payment paid
+    # and runs the success hook exactly once. Returns the PaymentRequest on confirmed payment, false otherwise.
+    protected function validateAndConfirm(Request $request)
+    {
+        $payment = $this->payment::where(['id' => $request['payment_id']])->first();
+        if (!isset($payment)) {
+            return false;
+        }
+
+        # ALREADY CONFIRMED (e.g. redirect arrived after IPN, or vice-versa) — treat as success, do not re-create order.
+        if ((int)$payment->is_paid === 1) {
+            return $payment;
+        }
+
+        # CHEAP GATE FIRST: status + hash signature on the posted data.
+        if ($request['status'] != 'VALID' || !$this->SSLCOMMERZ_hash_verify($this->store_password, $request->all())) {
+            return false;
+        }
+
+        # SERVER-TO-SERVER VALIDATION — this is what tells SSLCOMMERZ the transaction is validated and releases the hold.
+        $validation = $this->validateTransactionWithSslCommerz($request->input('val_id'));
+        if (!isset($validation) || !isset($validation->status)) {
+            return false;
+        }
+
+        $statusValid = in_array($validation->status, ['VALID', 'VALIDATED']);
+        $tranMatches = trim((string)$validation->tran_id) === trim((string)$payment->transaction_id);
+        $amountMatches = abs(floatval($validation->amount) - floatval($payment->payment_amount)) < 1;
+        $currencyMatches = trim((string)$validation->currency_type) === trim((string)$payment->currency_code);
+
+        if (!($statusValid && $tranMatches && $amountMatches && $currencyMatches)) {
+            return false;
+        }
+
+        # IDEMPOTENT TRANSITION: only the request that flips is_paid 0 -> 1 creates the order.
+        $affected = $this->payment::where(['id' => $payment->id])->where('is_paid', 0)->update([
+            'payment_method' => 'ssl_commerz',
+            'is_paid' => 1,
+            'transaction_id' => $request->input('tran_id') ?: $payment->transaction_id,
+        ]);
+
+        $payment = $this->payment::where(['id' => $payment->id])->first();
+
+        if ($affected > 0 && isset($payment) && function_exists($payment->success_hook)) {
+            call_user_func($payment->success_hook, $payment);
+        }
+
+        return $payment;
+    }
+
     public function success(Request $request): JsonResponse|Redirector|RedirectResponse|Application
     {
-        if ($request['status'] == 'VALID' && $this->SSLCOMMERZ_hash_verify($this->store_password, $request)) {
-
-            $this->payment::where(['id' => $request['payment_id']])->update([
-                'payment_method' => 'ssl_commerz',
-                'is_paid' => 1,
-                'transaction_id' => $request->input('tran_id')
-            ]);
-
-            $data = $this->payment::where(['id' => $request['payment_id']])->first();
-
-            if (isset($data) && function_exists($data->success_hook)) {
-                call_user_func($data->success_hook, $data);
-            }
-            return $this->payment_response($data, 'success');
+        $payment = $this->validateAndConfirm($request);
+        if ($payment) {
+            return $this->payment_response($payment, 'success');
         }
+
         $payment_data = $this->payment::where(['id' => $request['payment_id']])->first();
-        if (isset($payment_data) && function_exists($payment_data->failure_hook)) {
+        if (isset($payment_data) && (int)$payment_data->is_paid === 0 && function_exists($payment_data->failure_hook)) {
             call_user_func($payment_data->failure_hook, $payment_data);
         }
         return $this->payment_response($payment_data, 'fail');
+    }
+
+    # SERVER-TO-SERVER IPN HANDLER. SSLCOMMERZ posts here independent of the customer's browser,
+    # so orders are created even when the success redirect is lost (mobile banking app, closed tab, network).
+    public function ipn(Request $request)
+    {
+        $payment = $this->validateAndConfirm($request);
+        if ($payment && (int)$payment->is_paid === 1) {
+            return response('IPN_SUCCESS', 200);
+        }
+        return response('IPN_FAILED', 200);
     }
 
     public function failed(Request $request): JsonResponse|Redirector|RedirectResponse|Application

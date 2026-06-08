@@ -69,7 +69,7 @@ class CartManager
                 return $query->where(['is_checked' => 1]);
             })
             ->get()?->each(function ($item) {
-                $item['discount'] = getProductPriceByType(product: $item['product'], type: 'discounted_amount', result: 'value', price: $item['price']);
+                $item['discount'] = getCartItemDiscount(product: $item['product'], variant: $item['variant'], price: $item['price']);
             });
     }
 
@@ -95,7 +95,7 @@ class CartManager
                 return $query->where(['is_checked' => 1]);
             })
             ->get()?->each(function ($item) {
-                $item['discount'] = getProductPriceByType(product: $item['product'], type: 'discounted_amount', result: 'value', price: $item['price']);
+                $item['discount'] = getCartItemDiscount(product: $item['product'], variant: $item['variant'], price: $item['price']);
             });
     }
 
@@ -119,7 +119,7 @@ class CartManager
                 return $query->where(['is_checked' => 1]);
             })
             ->get()?->each(function ($item) {
-                $item['discount'] = getProductPriceByType(product: $item['product'], type: 'discounted_amount', result: 'value', price: $item['price']);
+                $item['discount'] = getCartItemDiscount(product: $item['product'], variant: $item['variant'], price: $item['price']);
             })->groupBy('cart_group_id');
     }
 
@@ -139,7 +139,7 @@ class CartManager
                 return $query->where(['is_checked' => 1]);
             })
             ->get()?->each(function ($item) {
-                $item['discount'] = getProductPriceByType(product: $item['product'], type: 'discounted_amount', result: 'value', price: $item['price']);
+                $item['discount'] = getCartItemDiscount(product: $item['product'], variant: $item['variant'], price: $item['price']);
             });
     }
 
@@ -315,7 +315,7 @@ class CartManager
         $total = 0;
         if (!empty($cart)) {
             foreach ($cart as $item) {
-                $discount = getProductPriceByType(product: $item['product'], type: 'discounted_amount', result: 'value', price: $item['price']);
+                $discount = getCartItemDiscount(product: $item['product'], variant: $item['variant'], price: $item['price']);
                 $productSubtotal = ($item['price'] - $discount) * $item['quantity'];
                 $total += $productSubtotal;
             }
@@ -348,7 +348,7 @@ class CartManager
         if (!empty($cart)) {
             foreach ($cart as $item) {
                 $tax = $item['tax_model'] == 'include' ? 0 : $item['tax'];
-                $discount = getProductPriceByType(product: $item['product'], type: 'discounted_amount', result: 'value', price: $item['price']);
+                $discount = getCartItemDiscount(product: $item['product'], variant: $item['variant'], price: $item['price']);
                 $productSubtotal = ($item['price'] + $tax - $discount) * $item['quantity'];
                 $total += $productSubtotal;
             }
@@ -367,7 +367,7 @@ class CartManager
         $total = 0;
         if (!empty($cart)) {
             foreach ($cart as $item) {
-                $discount = getProductPriceByType(product: $item['product'], type: 'discounted_amount', result: 'value', price: $item['price']);
+                $discount = getCartItemDiscount(product: $item['product'], variant: $item['variant'], price: $item['price']);
                 $productSubtotal = ($item['price'] - $discount) * $item['quantity'];
                 $total += $productSubtotal;
             }

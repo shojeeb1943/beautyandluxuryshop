@@ -449,6 +449,9 @@ if (!$isGatewayPublished) {
                 ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
             Route::post('canceled', [SslCommerzPaymentController::class, 'canceled'])
                 ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+            Route::match(['get', 'post'], 'ipn', [SslCommerzPaymentController::class, 'ipn'])
+                ->name('ipn')
+                ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
         });
 
         //STRIPE

@@ -474,14 +474,14 @@ class CartController extends Controller
             for ($i = 0; $i < $count; $i++) {
                 if (json_decode($product->variation)[$i]->type == $str) {
                     $tax = $product->tax_model == 'exclude' ? Helpers::tax_calculation(product: $product, price: json_decode($product->variation)[$i]->price, tax: $product['tax'], tax_type: $product['tax_type']) : 0;
-                    $discount = Helpers::getProductDiscount($product, json_decode($product->variation)[$i]->price);
+                    $discount = getCartItemDiscount($product, $str, json_decode($product->variation)[$i]->price);
                     $price = json_decode($product->variation)[$i]->price - $discount + $tax;
                     $quantity = json_decode($product->variation)[$i]->qty;
                 }
             }
         } else {
             $tax = $product->tax_model == 'exclude' ? Helpers::tax_calculation(product: $product, price: $product->unit_price, tax: $product['tax'], tax_type: $product['tax_type']) : 0;
-            $discount = Helpers::getProductDiscount($product, $product->unit_price);
+            $discount = getCartItemDiscount($product, null, $product->unit_price);
             $price = $product->unit_price - $discount + $tax;
             $quantity = $product->current_stock;
         }

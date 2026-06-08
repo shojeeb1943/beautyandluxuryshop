@@ -283,7 +283,9 @@ class PaymentController extends Controller
             $additionalData['coupon_discount'] = $request['coupon_discount'];
             $additionalData['payment_request_from'] = $request['payment_request_from'];
         } else {
-            $additionalData['customer_id'] = $user != 'offline' ? $user->id : $getCustomerID;
+            # For a pure guest, persist the guest id (available now, at checkout) so the order can
+            # be rebuilt from the guest's cart later in SSL's redirect/IPN, where the session is gone.
+            $additionalData['customer_id'] = $user != 'offline' ? $user->id : ($getCustomerID ?? $getGuestId);
             $additionalData['order_note'] = session('order_note') ?? null;
             $additionalData['address_id'] = session('address_id') ?? 0;
             $additionalData['billing_address_id'] = session('billing_address_id') ?? 0;

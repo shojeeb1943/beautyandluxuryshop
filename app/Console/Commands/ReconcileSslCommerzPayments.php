@@ -258,7 +258,9 @@ class ReconcileSslCommerzPayments extends Command
         }
 
         if ((int)$payment->is_paid === 1) {
-            $existing = Order::where('transaction_ref', $payment->transaction_id)->pluck('id')->all();
+            $existing = Order::where('transaction_ref', $payment->transaction_id)
+                ->where('order_status', '!=', 'canceled')
+                ->pluck('id')->all();
             if (count($existing)) {
                 $this->warn("Already marked paid. Existing order(s): " . implode(', ', $existing));
                 return self::SUCCESS;
@@ -341,11 +343,18 @@ class ReconcileSslCommerzPayments extends Command
 
         $payment = PaymentRequest::find($payment->id);
 
+        if ($effectiveId) {
+            $dbgChecked = Cart::where('customer_id', $effectiveId)->where('is_checked', 1)->count();
+            $this->line("Pre-build: {$dbgChecked} checked cart item(s) for effective id {$effectiveId}.");
+        }
+
         if ($affected > 0 && function_exists($payment->success_hook)) {
             call_user_func($payment->success_hook, $payment);
         }
 
-        $createdOrders = Order::where('transaction_ref', $payment->transaction_id)->get(['id', 'order_amount']);
+        $createdOrders = Order::where('transaction_ref', $payment->transaction_id)
+            ->where('order_status', '!=', 'canceled')
+            ->get(['id', 'order_amount']);
         if ($createdOrders->count()) {
             $orderIds = $createdOrders->pluck('id')->implode(', ');
             $ordersTotal = (float)$createdOrders->sum('order_amount');

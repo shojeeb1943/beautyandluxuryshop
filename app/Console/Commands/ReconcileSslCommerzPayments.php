@@ -35,7 +35,7 @@ class ReconcileSslCommerzPayments extends Command
                             {--report : List recent unpaid order payment-requests to reconcile against the SSLCOMMERZ panel}
                             {--all : In --report mode, also include already-paid rows (shows an is_paid column)}
                             {--days=30 : How many days back to scan in --report mode}
-                            {--validate-only : Only validate a --val_id at SSLCOMMERZ to release the held funds; no DB writes, no order}
+                            {--validate-only : Only validate at SSLCOMMERZ to release the held funds (give --tran_id, recommended, or --val_id); no DB writes, no order}
                             {--inspect : Read-only: show a payment\'s amount + the customer\'s current checked-cart state (is it auto-recoverable?)}
                             {--payment_id= : The payment_requests.id (UUID) to recover/inspect}
                             {--val_id= : SSLCOMMERZ val_id (required for --validate-only; optional for recover when no stored tran_id)}
@@ -52,11 +52,12 @@ class ReconcileSslCommerzPayments extends Command
 
         if ($this->option('validate-only')) {
             $valId = $this->option('val_id');
-            if (!$valId) {
-                $this->error('--validate-only requires --val_id=<SSL Id from panel>.');
+            $tranId = $this->option('tran_id');
+            if (!$valId && !$tranId) {
+                $this->error('--validate-only requires --tran_id=<Transaction ID from panel> (recommended) or --val_id=<SSL Id>.');
                 return self::INVALID;
             }
-            return $this->validateOnly($valId);
+            return $this->validateOnly($valId, $tranId);
         }
 
         $paymentId = $this->option('payment_id');
@@ -74,7 +75,7 @@ class ReconcileSslCommerzPayments extends Command
 
     # Validate a val_id at SSLCOMMERZ to flip it to "API Validated: Yes" and release the held
     # funds. Pure money release — no payment_requests change, no order. Idempotent.
-    private function validateOnly(string $valId): int
+    private function validateOnly(?string $valId, ?string $tranId = null): int
     {
         [$storeId, $storePass, $base, $verifyPeer, $mode] = $this->resolveCredentials();
         if (!$storeId) {
@@ -82,6 +83,20 @@ class ReconcileSslCommerzPayments extends Command
             return self::FAILURE;
         }
         $this->line("Using SSLCOMMERZ '{$mode}' store '{$storeId}'.");
+
+        # Prefer resolving the val_id from the (short, reliably-copied) Transaction ID — avoids
+        # mis-typing the long SSL Id.
+        if (empty($valId) && !empty($tranId)) {
+            $el = $this->queryByTranId($base, $tranId, $storeId, $storePass, $verifyPeer);
+            if (isset($el->val_id) && $el->val_id !== '') {
+                $valId = $el->val_id;
+                $this->line("Resolved val_id from tran_id {$tranId}.");
+            }
+        }
+        if (empty($valId)) {
+            $this->error("Could not resolve a val_id (tran_id '{$tranId}' not found at SSLCOMMERZ, and no --val_id given). Check the Transaction ID was copied from the panel.");
+            return self::FAILURE;
+        }
 
         $validation = $this->callValidationApi($base . '/validator/api/validationserverAPI.php', $valId, $storeId, $storePass, $verifyPeer);
         if (!isset($validation->status)) {

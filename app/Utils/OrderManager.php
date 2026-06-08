@@ -1066,12 +1066,21 @@ class OrderManager
         }
         if ($emailServicesSmtp['status'] == 1) {
             if ($customer == 'offline') {
-                $offlineUser = ShippingAddress::where('id', $vendorWiseCart['shipping_address_id'])->first();
-                if (!$offlineUser) {
-                    $offlineUser = ShippingAddress::find($vendorWiseCart['billing_address_id']);
+                # Create-account-at-checkout: $customer resolves to 'offline', but the order is tied
+                # to the newly registered user. Prefer that user's email so the invoice is mailed
+                # (guests have no user record, so they fall through to the shipping-address email).
+                $orderCustomer = !empty($order['customer_id']) ? User::find($order['customer_id']) : null;
+                if ($orderCustomer && !empty($orderCustomer->email)) {
+                    $email = $orderCustomer->email;
+                    $userName = $orderCustomer->f_name;
+                } else {
+                    $offlineUser = ShippingAddress::where('id', $vendorWiseCart['shipping_address_id'])->first();
+                    if (!$offlineUser) {
+                        $offlineUser = ShippingAddress::find($vendorWiseCart['billing_address_id']);
+                    }
+                    $email = $offlineUser['email'] ?? null;
+                    $userName = $offlineUser['contact_person_name'] ?? '';
                 }
-                $email = $offlineUser['email'];
-                $userName = $offlineUser['contact_person_name'];
             } else {
                 $email = $customer['email'];
                 $userName = $customer['f_name'];

@@ -61,17 +61,6 @@ if (!function_exists('digital_payment_success')) {
             ];
             request()->merge($requestObj);
 
-            # DIAGNOSTIC: capture the cart state the order will be built from.
-            $diagCustomerId = ($additionalData['is_guest_in_order'] ?? 0) ? $additionalData['customer_id'] : $additionalData['customer_id'];
-            \Illuminate\Support\Facades\Log::info('digital_payment_success: pre-generate', [
-                'customer_id' => $additionalData['customer_id'],
-                'is_guest' => $additionalData['is_guest'] ?? null,
-                'is_guest_in_order' => $additionalData['is_guest_in_order'] ?? null,
-                'cart_total_for_customer' => Cart::where('customer_id', $diagCustomerId)->count(),
-                'cart_checked_for_customer' => Cart::where('customer_id', $diagCustomerId)->where('is_checked', 1)->count(),
-                'resolved_user' => is_object(\App\Utils\Helpers::getCustomerInformation(request())) ? 'user#' . (\App\Utils\Helpers::getCustomerInformation(request())->id ?? '?') : \App\Utils\Helpers::getCustomerInformation(request()),
-            ]);
-
             $orderIds = OrderManager::generateOrder(data: [
                 'is_guest' => $additionalData['is_guest_in_order'] ?? 0,
                 'guest_id' => ($additionalData['is_guest_in_order'] ?? 0) ? $additionalData['customer_id'] : null,
@@ -89,8 +78,6 @@ if (!function_exists('digital_payment_success')) {
                 'billing_address_id' => $additionalData['billing_address_id'] ?? null,
                 'requestObj' => $requestObj,
             ]);
-
-            \Illuminate\Support\Facades\Log::info('digital_payment_success: post-generate', ['orderIds' => $orderIds]);
 
             foreach ($orderIds as $orderId) {
                 OrderManager::generateReferBonusForFirstOrder(orderId: $orderId);

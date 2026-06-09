@@ -89,7 +89,7 @@
                                             <div class="">
                                                 <a href="javascript:"
                                                    class="product-preview-thumb d-flex align-items-center justify-content-center">
-                                                    <img class="click-img" id="preview-img{{$photo['color']}}"
+                                                    <img class="click-img" id="preview-img{{str_replace('#','', $photo['color'])}}"
                                                          src="{{ getStorageImages(path:$photo['image_name'], type: 'product') }}"
                                                          alt="{{ translate('product') }}">
                                                 </a>

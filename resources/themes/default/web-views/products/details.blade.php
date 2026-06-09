@@ -28,7 +28,7 @@
                                                     @if($photo['color'] != null)
                                                         <div
                                                             class="product-preview-item d-flex align-items-center justify-content-center {{ $key==0?'active':''}}"
-                                                            id="image{{ $photo['color'] }}">
+                                                            id="image{{ str_replace('#','', $photo['color']) }}">
                                                             <img class="img-responsive w-100"
                                                                  src="{{ getStorageImages(path: $photo['image_name'], type: 'product') }}"
                                                                  alt="{{ translate('product') }}" width="">
@@ -90,9 +90,9 @@
                                                         @foreach ($product->color_images_full_url as $key => $photo)
                                                             @if($photo['color'] != null)
                                                                 <div class="">
-                                                                    <a class="product-preview-thumb color-variants-preview-box-{{ $photo['color'] }} {{ $key==0?'active':''}} d-flex align-items-center justify-content-center"
-                                                                       id="preview-img{{ $photo['color'] }}"
-                                                                       href="#image{{ $photo['color'] }}">
+                                                                    <a class="product-preview-thumb color-variants-preview-box-{{ str_replace('#','', $photo['color']) }} {{ $key==0?'active':''}} d-flex align-items-center justify-content-center"
+                                                                       id="preview-img{{ str_replace('#','', $photo['color']) }}"
+                                                                       href="#image{{ str_replace('#','', $photo['color']) }}">
                                                                         <img alt="{{ translate('product') }}"
                                                                              src="{{ getStorageImages(path: $photo['image_name'], type: 'product') }}">
                                                                     </a>

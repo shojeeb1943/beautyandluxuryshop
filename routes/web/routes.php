@@ -117,6 +117,8 @@ Route::middleware('throttle:60,1')->get('/image-proxy', function () {
         ->header('Access-Control-Allow-Origin', '*');
 });
 
+Route::get('/facebook-feed.xml', [\App\Http\Controllers\Web\FacebookFeedController::class, 'feed'])->name('facebook.feed');
+
 Route::controller(WebController::class)->group(function () {
     Route::get('maintenance-mode', 'maintenance_mode')->name('maintenance-mode');
 });

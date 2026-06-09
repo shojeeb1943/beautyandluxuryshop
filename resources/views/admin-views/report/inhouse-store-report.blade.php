@@ -260,12 +260,11 @@
                                             $varBP  = (float)($var['buying_price'] ?? 0);
                                             $varSP  = (float)($var['price'] ?? 0);
                                             $varQty = (int)($var['qty'] ?? 0);
-                                            $weight = $varQty > 0 ? $varQty : 1;
 
-                                            $sumSell += $varSP * $weight;
+                                            $sumSell += $varSP * $varQty;
                                             if ($varBP > 0) {
                                                 $hasCost  = true;
-                                                $sumCost += $varBP * $weight;
+                                                $sumCost += $varBP * $varQty;
                                             }
                                         }
 

@@ -91,14 +91,14 @@ class InHouseStoreReportController extends BaseController
         // Apply date filters
         $orderDetailsQuery = $this->applyDateFilter($orderDetailsQuery, $dateType, $from, $to);
 
-        // Get total sales revenue (price * qty for all delivered orders)
-        $totalSalesRevenue = (clone $orderDetailsQuery)->sum(DB::raw('price * qty'));
+        // Get total sales revenue: (price - per-unit discount) * qty
+        $totalSalesRevenue = (clone $orderDetailsQuery)->sum(DB::raw('(price * qty) - discount'));
 
         // Calculate profit using variation-level buying_price when available,
         // falling back to product-level buying_price.
         $orderDetailsForProfit = (clone $orderDetailsQuery)
             ->with('product:id,buying_price,variation')
-            ->select('order_details.product_id', 'order_details.price', 'order_details.qty', 'order_details.variant')
+            ->select('order_details.product_id', 'order_details.price', 'order_details.qty', 'order_details.discount', 'order_details.variant')
             ->get();
 
         $revenueWithCost = 0;
@@ -135,7 +135,7 @@ class InHouseStoreReportController extends BaseController
             }
 
             if ($effectiveBuyingPrice !== null) {
-                $revenueWithCost += $detail->price * $detail->qty;
+                $revenueWithCost += ($detail->price * $detail->qty) - $detail->discount;
                 $totalCost += $effectiveBuyingPrice * $detail->qty;
                 $profitableItemsQty += $detail->qty;
             }
@@ -166,7 +166,7 @@ class InHouseStoreReportController extends BaseController
             }], 'qty')
             ->withSum(['orderDelivered as total_revenue' => function ($query) use ($dateType, $from, $to) {
                 $this->applyDateFilterOnRelation($query, $dateType, $from, $to);
-            }], DB::raw('price * qty'))
+            }], DB::raw('(price * qty) - discount'))
             ->paginate(Helpers::pagination_limit())
             ->appends($request?->all() ?? []);
 

@@ -23,6 +23,19 @@ $(document).ready(function () {
                         [{ 'direction': 'rtl' }],
                     ],
                     handlers: {
+                        color: function (value) {
+                            const range = this.quill.getSelection(true);
+                            if (!value || value === '#000000' || value === 'rgb(0, 0, 0)') {
+                                // Quill strips #000000 as it matches the default — remove the
+                                // color attribute instead, which restores the default (black)
+                                this.quill.format('color', false, 'user');
+                                if (range && range.length > 0) {
+                                    this.quill.formatText(range.index, range.length, 'color', false, 'user');
+                                }
+                            } else {
+                                this.quill.format('color', value, 'user');
+                            }
+                        },
                         image: function () {
                             var range = this.quill.getSelection();
                             var input = document.createElement('input');

@@ -2278,7 +2278,7 @@ function renderOwlCarouselSilder() {
     var thumbnailItemClass = ".owl-item";
     var slides = sync1
         .owlCarousel({
-            startPosition: 12,
+            startPosition: 0,
             items: 1,
             loop: false,
             margin: 0,
@@ -2327,7 +2327,7 @@ function renderOwlCarouselSilder() {
 
     var thumbs = sync2
         .owlCarousel({
-            startPosition: 12,
+            startPosition: 0,
             items: 4,
             loop: false,
             margin: 10,
@@ -2357,6 +2357,12 @@ function renderOwlCarouselSilder() {
                     .find(thumbnailItemClass)
                     .eq(this._current);
                 thumbnailCurrentItem.addClass("synced");
+                setTimeout(function () {
+                    var $firstColorLabel = $('.focus-preview-image-by-color').first();
+                    if ($firstColorLabel.length) {
+                        $firstColorLabel.trigger('click');
+                    }
+                }, 100);
             },
         })
         .on("click", thumbnailItemClass, function (e) {

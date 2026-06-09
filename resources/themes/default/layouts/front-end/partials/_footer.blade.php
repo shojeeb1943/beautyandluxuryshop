@@ -139,21 +139,15 @@
                             <div class="col-sm-3 col-6 footer-padding-bottom text-start">
                                 <h6 class="text-uppercase mobile-fs-12 font-semi-bold footer-header">{{ translate('quick_links') }}</h6>
                                 <ul class="widget-list __pb-10px">
+                                    <li class="widget-list-item">
+                                        <a class="widget-list-link" href="https://beautyandluxuryshop.com/blog">
+                                            {{ translate('Blog') }}
+                                        </a>
+                                    </li>
                                     @if(auth('customer')->check())
-                                        <li class="widget-list-item">
-                                            <a class="widget-list-link" href="{{ route('user-account') }}">
-                                                {{ translate('profile_info') }}
-                                            </a>
-                                        </li>
                                         <li class="widget-list-item">
                                             <a class="widget-list-link" href="{{ route('wishlists') }}">
                                                 {{ translate('wish_list') }}
-                                            </a>
-                                        </li>
-                                    @else
-                                        <li class="widget-list-item">
-                                            <a class="widget-list-link" href="{{ route('customer.auth.login') }}">
-                                                {{ translate('profile_info') }}
                                             </a>
                                         </li>
                                     @endif

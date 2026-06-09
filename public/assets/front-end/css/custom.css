@@ -259,6 +259,7 @@ body[theme="dark"] .product-price span:not(del) {
 
     .search-form-mobile .close-search-form-mobile {
         color: #e5e7eb;
+        margin-right: 12px;
     }
 }
 

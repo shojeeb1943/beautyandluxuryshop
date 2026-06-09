@@ -698,6 +698,15 @@
                                 <div class="font-semibold fs-10">
                                     {{ $order->customer['phone'] }}
                                 </div>
+                                @if($order->customer['street_address'])
+                                    <div class="font-normal mb-1 fs-10 mt-6px">{{ translate('address') }}</div>
+                                    <div class="font-semibold fs-10">
+                                        {{ $order->customer['street_address'] }}
+                                        @if($order->customer['city']){{ ', '.$order->customer['city'] }}@endif
+                                        @if($order->customer['zip']){{ ' '.$order->customer['zip'] }}@endif
+                                        @if($order->customer['country']){{ ', '.$order->customer['country'] }}@endif
+                                    </div>
+                                @endif
                             @elseif($order?->customer == null)
                                 <div class="font-normal mb-1 fs-10">{{translate('Phone')}}</div>
                                 <div class="font-semibold fs-10">

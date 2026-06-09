@@ -25,6 +25,13 @@ $orderTotalPriceSummary = \App\Utils\OrderManager::getOrderTotalPriceSummary(ord
                 <h5 class="text-capitalize">{{ translate('customer_name') }} : {{$order->customer['f_name'].' '.$order->customer['l_name']}}</h5>
                 @if ($order->customer->id !=0)
                     <h5>{{ translate('phone') }} : {{$order->customer['phone']}}</h5>
+                    @if($order->customer['street_address'])
+                        <h5>{{ translate('address') }} : {{ $order->customer['street_address'] }}
+                            @if($order->customer['city']){{ ', '.$order->customer['city'] }}@endif
+                            @if($order->customer['zip']){{ ' '.$order->customer['zip'] }}@endif
+                            @if($order->customer['country']){{ ', '.$order->customer['country'] }}@endif
+                        </h5>
+                    @endif
                 @endif
 
             </div>

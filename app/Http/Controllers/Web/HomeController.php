@@ -82,7 +82,7 @@ class HomeController extends Controller
         $newArrivalIds = $newArrivalProducts->pluck('id')->toArray();
 
         // Always remove new arrival products from best sellers to prevent overlap
-        $bestSellProduct = $bestSellProduct->filter(fn($p) => !in_array($p->id, $newArrivalIds));
+        $bestSellProduct = $bestSellProduct->filter(fn($p) => !in_array($p->id, $newArrivalIds))->values();
         if ($bestSellProduct->count() == 0) {
             // Fallback: show Foundation category (sub_sub_category_id=4) products
             $bestSellProduct = Product::active()->with(['reviews', 'seller.shop', 'clearanceSale' => function ($q) {
@@ -98,7 +98,7 @@ class HomeController extends Controller
         }
 
         // Always remove new arrival + best sell products from top rated to prevent overlap
-        $topRatedProducts = $topRatedProducts->filter(fn($p) => !in_array($p->id, $newArrivalIds));
+        $topRatedProducts = $topRatedProducts->filter(fn($p) => !in_array($p->id, $newArrivalIds))->values();
         if ($topRatedProducts->count() == 0) {
             $excludeIds = array_merge($newArrivalIds, $bestSellProduct->pluck('id')->toArray());
             $topRatedProducts = Product::active()->with(['seller.shop', 'clearanceSale' => function ($q) {

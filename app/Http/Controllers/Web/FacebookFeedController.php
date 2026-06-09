@@ -12,8 +12,7 @@ class FacebookFeedController extends Controller
     {
         $currencyCode = $this->getCurrencyCode();
 
-        $products = Product::where('status', 1)
-            ->where('published', 1)
+        $products = Product::active()
             ->with(['brand', 'category'])
             ->get()
             ->map(function ($p) use ($currencyCode) {
@@ -31,8 +30,10 @@ class FacebookFeedController extends Controller
                 ];
             });
 
-        return response()
-            ->view('facebook-feed', compact('products'), 200)
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
+            . view('facebook-feed', compact('products'))->render();
+
+        return response($xml, 200)
             ->header('Content-Type', 'application/xml; charset=UTF-8');
     }
 

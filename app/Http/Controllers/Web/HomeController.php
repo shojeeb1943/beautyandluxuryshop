@@ -84,9 +84,17 @@ class HomeController extends Controller
         // Always remove new arrival products from best sellers to prevent overlap
         $bestSellProduct = $bestSellProduct->filter(fn($p) => !in_array($p->id, $newArrivalIds));
         if ($bestSellProduct->count() == 0) {
+            // Fallback: show Foundation category (sub_sub_category_id=4) products
             $bestSellProduct = Product::active()->with(['reviews', 'seller.shop', 'clearanceSale' => function ($q) {
                 return $q->active();
-            }])->whereNotIn('id', $newArrivalIds)->orderByDesc('unit_price')->take(10)->get();
+            }])->whereNotIn('id', $newArrivalIds)->where('sub_sub_category_id', 4)->orderByDesc('unit_price')->take(10)->get();
+
+            // If still empty, fall back to all highest-priced products
+            if ($bestSellProduct->count() == 0) {
+                $bestSellProduct = Product::active()->with(['reviews', 'seller.shop', 'clearanceSale' => function ($q) {
+                    return $q->active();
+                }])->whereNotIn('id', $newArrivalIds)->orderByDesc('unit_price')->take(10)->get();
+            }
         }
 
         // Always remove new arrival + best sell products from top rated to prevent overlap

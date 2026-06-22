@@ -131,9 +131,37 @@ class POSOrderController extends BaseController
             if ($userId == 0) {
                 return response()->json(['deliveryNeedsCustomer' => true, 'message' => translate('To_place_a_delivery_order') . ',' . translate('_kindly_select_or_add_a_customer') . '.']);
             }
-            $savedAddress = ShippingAddress::find($request['shipping_address_id']);
-            if (!$savedAddress) {
-                return response()->json(['deliveryNeedsAddress' => true, 'message' => translate('Please_provide_the_delivery_address') . '.']);
+            $addressId = $request['shipping_address_id'];
+            if ($addressId === 'profile') {
+                $customer = $this->customerRepo->getFirstWhere(params: ['id' => $userId]);
+                if (!$customer || empty($customer['street_address'])) {
+                    return response()->json(['deliveryNeedsAddress' => true, 'message' => translate('Please_provide_the_delivery_address') . '.']);
+                }
+                $addressData = [
+                    'contact_person_name' => trim(($customer['f_name'] ?? '') . ' ' . ($customer['l_name'] ?? '')),
+                    'phone' => $customer['phone'] ?? '',
+                    'country' => $customer['country'] ?? '',
+                    'city' => $customer['city'] ?? '',
+                    'zip' => $customer['zip'] ?? '',
+                    'address' => $customer['street_address'] ?? '',
+                    'latitude' => '',
+                    'longitude' => '',
+                ];
+            } else {
+                $savedAddress = ShippingAddress::find($addressId);
+                if (!$savedAddress) {
+                    return response()->json(['deliveryNeedsAddress' => true, 'message' => translate('Please_provide_the_delivery_address') . '.']);
+                }
+                $addressData = [
+                    'contact_person_name' => $savedAddress->contact_person_name,
+                    'phone' => $savedAddress->phone,
+                    'country' => $savedAddress->country,
+                    'city' => $savedAddress->city,
+                    'zip' => $savedAddress->zip,
+                    'address' => $savedAddress->address,
+                    'latitude' => '',
+                    'longitude' => '',
+                ];
             }
             $shippingMethod = ShippingMethod::find($request['shipping_method_id']);
             if (!$shippingMethod) {
@@ -141,16 +169,7 @@ class POSOrderController extends BaseController
             }
             $shippingCost = (float)$shippingMethod->cost;
             $shippingMethodId = $shippingMethod->id;
-            $shippingAddress = [
-                'contact_person_name' => $savedAddress->contact_person_name,
-                'phone' => $savedAddress->phone,
-                'country' => $savedAddress->country,
-                'city' => $savedAddress->city,
-                'zip' => $savedAddress->zip,
-                'address' => $savedAddress->address,
-                'latitude' => '',
-                'longitude' => '',
-            ];
+            $shippingAddress = $addressData;
         }
 
         $cart = session($cartId);
@@ -386,9 +405,26 @@ class POSOrderController extends BaseController
     public function getCustomerAddresses(string $customerId): JsonResponse
     {
         $addresses = ShippingAddress::where('customer_id', $customerId)
-            ->where('is_guest', 0)
+            ->where('is_guest', '!=', 1)
             ->get(['id', 'contact_person_name', 'phone', 'address', 'city', 'zip', 'country', 'address_type']);
-        return response()->json($addresses);
+
+        if ($addresses->isEmpty()) {
+            $customer = $this->customerRepo->getFirstWhere(params: ['id' => $customerId]);
+            if ($customer && $customer['street_address']) {
+                $addresses = collect([[
+                    'id' => 'profile',
+                    'contact_person_name' => trim(($customer['f_name'] ?? '') . ' ' . ($customer['l_name'] ?? '')),
+                    'phone' => $customer['phone'] ?? '',
+                    'address' => $customer['street_address'] ?? '',
+                    'city' => $customer['city'] ?? '',
+                    'zip' => $customer['zip'] ?? '',
+                    'country' => $customer['country'] ?? '',
+                    'address_type' => 'home',
+                ]]);
+            }
+        }
+
+        return response()->json($addresses->values());
     }
 
     public function getShippingMethods(): JsonResponse

@@ -1149,16 +1149,17 @@ function addToCart(
                     });
 
                     try {
-                        var $cartForm = typeof formSelector === 'string' ? $(formSelector) : formSelector;
-                        var cartProductId = $cartForm.find('[name="id"]').val();
-                        var cartPriceText = $cartForm.find('.discounted-unit-price').text().trim();
-                        var cartPrice = parseFloat(cartPriceText.replace(/[^0-9.]/g, '')) || 0;
-                        var cartCurrency = (window.PIXEL_CURRENCY || 'BDT');
-                        if (typeof fbq !== 'undefined' && cartProductId) {
-                            fbq('track', 'AddToCart', {content_ids: [cartProductId], content_type: 'product', value: cartPrice, currency: cartCurrency});
-                        }
-                        if (typeof ttq !== 'undefined' && cartProductId) {
-                            ttq.track('AddToCart', {content_id: String(cartProductId), value: cartPrice, currency: cartCurrency});
+                        if (response.cart && response.cart.product_id) {
+                            var _pid   = String(response.cart.product_id);
+                            var _qty   = parseInt(response.cart.quantity || 1);
+                            var _price = (parseFloat(response.cart.price || 0) - parseFloat(response.cart.discount || 0)) * _qty;
+                            var _cur   = window.PIXEL_CURRENCY || 'BDT';
+                            if (typeof fbq !== 'undefined') {
+                                fbq('track', 'AddToCart', {content_ids: [_pid], content_type: 'product', value: _price, num_items: _qty, currency: _cur});
+                            }
+                            if (typeof ttq !== 'undefined') {
+                                ttq.track('AddToCart', {content_id: _pid, value: _price, currency: _cur});
+                            }
                         }
                     } catch(e) {}
 

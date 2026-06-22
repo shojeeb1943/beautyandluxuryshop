@@ -250,7 +250,9 @@ window.posDeliveryState = window.posDeliveryState || {
     addressId: null,
     addressData: {},
     shippingMethodId: null,
-    shippingCost: 0
+    shippingCost: 0,
+    dropdownsLoaded: false,
+    loadedCustomerId: null
 };
 
 function formatPosCurrency(amount, position, symbol) {
@@ -296,8 +298,10 @@ function syncPosDeliveryToHiddenInputs() {
         $('#hidden_ship_city').val(d.city || '');
         $('#hidden_ship_zip').val(d.zip || '');
         $('#hidden_ship_country').val(d.country || '');
+        $('#submit_order').prop('disabled', !window.posDeliveryState.addressId);
     } else {
         $('#hidden_shipping_address_id, #hidden_shipping_method_id, #hidden_ship_name, #hidden_ship_phone, #hidden_ship_address, #hidden_ship_city, #hidden_ship_zip, #hidden_ship_country').val('');
+        $('#submit_order').prop('disabled', false);
     }
 }
 
@@ -315,10 +319,13 @@ function loadPosDeliveryDropdowns() {
     if (customerId && customerId != 0) {
         let actualUrl = String(addressesUrlTpl).replace('__CID__', customerId);
         $.get(actualUrl, function (addresses) {
-            addrSelect.html('<option value="">-- select address --</option>');
             if (!addresses || addresses.length === 0) {
-                $('.pos-no-address-msg').removeClass('d-none');
+                addrSelect.html('<option value="" disabled selected>No saved addresses for this customer</option>');
+                window.posDeliveryState.addressId = null;
+                window.posDeliveryState.addressData = {};
+                syncPosDeliveryToHiddenInputs();
             } else {
+                addrSelect.html('<option value="">-- select address --</option>');
                 $.each(addresses, function (i, addr) {
                     addrSelect.append(
                         $('<option>')
@@ -338,8 +345,10 @@ function loadPosDeliveryDropdowns() {
             }
         });
     } else {
-        addrSelect.html('<option value="">-- select a customer first --</option>');
-        $('.pos-no-address-msg').removeClass('d-none');
+        addrSelect.html('<option value="" disabled selected>Select a customer first</option>');
+        window.posDeliveryState.addressId = null;
+        window.posDeliveryState.addressData = {};
+        syncPosDeliveryToHiddenInputs();
     }
 
     let methodSelect = $('#pos-shipping-method-select');
@@ -375,7 +384,20 @@ function posDeliveryInit() {
     if (window.posDeliveryState.type === 'delivery') {
         $('#pos_delivery').prop('checked', true);
         $('.pos-delivery-section').removeClass('d-none');
-        loadPosDeliveryDropdowns();
+        // Only reload if customer changed or first load
+        let currentCid = String($('#pos-delivery-urls').data('customer-id') || 0);
+        let customerChanged = window.posDeliveryState.loadedCustomerId !== currentCid;
+        if (!window.posDeliveryState.dropdownsLoaded || customerChanged) {
+            if (customerChanged) {
+                window.posDeliveryState.addressId = null;
+                window.posDeliveryState.addressData = {};
+                window.posDeliveryState.shippingMethodId = null;
+                window.posDeliveryState.shippingCost = 0;
+            }
+            window.posDeliveryState.loadedCustomerId = currentCid;
+            window.posDeliveryState.dropdownsLoaded = true;
+            loadPosDeliveryDropdowns();
+        }
     } else {
         $('#pos_walk_in').prop('checked', true);
         $('.pos-delivery-section').addClass('d-none');
@@ -389,6 +411,9 @@ function posDeliveryInit() {
         window.posDeliveryState.type = $(this).val();
         if ($(this).val() === 'delivery') {
             $('.pos-delivery-section').removeClass('d-none');
+            let cid = String($('#pos-delivery-urls').data('customer-id') || 0);
+            window.posDeliveryState.loadedCustomerId = cid;
+            window.posDeliveryState.dropdownsLoaded = true;
             loadPosDeliveryDropdowns();
         } else {
             $('.pos-delivery-section').addClass('d-none');
@@ -396,6 +421,8 @@ function posDeliveryInit() {
             window.posDeliveryState.shippingMethodId = null;
             window.posDeliveryState.addressId = null;
             window.posDeliveryState.addressData = {};
+            window.posDeliveryState.dropdownsLoaded = false;
+            window.posDeliveryState.loadedCustomerId = null;
         }
         syncPosDeliveryToHiddenInputs();
         posRecalcTotalWithShipping();

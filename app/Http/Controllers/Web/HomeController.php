@@ -80,30 +80,16 @@ class HomeController extends Controller
 
         $newArrivalIds = $newArrivalProducts->pluck('id')->toArray();
 
-        // Best Sellings: show Foundation category (sub_sub_category_id=4) products
-        $bestSellProduct = Product::active()->with(['reviews', 'seller.shop', 'clearanceSale' => function ($q) {
-            return $q->active();
-        }])->where('sub_sub_category_id', 4)->whereNotIn('id', $newArrivalIds)->orderByDesc('unit_price')->take(10)->get();
-
-        // If Foundation has no products, fall back to order-based best sellers excluding new arrivals
+        // Best Sellings: order-based best sellers (consistent with View All → data_from=best-selling)
+        $bestSellProduct = $this->cacheBestSellProductList()->filter(fn($p) => !in_array($p->id, $newArrivalIds))->values();
         if ($bestSellProduct->count() == 0) {
-            $bestSellProduct = $this->cacheBestSellProductList()->filter(fn($p) => !in_array($p->id, $newArrivalIds))->values();
+            $bestSellProduct = $this->cacheBestSellProductList();
         }
 
-        // Final fallback: highest-priced products
-        if ($bestSellProduct->count() == 0) {
-            $bestSellProduct = Product::active()->with(['reviews', 'seller.shop', 'clearanceSale' => function ($q) {
-                return $q->active();
-            }])->whereNotIn('id', $newArrivalIds)->orderByDesc('unit_price')->take(10)->get();
-        }
-
-        // Always remove new arrival + best sell products from top rated to prevent overlap
+        // Top Rated: review-based top rated (consistent with View All → data_from=top-rated)
         $topRatedProducts = $topRatedProducts->filter(fn($p) => !in_array($p->id, $newArrivalIds))->values();
         if ($topRatedProducts->count() == 0) {
-            $excludeIds = array_merge($newArrivalIds, $bestSellProduct->pluck('id')->toArray());
-            $topRatedProducts = Product::active()->with(['seller.shop', 'clearanceSale' => function ($q) {
-                return $q->active();
-            }])->whereNotIn('id', $excludeIds)->inRandomOrder()->take(10)->get();
+            $topRatedProducts = $this->cacheTopRatedProductList();
         }
 
         $dealOfTheDay = DealOfTheDay::with(['product' => function ($query) {

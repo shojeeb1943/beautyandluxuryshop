@@ -1,4 +1,6 @@
-@if(isset($web_config['analytic_scripts']))
+@php $isProductionDomain = in_array(request()->getHost(), ['beautyandluxuryshop.com', 'www.beautyandluxuryshop.com']); @endphp
+@if($isProductionDomain && isset($web_config['analytic_scripts']))
+<script>window.PIXEL_CURRENCY = '{{ strtoupper(\App\Utils\Helpers::currency_code()) }}';</script>
     @foreach($web_config['analytic_scripts'] as $analyticScript)
         @if($analyticScript['script_id'] && $analyticScript['type'] == 'meta_pixel')
             <!-- Meta Pixel -->

@@ -12,6 +12,12 @@
       <g:availability>{{ $p['availability'] }}</g:availability>
       <g:price>{{ $p['price'] }}</g:price>
       <g:condition>new</g:condition>
+      @if($p['item_group_id'])
+      <g:item_group_id>{{ $p['item_group_id'] }}</g:item_group_id>
+      @endif
+      @if($p['sku'])
+      <g:mpn>{{ $p['sku'] }}</g:mpn>
+      @endif
       @if($p['brand'])
       <g:brand>{{ $p['brand'] }}</g:brand>
       @endif

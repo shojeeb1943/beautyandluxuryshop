@@ -57,4 +57,31 @@
             </div>
         </div>
     </div>
+@push('script')
+    @if(isset($web_config['analytic_scripts']) && isset($order_ids) && count($order_ids ?? []) > 0)
+        @foreach($web_config['analytic_scripts'] as $analyticScript)
+            @if($analyticScript['is_active'] && $analyticScript['type'] == 'meta_pixel' && $analyticScript['script_id'])
+            <script>
+                if (typeof fbq !== 'undefined') {
+                    fbq('track', 'Purchase', {
+                        content_ids: {!! json_encode(array_map('strval', $order_ids)) !!},
+                        content_type: 'product',
+                        currency: window.PIXEL_CURRENCY || 'BDT'
+                    });
+                }
+            </script>
+            @endif
+            @if($analyticScript['is_active'] && $analyticScript['type'] == 'tiktok_tag' && $analyticScript['script_id'])
+            <script>
+                if (typeof ttq !== 'undefined') {
+                    ttq.track('CompletePayment', {
+                        content_id: '{{ $order_ids[0] ?? "" }}',
+                        currency: window.PIXEL_CURRENCY || 'BDT'
+                    });
+                }
+            </script>
+            @endif
+        @endforeach
+    @endif
+@endpush
 @endsection

@@ -1148,6 +1148,20 @@ function addToCart(
                         ProgressBar: true,
                     });
 
+                    try {
+                        var $cartForm = typeof formSelector === 'string' ? $(formSelector) : formSelector;
+                        var cartProductId = $cartForm.find('[name="id"]').val();
+                        var cartPriceText = $cartForm.find('.discounted-unit-price').text().trim();
+                        var cartPrice = parseFloat(cartPriceText.replace(/[^0-9.]/g, '')) || 0;
+                        var cartCurrency = (window.PIXEL_CURRENCY || 'BDT');
+                        if (typeof fbq !== 'undefined' && cartProductId) {
+                            fbq('track', 'AddToCart', {content_ids: [cartProductId], content_type: 'product', value: cartPrice, currency: cartCurrency});
+                        }
+                        if (typeof ttq !== 'undefined' && cartProductId) {
+                            ttq.track('AddToCart', {content_id: String(cartProductId), value: cartPrice, currency: cartCurrency});
+                        }
+                    } catch(e) {}
+
                     let actionAddToCartBtn = $(formSelector).find(
                         ".product-add-to-cart-button"
                     );

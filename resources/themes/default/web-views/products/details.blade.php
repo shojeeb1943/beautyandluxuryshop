@@ -1060,6 +1060,36 @@
 @endsection
 
 @push('script')
+    @if(isset($web_config['analytic_scripts']))
+        @foreach($web_config['analytic_scripts'] as $analyticScript)
+            @if($analyticScript['is_active'] && $analyticScript['type'] == 'meta_pixel' && $analyticScript['script_id'])
+            <script>
+                if (typeof fbq !== 'undefined') {
+                    fbq('track', 'ViewContent', {
+                        content_ids: ['{{ $product->id }}'],
+                        content_type: 'product',
+                        content_name: '{{ addslashes($product->name) }}',
+                        value: {{ getProductPriceByType(product: $product, type: 'discounted_unit_price', result: 'value') }},
+                        currency: window.PIXEL_CURRENCY || 'BDT'
+                    });
+                }
+            </script>
+            @endif
+            @if($analyticScript['is_active'] && $analyticScript['type'] == 'tiktok_tag' && $analyticScript['script_id'])
+            <script>
+                if (typeof ttq !== 'undefined') {
+                    ttq.track('ViewContent', {
+                        content_id: '{{ $product->id }}',
+                        content_type: 'product',
+                        content_name: '{{ addslashes($product->name) }}',
+                        value: {{ getProductPriceByType(product: $product, type: 'discounted_unit_price', result: 'value') }},
+                        currency: window.PIXEL_CURRENCY || 'BDT'
+                    });
+                }
+            </script>
+            @endif
+        @endforeach
+    @endif
     <script src="{{ theme_asset(path: 'public/assets/front-end/js/product-details.js') }}"></script>
     <script type="text/javascript" async="async"
             src="https://platform-api.sharethis.com/js/sharethis.js#property=5f55f75bde227f0012147049&product=sticky-share-buttons"></script>

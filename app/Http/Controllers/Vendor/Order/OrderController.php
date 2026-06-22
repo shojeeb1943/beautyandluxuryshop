@@ -301,15 +301,14 @@ class OrderController extends BaseController
         ];
         $deliveryMen = $this->deliveryManRepo->getListWhere(filters: $filters, dataLimit: 'all');
         $isOrderOnlyDigital = $orderService->getCheckIsOrderOnlyDigital(order: $order);
-        if ($order['order_type'] == 'default_type') {
-            $orderCount = $this->orderRepo->getListWhereCount(filters: ['customer_id' => $order['customer_id']]);
-            return view(Order::VIEW[VIEW], compact('order', 'linkedOrders',
-                'deliveryMen', 'totalDelivered', 'physicalProduct', 'isOrderOnlyDigital',
-                'countryRestrictStatus', 'zipRestrictStatus', 'countries', 'zipCodes', 'orderCount'));
-        } else {
+        if ($order['order_type'] == 'POS') {
             $orderCount = $this->orderRepo->getListWhereCount(filters: ['customer_id' => $order['customer_id'], 'order_type' => 'POS']);
-            return view(Order::VIEW_POS[VIEW], compact('order', 'orderCount'));
+        } else {
+            $orderCount = $this->orderRepo->getListWhereCount(filters: ['customer_id' => $order['customer_id']]);
         }
+        return view(Order::VIEW[VIEW], compact('order', 'linkedOrders',
+            'deliveryMen', 'totalDelivered', 'physicalProduct', 'isOrderOnlyDigital',
+            'countryRestrictStatus', 'zipRestrictStatus', 'countries', 'zipCodes', 'orderCount'));
     }
 
     public function updateStatus(
@@ -329,7 +328,8 @@ class OrderController extends BaseController
             return response()->json(['payment_status' => 0], 200);
         }
 
-        if ($order['order_status'] == 'delivered') {
+        $posReturnOrCancel = $order['order_type'] == 'POS' && in_array($request['order_status'], ['returned', 'canceled']);
+        if ($order['order_status'] == 'delivered' && !$posReturnOrCancel) {
             return response()->json(['success' => 0, 'message' => translate('order_is_already_delivered.')], 200);
         }
 

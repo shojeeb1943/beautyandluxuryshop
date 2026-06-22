@@ -214,6 +214,200 @@ function renderQuickViewSearchFunctionality() {
     });
 }
 
+window.posDeliveryState = window.posDeliveryState || {
+    type: 'walk_in',
+    addressId: null,
+    addressData: {},
+    shippingMethodId: null,
+    shippingCost: 0
+};
+
+function formatPosCurrency(amount, position, symbol) {
+    amount = (parseFloat(amount) || 0).toFixed(2);
+    symbol = symbol || '';
+    return position && position.toString() === 'left' ? symbol + amount : amount + symbol;
+}
+
+function posRecalcTotalWithShipping() {
+    let amountEl = $('.total-amount');
+    if (!amountEl.length) {
+        return;
+    }
+    let base = parseFloat(amountEl.data('base-amount'));
+    if (isNaN(base)) {
+        base = parseFloat(amountEl.val()) || 0;
+    }
+    let isDelivery = window.posDeliveryState.type === 'delivery';
+    let shipping = isDelivery ? (parseFloat(window.posDeliveryState.shippingCost) || 0) : 0;
+    let grand = base + shipping;
+    amountEl.val(grand.toFixed(2));
+
+    if (isDelivery) {
+        $('.pos-shipping-row, .pos-grand-total-row').removeClass('d-none');
+    } else {
+        $('.pos-shipping-row, .pos-grand-total-row').addClass('d-none');
+    }
+
+    let paidEl = $('.pos-paid-amount-element');
+    let position = paidEl.data('currency-position');
+    let symbol = paidEl.data('currency-symbol');
+    $('.pos-shipping-cost-text').text(formatPosCurrency(shipping, position, symbol));
+    $('.pos-grand-total-text').text(formatPosCurrency(grand, position, symbol));
+
+    paidEl.attr('min', grand.toFixed(2)).val(grand.toFixed(2));
+    renderCustomerAmountForPay();
+}
+
+function syncPosDeliveryToHiddenInputs() {
+    $('#hidden_order_type_pos').val(window.posDeliveryState.type);
+    if (window.posDeliveryState.type === 'delivery') {
+        $('#hidden_shipping_address_id').val(window.posDeliveryState.addressId || '');
+        $('#hidden_shipping_method_id').val(window.posDeliveryState.shippingMethodId || '');
+        let d = window.posDeliveryState.addressData || {};
+        $('#hidden_ship_name').val(d.contact_person_name || '');
+        $('#hidden_ship_phone').val(d.phone || '');
+        $('#hidden_ship_address').val(d.address || '');
+        $('#hidden_ship_city').val(d.city || '');
+        $('#hidden_ship_zip').val(d.zip || '');
+        $('#hidden_ship_country').val(d.country || '');
+    } else {
+        $('#hidden_shipping_address_id, #hidden_shipping_method_id, #hidden_ship_name, #hidden_ship_phone, #hidden_ship_address, #hidden_ship_city, #hidden_ship_zip, #hidden_ship_country').val('');
+    }
+}
+
+function loadPosDeliveryDropdowns() {
+    let urlDiv = $('#pos-delivery-urls');
+    if (!urlDiv.length) { return; }
+    let customerId = urlDiv.data('customer-id');
+    let addressesUrlTpl = urlDiv.data('addresses-url');
+    let methodsUrl = urlDiv.data('methods-url');
+
+    let addrSelect = $('#pos-address-select');
+    addrSelect.html('<option value="">-- loading... --</option>');
+    $('.pos-no-address-msg').addClass('d-none');
+
+    if (customerId && customerId != 0) {
+        let actualUrl = String(addressesUrlTpl).replace('__CID__', customerId);
+        $.get(actualUrl, function (addresses) {
+            addrSelect.html('<option value="">-- select address --</option>');
+            if (!addresses || addresses.length === 0) {
+                $('.pos-no-address-msg').removeClass('d-none');
+            } else {
+                $.each(addresses, function (i, addr) {
+                    addrSelect.append(
+                        $('<option>')
+                            .val(addr.id)
+                            .text((addr.contact_person_name || '') + ' — ' + (addr.address || '') + ', ' + (addr.city || ''))
+                            .data('name', addr.contact_person_name || '')
+                            .data('phone', addr.phone || '')
+                            .data('address', addr.address || '')
+                            .data('city', addr.city || '')
+                            .data('zip', addr.zip || '')
+                            .data('country', addr.country || '')
+                    );
+                });
+                if (window.posDeliveryState.addressId) {
+                    addrSelect.val(window.posDeliveryState.addressId);
+                }
+            }
+        });
+    } else {
+        addrSelect.html('<option value="">-- select a customer first --</option>');
+        $('.pos-no-address-msg').removeClass('d-none');
+    }
+
+    let methodSelect = $('#pos-shipping-method-select');
+    methodSelect.html('<option value="">-- loading... --</option>');
+    $('.pos-no-method-msg').addClass('d-none');
+    $.get(methodsUrl, function (methods) {
+        methodSelect.html('<option value="">-- select shipping method --</option>');
+        if (!methods || methods.length === 0) {
+            $('.pos-no-method-msg').removeClass('d-none');
+        } else {
+            let paidEl = $('.pos-paid-amount-element');
+            let position = paidEl.data('currency-position');
+            let symbol = paidEl.data('currency-symbol');
+            $.each(methods, function (i, method) {
+                methodSelect.append(
+                    $('<option>')
+                        .val(method.id)
+                        .text(method.title + ' — ' + formatPosCurrency(method.cost, position, symbol))
+                        .data('cost', method.cost)
+                );
+            });
+            if (window.posDeliveryState.shippingMethodId) {
+                methodSelect.val(window.posDeliveryState.shippingMethodId);
+            }
+        }
+    });
+}
+
+function posDeliveryInit() {
+    if (!$('.pos-order-type').length) {
+        return;
+    }
+
+    // Restore radio + delivery section visibility
+    if (window.posDeliveryState.type === 'delivery') {
+        $('#pos_delivery').prop('checked', true);
+        $('.pos-delivery-section').removeClass('d-none');
+        loadPosDeliveryDropdowns();
+    } else {
+        $('#pos_walk_in').prop('checked', true);
+        $('.pos-delivery-section').addClass('d-none');
+    }
+
+    syncPosDeliveryToHiddenInputs();
+    posRecalcTotalWithShipping();
+
+    // Toggle handler
+    $('.pos-order-type').off('change.posdel').on('change.posdel', function () {
+        window.posDeliveryState.type = $(this).val();
+        if ($(this).val() === 'delivery') {
+            $('.pos-delivery-section').removeClass('d-none');
+            loadPosDeliveryDropdowns();
+        } else {
+            $('.pos-delivery-section').addClass('d-none');
+            window.posDeliveryState.shippingCost = 0;
+            window.posDeliveryState.shippingMethodId = null;
+            window.posDeliveryState.addressId = null;
+            window.posDeliveryState.addressData = {};
+        }
+        syncPosDeliveryToHiddenInputs();
+        posRecalcTotalWithShipping();
+    });
+
+    // Address select handler
+    $('#pos-address-select').off('change.posdel').on('change.posdel', function () {
+        let opt = $(this).find(':selected');
+        window.posDeliveryState.addressId = $(this).val() || null;
+        window.posDeliveryState.addressData = $(this).val() ? {
+            contact_person_name: opt.data('name') || '',
+            phone: opt.data('phone') || '',
+            address: opt.data('address') || '',
+            city: opt.data('city') || '',
+            zip: opt.data('zip') || '',
+            country: opt.data('country') || '',
+        } : {};
+        syncPosDeliveryToHiddenInputs();
+        let d = window.posDeliveryState.addressData;
+        let preview = $('#pos-address-preview');
+        if (d && d.address) {
+            preview.text([d.contact_person_name, d.phone, d.address, d.city, d.zip, d.country].filter(Boolean).join(', ')).removeClass('d-none');
+        } else {
+            preview.addClass('d-none').text('');
+        }
+    });
+
+    // Shipping method select handler
+    $('#pos-shipping-method-select').off('change.posdel').on('change.posdel', function () {
+        window.posDeliveryState.shippingMethodId = $(this).val() || null;
+        window.posDeliveryState.shippingCost = parseFloat($(this).find(':selected').data('cost') || 0);
+        syncPosDeliveryToHiddenInputs();
+        posRecalcTotalWithShipping();
+    });
+}
+
 function basicFunctionalityForCartSummary() {
     $(".action-empty-alert-show").on("click", () => {
         toastMagic.warning($("#message-cart-is-empty").data("text"));
@@ -319,6 +513,8 @@ function basicFunctionalityForCartSummary() {
                                 $('#add-customer').modal('show');
                                 $('.alert--message-for-pos').addClass('active');
                                 $('.alert--message-for-pos .warning-message').empty().html(response.message);
+                            } else if (response && (Boolean(response.deliveryNeedsCustomer) === true || Boolean(response.deliveryNeedsAddress) === true || Boolean(response.deliveryNeedsMethod) === true)) {
+                                toastMagic.error(response.message);
                             } else {
                                 location.reload();
                             }
@@ -344,7 +540,7 @@ function basicFunctionalityForCartSummary() {
         return true;
     }
 
-    $('.option-buttons input').on('change', function () {
+    $('.option-buttons input[name="type"]').on('change', function () {
         renderCustomerAmountForPay();
         let type = $(this).val();
         if ($(this).is(':checked')) {
@@ -365,7 +561,9 @@ function basicFunctionalityForCartSummary() {
         }
     });
 
-    $('.option-buttons input').trigger('change');
+    $('.option-buttons input[name="type"]').trigger('change');
+
+    posDeliveryInit();
 
     $('.pos-paid-amount-element').on("keypress", function (event) {
         let charCode = event.which || event.keyCode;

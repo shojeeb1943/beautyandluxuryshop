@@ -390,16 +390,16 @@
 
                                 @php($shippingMethod = getWebConfig(name: 'shipping_method'))
                                 @if($shippingMethod == 'sellerwise_shipping')
-                                    <option
-                                        value="out_for_delivery" {{$order->order_status == 'out_for_delivery'?'selected':''}} >{{translate('out_for_delivery')}} </option>
-                                    <option
-                                        value="delivered" {{$order->order_status == 'delivered'? 'selected':''}} >{{translate('delivered')}} </option>
-                                    <option
-                                        value="returned" {{$order->order_status == 'returned'?'selected':''}} > {{translate('returned')}}</option>
-                                    <option
-                                        value="failed" {{$order->order_status == 'failed'?'selected':''}} >{{translate('failed_to_deliver')}} </option>
-                                    <option
-                                        value="canceled" {{$order->order_status == 'canceled'?'selected':''}} >{{translate('canceled')}} </option>
+                                    <option value="out_for_delivery" {{$order->order_status == 'out_for_delivery'?'selected':''}} >{{translate('out_for_delivery')}} </option>
+                                    <option value="delivered" {{$order->order_status == 'delivered'? 'selected':''}} >{{translate('delivered')}} </option>
+                                @elseif($order['order_type'] == 'POS' && $order->order_status == 'delivered')
+                                    {{-- POS walk-in: show current delivered state so dropdown is not blank --}}
+                                    <option value="delivered" selected>{{translate('delivered')}}</option>
+                                @endif
+                                @if($shippingMethod == 'sellerwise_shipping' || $order['order_type'] == 'POS')
+                                    <option value="returned" {{$order->order_status == 'returned'?'selected':''}} > {{translate('returned')}}</option>
+                                    <option value="failed" {{$order->order_status == 'failed'?'selected':''}} >{{translate('failed_to_deliver')}} </option>
+                                    <option value="canceled" {{$order->order_status == 'canceled'?'selected':''}} >{{translate('canceled')}} </option>
                                 @endif
                             </select>
                         </div>

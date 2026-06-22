@@ -117,6 +117,8 @@ Route::group(['middleware' => ['maintenance_mode', 'actch:admin_panel']], functi
                     Route::post(POSOrder::ORDER_PLACE[URI], 'placeOrder')->name('order-place');
                     Route::any(POSOrder::CANCEL_ORDER[URI], 'cancelOrder')->name('cancel-order');
                     Route::any(POSOrder::HOLD_ORDERS[URI], 'getAllHoldOrdersView')->name('view-hold-orders');
+                    Route::get('customer-addresses/{customerId}', 'getCustomerAddresses')->name('customer-addresses');
+                    Route::get('shipping-methods', 'getShippingMethods')->name('shipping-methods');
                 });
             });
             Route::group(['prefix' => 'refund', 'as' => 'refund.'], function () {

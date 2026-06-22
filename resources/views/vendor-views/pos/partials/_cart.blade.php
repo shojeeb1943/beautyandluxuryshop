@@ -100,13 +100,36 @@
                         {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: ($cartItems['total']+$cartItems['totalTax']-$cartItems['couponDiscount'])), currencyCode: getCurrencyCode()) }}
                     </dd>
                 </div>
+
+                <div class="d-flex gap-2 justify-content-between pos-shipping-row d-none">
+                    <dt class="title-color text-capitalize font-weight-normal">{{ translate('shipping_cost') }} : </dt>
+                    <dd class="pos-shipping-cost-text">{{ setCurrencySymbol(amount: 0) }}</dd>
+                </div>
+
+                <div class="d-flex gap-2 border-top justify-content-between pt-2 pos-grand-total-row d-none">
+                    <dt class="title-color text-capitalize font-weight-bold title-color">{{ translate('payable_amount') }} : </dt>
+                    <dd class="font-weight-bold title-color pos-grand-total-text">{{ setCurrencySymbol(amount: 0) }}</dd>
+                </div>
             </dl>
 
             <div class="form-group col-12">
                 <input type="hidden" class="form-control total-amount" name="amount" min="0" step="0.01"
+                       data-base-amount="{{usdToDefaultCurrency(amount: $cartItems['total']+$cartItems['totalTax']-$cartItems['couponDiscount'])}}"
                        value="{{usdToDefaultCurrency(amount: $cartItems['total']+$cartItems['totalTax']-$cartItems['couponDiscount'])}}"
                        readonly>
             </div>
+
+            {{-- Hidden delivery fields — populated by JS from cart-summary area --}}
+            <input type="hidden" name="order_type_pos" id="hidden_order_type_pos" value="walk_in">
+            <input type="hidden" name="shipping_address_id" id="hidden_shipping_address_id" value="">
+            <input type="hidden" name="shipping_method_id" id="hidden_shipping_method_id" value="">
+            <input type="hidden" name="shipping_contact_person_name" id="hidden_ship_name" value="">
+            <input type="hidden" name="shipping_phone" id="hidden_ship_phone" value="">
+            <input type="hidden" name="shipping_address" id="hidden_ship_address" value="">
+            <input type="hidden" name="shipping_city" id="hidden_ship_city" value="">
+            <input type="hidden" name="shipping_zip" id="hidden_ship_zip" value="">
+            <input type="hidden" name="shipping_country" id="hidden_ship_country" value="">
+
             <div class="pt-4 mb-4">
                 <div class="title-color d-flex mb-2">{{ translate('paid_By') }}:</div>
                 <ul class="list-unstyled option-buttons">

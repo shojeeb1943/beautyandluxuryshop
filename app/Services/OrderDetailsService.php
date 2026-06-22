@@ -19,6 +19,7 @@ class OrderDetailsService
             'discount' => $item['discount'] * $item['quantity'],
             'discount_type' => 'discount_on_product',
             'delivery_status' => 'delivered',
+            'is_stock_decreased' => $product['product_type'] == 'physical' ? 1 : 0,
             'payment_status' => 'paid',
             'variant' => $item['variant'],
             'variation' => json_encode($item['variations']),

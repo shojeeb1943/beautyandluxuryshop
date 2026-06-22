@@ -12,6 +12,8 @@ use App\Contracts\Repositories\VendorRepositoryInterface;
 use App\Enums\SessionKey;
 use App\Events\DigitalProductDownloadEvent;
 use App\Http\Controllers\BaseController;
+use App\Models\ShippingAddress;
+use App\Models\ShippingMethod;
 use App\Services\CartService;
 use App\Services\OrderDetailsService;
 use App\Services\OrderService;
@@ -97,8 +99,39 @@ class POSOrderController extends BaseController
         $userId = $this->cartService->getUserId();
         $checkProductTypeDigital = $this->cartService->checkProductTypeDigital(cartId: $cartId);
         if ($userId == 0 && $checkProductTypeDigital) {
-            return response()->json(['checkProductTypeForWalkingCustomer' => true, 'message' => translate('To_order_digital_product') . ',' . translate('_kindly_fill_up_the_“Add_New_Customer”_form') . '.']);
+            return response()->json(['checkProductTypeForWalkingCustomer' => true, 'message' => translate('To_order_digital_product') . ',' . translate('_kindly_fill_up_the_”Add_New_Customer”_form') . '.']);
         }
+
+        $orderType = $request['order_type_pos'] == 'delivery' ? 'delivery' : 'walk_in';
+        $shippingCost = 0;
+        $shippingAddress = null;
+        $shippingMethodId = null;
+        if ($orderType == 'delivery') {
+            if ($userId == 0) {
+                return response()->json(['deliveryNeedsCustomer' => true, 'message' => translate('To_place_a_delivery_order') . ',' . translate('_kindly_select_or_add_a_customer') . '.']);
+            }
+            $savedAddress = ShippingAddress::find($request['shipping_address_id']);
+            if (!$savedAddress) {
+                return response()->json(['deliveryNeedsAddress' => true, 'message' => translate('Please_provide_the_delivery_address') . '.']);
+            }
+            $shippingMethod = ShippingMethod::find($request['shipping_method_id']);
+            if (!$shippingMethod) {
+                return response()->json(['deliveryNeedsMethod' => true, 'message' => translate('Please_select_a_shipping_method') . '.']);
+            }
+            $shippingCost = (float)$shippingMethod->cost;
+            $shippingMethodId = $shippingMethod->id;
+            $shippingAddress = [
+                'contact_person_name' => $savedAddress->contact_person_name,
+                'phone' => $savedAddress->phone,
+                'country' => $savedAddress->country,
+                'city' => $savedAddress->city,
+                'zip' => $savedAddress->zip,
+                'address' => $savedAddress->address,
+                'latitude' => '',
+                'longitude' => '',
+            ];
+        }
+
         if ($request['type'] == 'wallet' && $userId != 0) {
             $customerBalance = $this->customerRepo->getFirstWhere(params: ['id' => $userId]) ?? 0;
             if ($customerBalance['wallet_balance'] >= currencyConverter(amount: $amount)) {
@@ -166,7 +199,11 @@ class POSOrderController extends BaseController
             paidAmount: $request['type'] == 'cash' ? $paidAmount : $amount,
             paymentType: $request['type'],
             addedBy: 'admin',
-            userId: $userId
+            userId: $userId,
+            orderType: $orderType,
+            shippingAddress: $shippingAddress,
+            shippingCost: $shippingCost,
+            shippingMethodId: $shippingMethodId
         );
         $this->orderRepo->add(data: $order);
         if ($checkProductTypeDigital) {
@@ -354,5 +391,20 @@ class POSOrderController extends BaseController
         $customerCartData = $this->getCustomerCartData(cartName: $cartName);
         $cartItemData = $this->calculateCartItemsData(cartName: $cartName, customerCartData: $customerCartData);
         return array_merge($customerCartData[$cartName], $cartItemData);
+    }
+
+    public function getCustomerAddresses(string $customerId): JsonResponse
+    {
+        $addresses = ShippingAddress::where('customer_id', $customerId)
+            ->where('is_guest', 0)
+            ->get(['id', 'contact_person_name', 'phone', 'address', 'city', 'zip', 'country', 'address_type']);
+        return response()->json($addresses);
+    }
+
+    public function getShippingMethods(): JsonResponse
+    {
+        $methods = ShippingMethod::where(['creator_type' => 'admin', 'status' => 1])
+            ->get(['id', 'title', 'cost', 'duration']);
+        return response()->json($methods);
     }
 }

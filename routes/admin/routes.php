@@ -174,6 +174,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['admin', '
             Route::post('order-place', 'placeOrder')->name('place-order');
             Route::any('cancel-order', 'cancelOrder')->name('cancel-order');
             Route::any('view-hold-orders', 'getAllHoldOrdersView')->name('view-hold-orders');
+            Route::get('customer-addresses/{customerId}', 'getCustomerAddresses')->name('customer-addresses');
+            Route::get('shipping-methods', 'getShippingMethods')->name('shipping-methods');
         });
     });
 

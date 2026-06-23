@@ -361,13 +361,13 @@
 @endpush
 
 @push('script')
-@php
+<?php
     $isGuestUser    = !auth('customer')->check();
     $cid            = $isGuestUser ? session('guest_id') : auth('customer')->id();
     $pixelCartItems = $cid ? \App\Models\Cart::where('customer_id', $cid)->where('is_guest', $isGuestUser ? 1 : 0)->get() : collect();
     $pixelCartValue = round($pixelCartItems->sum(fn($c) => ($c->price - $c->discount) * $c->quantity), 2);
     $pixelCartIds   = $pixelCartItems->pluck('product_id')->map('strval')->values()->toArray();
-@endphp
+?>
 @if(isset($web_config['analytic_scripts']))
     @foreach($web_config['analytic_scripts'] as $analyticScript)
         @if($analyticScript['is_active'] && $analyticScript['type'] == 'meta_pixel' && $analyticScript['script_id'])

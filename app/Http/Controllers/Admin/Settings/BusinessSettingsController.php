@@ -353,6 +353,7 @@ class BusinessSettingsController extends BaseController
             'name' => ucwords(str_replace('_', ' ', $request['type'])),
             'type' => $request['type'],
             'script_id' => $request['script_id'],
+            'script' => $request['script'] ?? null,
             'is_active' => $request['is_active'] ?? 0,
         ]);
 

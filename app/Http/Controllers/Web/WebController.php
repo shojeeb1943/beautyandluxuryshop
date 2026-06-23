@@ -633,6 +633,31 @@ class WebController extends Controller
         session()->forget('newCustomerRegister');
         session()->forget('newRegisterCustomerInfo');
 
+        if (!empty($orderIds) && !session('capi_purchase_sent_' . implode('_', $orderIds))) {
+            try {
+                $orderTotal = \App\Models\Order::whereIn('id', $orderIds)->sum('order_amount');
+                $customer   = auth('customer')->user();
+                $userData   = \App\Services\MetaConversionsApiService::buildUserData([
+                    'email' => $customer?->email,
+                    'phone' => $customer?->phone,
+                    'name'  => $customer?->f_name,
+                ]);
+                \App\Services\MetaConversionsApiService::sendEvent(
+                    eventName:      'Purchase',
+                    customData:     [
+                        'value'        => round($orderTotal, 2),
+                        'currency'     => strtoupper(\App\Utils\Helpers::currency_code()),
+                        'content_ids'  => array_map('strval', $orderIds),
+                        'content_type' => 'product',
+                        'num_items'    => count($orderIds),
+                    ],
+                    eventSourceUrl: url()->current(),
+                    userData:       $userData
+                );
+                session(['capi_purchase_sent_' . implode('_', $orderIds) => true]);
+            } catch (\Throwable $e) {}
+        }
+
         if ($request->ajax()) {
             return response()->json([
                 'status' => 1,
@@ -829,6 +854,32 @@ class WebController extends Controller
         $isNewCustomerInSession = session('newCustomerRegister');
         session()->forget('newCustomerRegister');
         session()->forget('coupon_discount');
+
+        if (!empty($order_ids) && !session('capi_purchase_sent_' . implode('_', $order_ids))) {
+            try {
+                $orderTotal = \App\Models\Order::whereIn('id', $order_ids)->sum('order_amount');
+                $customer   = auth('customer')->user();
+                $userData   = \App\Services\MetaConversionsApiService::buildUserData([
+                    'email' => $customer?->email,
+                    'phone' => $customer?->phone,
+                    'name'  => $customer?->f_name,
+                ]);
+                \App\Services\MetaConversionsApiService::sendEvent(
+                    eventName:      'Purchase',
+                    customData:     [
+                        'value'        => round($orderTotal, 2),
+                        'currency'     => strtoupper(\App\Utils\Helpers::currency_code()),
+                        'content_ids'  => array_map('strval', $order_ids),
+                        'content_type' => 'product',
+                        'num_items'    => count($order_ids),
+                    ],
+                    eventSourceUrl: url()->current(),
+                    userData:       $userData
+                );
+                session(['capi_purchase_sent_' . implode('_', $order_ids) => true]);
+            } catch (\Throwable $e) {}
+        }
+
         return view(VIEW_FILE_NAMES['order_complete'], compact('order_ids', 'isNewCustomerInSession'));
     }
 

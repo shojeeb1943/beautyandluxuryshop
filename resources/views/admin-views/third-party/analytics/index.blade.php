@@ -255,11 +255,16 @@
                                  </div>
                                  <div class="view-details mt-3 mt-sm-4">
                                     <div class="p-12-mobile px-20 py-4 bg-section rounded d-flex flex-wrap justify-content-end align-items-end gap-sm-20 gap-2">
-                                        <div class="flex-grow-1">
+                                        <div class="flex-grow-1 w-100">
                                             <label class="form-label">{{ translate('Meta_Pixel_ID') }}</label>
                                             <input type="hidden" name="type" value="meta_pixel">
                                             <textarea type="text" placeholder="{{ translate('Enter_the_Meta_Pixel_ID') }}"
                                                       class="form-control min-h-40" rows="1" name="script_id">{!! $metaPixel?->script_id ?? '' !!}</textarea>
+                                        </div>
+                                        <div class="flex-grow-1 w-100">
+                                            <label class="form-label">{{ translate('Conversions_API_Access_Token') }} <small class="text-muted">({{ translate('optional') }})</small></label>
+                                            <textarea class="form-control min-h-40" rows="2" name="script"
+                                                placeholder="{{ translate('Enter_Meta_CAPI_Access_Token') }}">{!! $metaPixel?->script ?? '' !!}</textarea>
                                         </div>
                                         <button type="{{ env('APP_MODE') != 'demo' ? 'submit' : 'button' }}"
                                         class="btn btn-primary px-4 h-40 {{ env('APP_MODE') != 'demo' ? '' : 'call-demo-alert' }}"

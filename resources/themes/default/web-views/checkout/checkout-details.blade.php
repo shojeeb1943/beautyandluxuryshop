@@ -313,6 +313,8 @@
             });
         });
     </script>
+@endpush
+
 @push('script')
 @php
     $isGuestUser    = !auth('customer')->check();
@@ -349,6 +351,4 @@
         @endif
     @endforeach
 @endif
-@endpush
-
 @endpush

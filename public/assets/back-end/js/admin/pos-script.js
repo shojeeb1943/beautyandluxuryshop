@@ -252,7 +252,8 @@ window.posDeliveryState = window.posDeliveryState || {
     shippingMethodId: null,
     shippingCost: 0,
     dropdownsLoaded: false,
-    loadedCustomerId: null
+    loadedCustomerId: null,
+    paymentType: 'cash',
 };
 
 function formatPosCurrency(amount, position, symbol) {
@@ -283,6 +284,9 @@ function posRecalcTotalWithShipping() {
     $('.pos-shipping-cost-text').text(formatPosCurrency(shipping, position, symbol));
     $('.pos-grand-total-text').text(formatPosCurrency(grand, position, symbol));
     paidEl.attr('min', grand.toFixed(2)).val(grand.toFixed(2));
+    if (window.posDeliveryState.paymentType === 'cash_on_delivery') {
+        paidEl.removeAttr('min').val(0);
+    }
     renderCustomerAmountForPay();
 }
 
@@ -385,7 +389,13 @@ function posDeliveryInit() {
         $('.pos-order-type-btn').removeClass('btn-dark').addClass('btn-outline-dark');
         $('.pos-order-type-btn[data-value="delivery"]').removeClass('btn-outline-dark').addClass('btn-dark');
         $('.pos-delivery-section').removeClass('d-none');
-        // Only reload if customer changed or first load
+        // Show COD option; default to COD if payment type is walk-in cash
+        $('#pos-cod-option').removeClass('d-none');
+        if (!window.posDeliveryState.paymentType || window.posDeliveryState.paymentType === 'cash') {
+            window.posDeliveryState.paymentType = 'cash_on_delivery';
+        }
+        $('input[name="type"][value="' + window.posDeliveryState.paymentType + '"]').prop('checked', true).trigger('change');
+        // Only reload dropdowns if customer changed or first load
         let currentCid = String($('#pos-delivery-urls').data('customer-id') || 0);
         let customerChanged = window.posDeliveryState.loadedCustomerId !== currentCid;
         if (!window.posDeliveryState.dropdownsLoaded || customerChanged) {
@@ -403,6 +413,12 @@ function posDeliveryInit() {
         $('.pos-order-type-btn').removeClass('btn-dark').addClass('btn-outline-dark');
         $('.pos-order-type-btn[data-value="walk_in"]').removeClass('btn-outline-dark').addClass('btn-dark');
         $('.pos-delivery-section').addClass('d-none');
+        // Hide COD option; revert to cash if COD was selected
+        $('#pos-cod-option').addClass('d-none');
+        if (window.posDeliveryState.paymentType === 'cash_on_delivery') {
+            window.posDeliveryState.paymentType = 'cash';
+            $('#cash').prop('checked', true).trigger('change');
+        }
     }
 
     syncPosDeliveryToHiddenInputs();
@@ -415,12 +431,18 @@ function posDeliveryInit() {
         window.posDeliveryState.type = $(this).data('value');
         if ($(this).data('value') === 'delivery') {
             $('.pos-delivery-section').removeClass('d-none');
+            $('#pos-cod-option').removeClass('d-none');
+            window.posDeliveryState.paymentType = 'cash_on_delivery';
+            $('#cod').prop('checked', true).trigger('change');
             let cid = String($('#pos-delivery-urls').data('customer-id') || 0);
             window.posDeliveryState.loadedCustomerId = cid;
             window.posDeliveryState.dropdownsLoaded = true;
             loadPosDeliveryDropdowns();
         } else {
             $('.pos-delivery-section').addClass('d-none');
+            $('#pos-cod-option').addClass('d-none');
+            window.posDeliveryState.paymentType = 'cash';
+            $('#cash').prop('checked', true).trigger('change');
             window.posDeliveryState.shippingCost = 0;
             window.posDeliveryState.shippingMethodId = null;
             window.posDeliveryState.addressId = null;
@@ -596,12 +618,16 @@ function basicFunctionalityForCartSummary() {
     $(".option-buttons input[name='type']").on("change", function () {
         renderCustomerAmountForPay();
         let type = $(this).val();
+        window.posDeliveryState.paymentType = type;
         if ($(this).is(":checked")) {
             $(".cash-change-section").hide();
             if (type === "cash") {
                 $(".cash-change-amount").show();
             } else if (type === "card") {
                 $(".cash-change-card").removeClass("d-none").show();
+            } else if (type === "cash_on_delivery") {
+                $(".cash-change-cod").removeClass("d-none").show();
+                $(".pos-paid-amount-element").removeAttr("min").val(0);
             } else if (type === "wallet") {
                 let insufficientBalanceMessage = $(
                     "#message-insufficient-balance"

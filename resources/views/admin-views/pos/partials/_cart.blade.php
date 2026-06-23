@@ -146,6 +146,10 @@
                             <label for="wallet" class="btn btn-outline-dark btn-sm mb-0">{{ translate('wallet') }}</label>
                         </li>
                         @endif
+                        <li id="pos-cod-option" class="d-none">
+                            <input type="radio" value="cash_on_delivery" id="cod" name="type" hidden>
+                            <label for="cod" class="btn btn-outline-dark btn-sm mb-0">{{ translate('cash_on_delivery') }}</label>
+                        </li>
                     </ul>
                 </div>
                 <div class="cash-change-amount cash-change-section">
@@ -189,6 +193,12 @@
                     <div class="d-flex gap-2 justify-content-between align-items-center">
                         <dt class="text-capitalize font-weight-normal">{{ translate('Change_Amount') }} : </dt>
                         <dd class="font-weight-bold title-color">{{ setCurrencySymbol(amount: 0) }}</dd>
+                    </div>
+                </div>
+                <div class="cash-change-cod cash-change-section d-none">
+                    <div class="d-flex gap-2 justify-content-between align-items-center pt-4">
+                        <dt class="text-capitalize font-weight-normal">{{ translate('Paid_Amount') }} :</dt>
+                        <dd><span class="text-muted small">{{ translate('payment_on_delivery') }}</span></dd>
                     </div>
                 </div>
 

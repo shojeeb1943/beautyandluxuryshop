@@ -380,6 +380,69 @@
             </div>
 
             <div class="col-lg-4 col-xl-3">
+                @php($isPosDelivery = $order->delivery_type == 'self_delivery' || !is_null($order->shipping_address_data))
+
+                @if($isPosDelivery)
+                <div class="card mb-3">
+                    <div class="card-body text-capitalize d-flex flex-column gap-4">
+                        <div class="d-flex flex-column align-items-center gap-2">
+                            <h2 class="mb-0 text-center">{{ translate('order_&_Shipping_Info') }}</h2>
+                        </div>
+
+                        <div>
+                            <label class="form-label fw-semibold">{{ translate('change_order_status') }}</label>
+                            <div class="select-wrapper">
+                                <select name="order_status" id="order_status" class="status form-select" data-id="{{ $order['id'] }}">
+                                    <option value="pending"          {{ $order->order_status == 'pending'          ? 'selected' : '' }}>{{ translate('pending') }}</option>
+                                    <option value="confirmed"        {{ $order->order_status == 'confirmed'        ? 'selected' : '' }}>{{ translate('confirmed') }}</option>
+                                    <option value="processing"       {{ $order->order_status == 'processing'       ? 'selected' : '' }}>{{ translate('packaging') }}</option>
+                                    <option value="out_for_delivery" {{ $order->order_status == 'out_for_delivery' ? 'selected' : '' }}>{{ translate('out_for_delivery') }}</option>
+                                    <option value="delivered"        {{ $order->order_status == 'delivered'        ? 'selected' : '' }}>{{ translate('delivered') }}</option>
+                                    <option value="returned"         {{ $order->order_status == 'returned'         ? 'selected' : '' }}>{{ translate('returned') }}</option>
+                                    <option value="failed"           {{ $order->order_status == 'failed'           ? 'selected' : '' }}>{{ translate('failed_to_Deliver') }}</option>
+                                    <option value="canceled"         {{ $order->order_status == 'canceled'         ? 'selected' : '' }}>{{ translate('canceled') }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center gap-2 form-control h-auto flex-wrap">
+                            <span class="text-dark">{{ translate('payment_status') }}</span>
+                            <div class="d-flex justify-content-end align-items-center gap-2">
+                                <span class="text-primary fw-bold payment-status-text">
+                                    {{ $order->payment_status == 'paid' ? translate('paid') : translate('unpaid') }}
+                                </span>
+                                <label class="switcher payment-status-text mb-0">
+                                    <input class="switcher_input payment-status" type="checkbox" name="status"
+                                           data-id="{{ $order->id }}"
+                                           value="{{ $order->payment_status }}"
+                                           {{ $order->payment_status == 'paid' ? 'checked' : '' }}>
+                                    <span class="switcher_control"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if($order->shipping_address_data)
+                    @php($shippingAddr = is_string($order->shipping_address_data) ? json_decode($order->shipping_address_data, true) : (array)$order->shipping_address_data)
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h4 class="mb-3 d-flex align-items-center gap-2">
+                                <i class="fi fi-rr-marker"></i>
+                                {{ translate('shipping_address') }}
+                            </h4>
+                            <address class="mb-0">
+                                <strong>{{ $shippingAddr['contact_person_name'] ?? '' }}</strong><br>
+                                {{ $shippingAddr['address'] ?? '' }}<br>
+                                {{ $shippingAddr['city'] ?? '' }}@if($shippingAddr['zip'] ?? ''), {{ $shippingAddr['zip'] }}@endif<br>
+                                {{ $shippingAddr['country'] ?? '' }}<br>
+                                <abbr title="Phone">P:</abbr> {{ $shippingAddr['phone'] ?? '' }}
+                            </address>
+                        </div>
+                    </div>
+                @endif
+                @endif {{-- end $isPosDelivery --}}
+
                 <div class="card">
 
                     @if($order->customer)
@@ -440,5 +503,23 @@
         </div>
     </div>
 
-    <span id="route-admin-orders-payment-status" data-url="{{ route('admin.orders.payment-status') }}"></span>
+    {{-- Required by order.js for status/payment AJAX --}}
+    <span id="order-status-url"             data-url="{{ route('admin.orders.status') }}"></span>
+    <span id="payment-status-url"           data-url="{{ route('admin.orders.payment-status') }}"></span>
+    <span id="message-status-title-text"    data-text="{{ translate('are_you_sure') }}?"></span>
+    <span id="message-status-subtitle-text" data-text="{{ translate('you_will_not_be_able_to_revert_this') }}!"></span>
+    <span id="message-status-confirm-text"  data-text="{{ translate('yes_change_it') }}!"></span>
+    <span id="message-status-cancel-text"   data-text="{{ translate('cancel') }}"></span>
+    <span id="message-status-success-text"  data-text="{{ translate('status_change_successfully') }}"></span>
+    <span id="message-status-warning-text"  data-text="{{ translate('account_has_been_deleted_you_can_not_change_the_status') }}"></span>
+    <span id="message-order-status-delivered-text" data-text="{{ translate('order_is_already_delivered_you_can_not_change_it') }}!"></span>
+    <span id="message-order-status-paid-first-text" data-text="{{ translate('before_delivered_you_need_to_make_payment_status_paid') }}!"></span>
+    <span id="payment-status-message"
+          data-title="{{ translate('confirm_payments_before_change_the_status') }}."
+          data-message="{{ translate('change_the_status_paid_only_when_you_received_the_payment_from_customer').translate('_once_you_change_the_status_to_paid').','.translate('_you_cannot_change_the_status_again').'!' }}"></span>
+    <span id="payment-status-alert-message" data-message="{{ translate('when_payment_status_paid_then_you_can`t_change_payment_status_paid_to_unpaid') }}."></span>
 @endsection
+
+@push('script')
+    <script src="{{ dynamicAsset(path: 'public/assets/back-end/js/admin/order.js') }}"></script>
+@endpush

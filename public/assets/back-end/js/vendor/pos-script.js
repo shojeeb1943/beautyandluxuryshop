@@ -352,13 +352,14 @@ function loadPosDeliveryDropdowns() {
 }
 
 function posDeliveryInit() {
-    if (!$('.pos-order-type').length) {
+    if (!$('.pos-order-type-btn').length) {
         return;
     }
 
-    // Restore radio + delivery section visibility
+    // Restore button active state + delivery section visibility
     if (window.posDeliveryState.type === 'delivery') {
-        $('#pos_delivery').prop('checked', true);
+        $('.pos-order-type-btn').removeClass('btn-dark').addClass('btn-outline-dark');
+        $('.pos-order-type-btn[data-value="delivery"]').removeClass('btn-outline-dark').addClass('btn-dark');
         $('.pos-delivery-section').removeClass('d-none');
         // Only reload if customer changed or first load
         let currentCid = String($('#pos-delivery-urls').data('customer-id') || 0);
@@ -375,7 +376,8 @@ function posDeliveryInit() {
             loadPosDeliveryDropdowns();
         }
     } else {
-        $('#pos_walk_in').prop('checked', true);
+        $('.pos-order-type-btn').removeClass('btn-dark').addClass('btn-outline-dark');
+        $('.pos-order-type-btn[data-value="walk_in"]').removeClass('btn-outline-dark').addClass('btn-dark');
         $('.pos-delivery-section').addClass('d-none');
     }
 
@@ -383,9 +385,11 @@ function posDeliveryInit() {
     posRecalcTotalWithShipping();
 
     // Toggle handler
-    $('.pos-order-type').off('change.posdel').on('change.posdel', function () {
-        window.posDeliveryState.type = $(this).val();
-        if ($(this).val() === 'delivery') {
+    $('.pos-order-type-btn').off('click.posdel').on('click.posdel', function () {
+        $('.pos-order-type-btn').removeClass('btn-dark').addClass('btn-outline-dark');
+        $(this).removeClass('btn-outline-dark').addClass('btn-dark');
+        window.posDeliveryState.type = $(this).data('value');
+        if ($(this).data('value') === 'delivery') {
             $('.pos-delivery-section').removeClass('d-none');
             let cid = String($('#pos-delivery-urls').data('customer-id') || 0);
             window.posDeliveryState.loadedCustomerId = cid;

@@ -75,12 +75,10 @@
     <div class="text-dark font-weight-bold mb-2">{{ translate('order_type') }}:</div>
     <ul class="list-unstyled d-flex flex-wrap gap-2 align-items-center pos-order-type-buttons mb-0">
         <li>
-            <input type="radio" id="pos_walk_in" class="pos-order-type" value="walk_in" name="pos_order_type_ui" hidden checked>
-            <label for="pos_walk_in" class="btn btn--bordered btn--bordered-black px-4 mb-0">{{ translate('walk_in') }}</label>
+            <button type="button" class="btn btn-dark btn-sm mb-0 pos-order-type-btn" data-value="walk_in">{{ translate('walk_in') }}</button>
         </li>
         <li>
-            <input type="radio" id="pos_delivery" class="pos-order-type" value="delivery" name="pos_order_type_ui" hidden>
-            <label for="pos_delivery" class="btn btn--bordered btn--bordered-black px-4 mb-0">{{ translate('home_delivery') }}</label>
+            <button type="button" class="btn btn-outline-dark btn-sm mb-0 pos-order-type-btn" data-value="delivery">{{ translate('home_delivery') }}</button>
         </li>
     </ul>
 </div>

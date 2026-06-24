@@ -95,7 +95,7 @@
             @endif
 
             @php($coupon_dis = 0)
-            @if (auth('customer')->check())
+            @if (auth('customer')->check() || session()->has('guest_id'))
 
                 @if (session()->has('coupon_discount'))
                     @php($couponDiscount = session()->has('coupon_discount') ? session('coupon_discount') : 0)

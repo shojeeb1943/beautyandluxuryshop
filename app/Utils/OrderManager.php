@@ -346,12 +346,18 @@ class OrderManager
     {
         $user = Helpers::getCustomerInformation($request);
         if ($user == 'offline') {
-            return [
-                'status' => false,
-                'messages' => translate('Coupon_not_aplicable'),
-            ];
+            if (session()->has('guest_id')) {
+                $couponUserId = session('guest_id');
+            } else {
+                return [
+                    'status' => false,
+                    'messages' => translate('Coupon_not_aplicable'),
+                ];
+            }
+        } else {
+            $couponUserId = $user['id'];
         }
-        $couponLimit = Order::where(['customer_id' => $user['id'], 'coupon_code' => $couponCode])
+        $couponLimit = Order::where(['customer_id' => $couponUserId, 'coupon_code' => $couponCode])
             ->groupBy('order_group_id')->get()->count();
 
         $firstCoupon = Coupon::where(['code' => $couponCode])
@@ -369,7 +375,7 @@ class OrderManager
         $coupon = $firstCoupon['coupon_type'] == 'first_order' ? $firstCoupon : ($firstCoupon['limit'] > $couponLimit ? $firstCoupon : null);
 
         if ($coupon && $coupon['coupon_type'] == 'first_order') {
-            if (Order::where(['customer_id' => $user['id']])->count() > 0) {
+            if (Order::where(['customer_id' => $couponUserId])->count() > 0) {
                 return [
                     'status' => false,
                     'messages' => translate('sorry_this_coupon_is_not_valid_for_this_user') . '!',
@@ -389,7 +395,7 @@ class OrderManager
         $couponDiscountType = $coupon->discount_type;
         $couponDiscount = $coupon->discount;
 
-        if ($coupon->coupon_type != 'first_order' && $coupon['customer_id'] != 0 && $coupon['customer_id'] != $user['id']) {
+        if ($coupon->coupon_type != 'first_order' && $coupon['customer_id'] != 0 && $coupon['customer_id'] != $couponUserId) {
             return [
                 'status' => false,
                 'messages' => translate('coupon_not_valid')
@@ -467,7 +473,8 @@ class OrderManager
     public static function getGroupWiseCouponArray($request, $couponCode, $applicableAmount, $discountAmount, $groupId, $cartListGroup): array
     {
         $user = Helpers::getCustomerInformation($request);
-        if ($applicableAmount <= 0 || $discountAmount <= 0 || $user == 'offline') {
+        $couponUserId = ($user == 'offline') ? session('guest_id') : $user['id'];
+        if ($applicableAmount <= 0 || $discountAmount <= 0 || !$couponUserId) {
             return [
                 'discount' => 0,
                 'coupon_bearer' => 'inhouse',
@@ -476,7 +483,7 @@ class OrderManager
             ];
         }
 
-        $couponLimit = Order::where(['customer_id' => $user['id'], 'coupon_code' => $couponCode])
+        $couponLimit = Order::where(['customer_id' => $couponUserId, 'coupon_code' => $couponCode])
             ->groupBy('order_group_id')->get()->count();
 
         $firstCoupon = Coupon::where(['code' => $couponCode])

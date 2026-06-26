@@ -478,6 +478,36 @@ class ProductManager
         ];
     }
 
+    public static function getAutocompleteSuggestions(string $name, int $limit = 8)
+    {
+        $cacheKey = 'search_suggest_' . md5(strtolower(trim($name)));
+
+        return Cache::remember($cacheKey, 300, function () use ($name, $limit) {
+            $base = fn() => Product::active()->select(['id', 'name', 'slug', 'thumbnail']);
+
+            $results = $base()
+                ->whereRaw('MATCH(name) AGAINST(? IN BOOLEAN MODE)', ['"' . addslashes($name) . '"*'])
+                ->limit($limit)
+                ->get();
+
+            if ($results->isEmpty()) {
+                $results = $base()
+                    ->where('name', 'like', $name . '%')
+                    ->limit($limit)
+                    ->get();
+            }
+
+            if ($results->isEmpty()) {
+                $results = $base()
+                    ->where('name', 'like', '%' . $name . '%')
+                    ->limit($limit)
+                    ->get();
+            }
+
+            return $results;
+        });
+    }
+
     public static function translated_product_search($name, $category = 'all', $limit = 10, $offset = 1): array
     {
         $name = base64_decode($name);
@@ -1478,7 +1508,28 @@ class ProductManager
             }
         }
         $searchKeyword = str_ireplace(['\'', '"', ',', ';', '<', '>', '?'], ' ', preg_replace('/\s\s+/', ' ', $keyword));
-        $query = $query->orderByRaw("CASE WHEN name LIKE '%$searchKeyword%' THEN 1 ELSE 2 END, LOCATE('$searchKeyword', name), name")->get();
+        $relevanceOrder = "CASE WHEN name LIKE '%$searchKeyword%' THEN 1 ELSE 2 END, LOCATE('$searchKeyword', name), name";
+
+        $needsCollectionSort = ($type == 'translated')
+            || ($searchedProductListSortBy
+                && $searchedProductListSortBy['custom_sorting_status'] == 1
+                && (($searchedProductListSortBy['out_of_stock_product'] ?? '') == 'desc'
+                    || ($searchedProductListSortBy['temporary_close_sorting'] ?? '') == 'desc'));
+
+        if ($dataLimit != 'all' && !$needsCollectionSort) {
+            $currentPage = $offset ?? Paginator::resolveCurrentPage('page');
+            $totalSize = (clone $query)->count();
+            $items = $query->orderByRaw($relevanceOrder)
+                ->skip(($currentPage - 1) * $dataLimit)
+                ->take($dataLimit)
+                ->get();
+            return new LengthAwarePaginator(items: $items, total: $totalSize, perPage: $dataLimit, currentPage: $currentPage, options: [
+                'path' => Paginator::resolveCurrentPath(),
+                'appends' => $appends,
+            ]);
+        }
+
+        $query = $query->orderByRaw($relevanceOrder)->get();
 
         if ($searchedProductListSortBy && ($searchedProductListSortBy['custom_sorting_status'] == 1 && $searchedProductListSortBy['out_of_stock_product'] == 'desc')) {
             $query = self::mergeStockAndOutOfStockProduct(query: $query);

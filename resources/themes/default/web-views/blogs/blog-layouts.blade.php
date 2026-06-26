@@ -108,6 +108,7 @@
 <span id="route-pay-offline-method-list" data-url="{{ route('pay-offline-method-list') }}"></span>
 <span id="route-customer-auth-sign-up" data-url="{{ route('customer.auth.sign-up') }}"></span>
 <span id="route-searched-products" data-url="{{ url('/searched-products') }}"></span>
+<span id="route-search-suggestions" data-url="{{ route('search.suggestions') }}"></span>
 <span id="route-currency-change" data-url="{{ route('currency.change') }}"></span>
 <span id="route-store-wishlist" data-url="{{ route('store-wishlist') }}"></span>
 <span id="route-delete-wishlist" data-url="{{ route('delete-wishlist') }}"></span>

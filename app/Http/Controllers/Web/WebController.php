@@ -360,6 +360,20 @@ class WebController extends Controller
         ]);
     }
 
+    public function getSearchSuggestions(Request $request): JsonResponse
+    {
+        $request->validate(['name' => 'required|min:2']);
+
+        $products = ProductManager::getAutocompleteSuggestions($request->input('name'));
+
+        return response()->json([
+            'result' => view(VIEW_FILE_NAMES['product_search_result'], [
+                'products'        => $products,
+                'seller_products' => collect(),
+            ])->render(),
+        ]);
+    }
+
     public function getSearchedProductsForCompareList(Request $request): JsonResponse
     {
         $request->validate([

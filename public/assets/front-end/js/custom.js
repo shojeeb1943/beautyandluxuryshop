@@ -837,16 +837,27 @@ function order_again(orderId) {
     });
 }
 
+let _searchMobileDebounceTimer = null;
+let _searchMobilePendingXHR = null;
+
 $(".search-bar-input-mobile").keyup(function () {
     $(".search-card").css("display", "block");
     let name = $(".search-bar-input-mobile").val();
-    if (name.length > 0) {
-        $.get({
-            url: $("#route-searched-products").data("url"),
+
+    clearTimeout(_searchMobileDebounceTimer);
+    if (_searchMobilePendingXHR) { _searchMobilePendingXHR.abort(); _searchMobilePendingXHR = null; }
+
+    if (name.length < 2) {
+        $(".search-result-box").empty();
+        $("#loading").hide();
+        return;
+    }
+
+    _searchMobileDebounceTimer = setTimeout(function () {
+        _searchMobilePendingXHR = $.get({
+            url: $("#route-search-suggestions").data("url"),
             dataType: "json",
-            data: {
-                name: name,
-            },
+            data: { name: name },
             beforeSend: function () {
                 $("#loading").show();
             },
@@ -860,25 +871,35 @@ $(".search-bar-input-mobile").keyup(function () {
             },
             complete: function () {
                 $("#loading").hide();
+                _searchMobilePendingXHR = null;
             },
         });
-    } else {
-        $(".search-result-box").empty();
-    }
+    }, 300);
 });
+
+let _searchDebounceTimer = null;
+let _searchPendingXHR = null;
 
 $(".search-bar-input").keyup(function () {
     let searchBarInputElement = $(".search-bar-input");
     $(".search-card").css("display", "block");
     let name = searchBarInputElement.val();
     searchBarInputElement.data("given-value", name);
-    if (name.length > 0) {
-        $.get({
-            url: $("#route-searched-products").data("url"),
+
+    clearTimeout(_searchDebounceTimer);
+    if (_searchPendingXHR) { _searchPendingXHR.abort(); _searchPendingXHR = null; }
+
+    if (name.length < 2) {
+        $(".search-result-box").empty();
+        $("#loading").hide();
+        return;
+    }
+
+    _searchDebounceTimer = setTimeout(function () {
+        _searchPendingXHR = $.get({
+            url: $("#route-search-suggestions").data("url"),
             dataType: "json",
-            data: {
-                name: name,
-            },
+            data: { name: name },
             beforeSend: function () {
                 $("#loading").show();
             },
@@ -895,11 +916,10 @@ $(".search-bar-input").keyup(function () {
             },
             complete: function () {
                 $("#loading").hide();
+                _searchPendingXHR = null;
             },
         });
-    } else {
-        $(".search-result-box").empty();
-    }
+    }, 300);
 });
 
 $(".clickable").click(function () {

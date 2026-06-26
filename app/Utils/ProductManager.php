@@ -485,10 +485,14 @@ class ProductManager
         return Cache::remember($cacheKey, 300, function () use ($name, $limit) {
             $base = fn() => Product::active()->select(['id', 'name', 'slug', 'thumbnail']);
 
-            $results = $base()
-                ->whereRaw('MATCH(name) AGAINST(? IN BOOLEAN MODE)', ['"' . addslashes($name) . '"*'])
-                ->limit($limit)
-                ->get();
+            try {
+                $results = $base()
+                    ->whereRaw('MATCH(name) AGAINST(? IN BOOLEAN MODE)', ['"' . addslashes($name) . '"*'])
+                    ->limit($limit)
+                    ->get();
+            } catch (\Exception $e) {
+                $results = collect();
+            }
 
             if ($results->isEmpty()) {
                 $results = $base()

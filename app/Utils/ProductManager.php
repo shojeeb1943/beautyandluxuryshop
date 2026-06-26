@@ -484,10 +484,14 @@ class ProductManager
 
         return Cache::remember($cacheKey, 300, function () use ($name, $limit) {
             $base = fn() => Product::active()->select(['id', 'name', 'slug', 'thumbnail']);
+            $withTags = fn($q) => $q->orWhereHas('tags', fn($tq) => $tq->where('tag', 'like', '%' . $name . '%'));
 
             try {
                 $results = $base()
-                    ->whereRaw('MATCH(name) AGAINST(? IN BOOLEAN MODE)', ['"' . addslashes($name) . '"*'])
+                    ->where(function ($q) use ($name, $withTags) {
+                        $q->whereRaw('MATCH(name) AGAINST(? IN BOOLEAN MODE)', ['"' . addslashes($name) . '"*']);
+                        $withTags($q);
+                    })
                     ->limit($limit)
                     ->get();
             } catch (\Exception $e) {
@@ -496,14 +500,20 @@ class ProductManager
 
             if ($results->isEmpty()) {
                 $results = $base()
-                    ->where('name', 'like', $name . '%')
+                    ->where(function ($q) use ($name, $withTags) {
+                        $q->where('name', 'like', $name . '%');
+                        $withTags($q);
+                    })
                     ->limit($limit)
                     ->get();
             }
 
             if ($results->isEmpty()) {
                 $results = $base()
-                    ->where('name', 'like', '%' . $name . '%')
+                    ->where(function ($q) use ($name, $withTags) {
+                        $q->where('name', 'like', '%' . $name . '%');
+                        $withTags($q);
+                    })
                     ->limit($limit)
                     ->get();
             }

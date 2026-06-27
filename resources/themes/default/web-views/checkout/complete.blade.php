@@ -61,7 +61,12 @@
     @if(isset($web_config['analytic_scripts']) && isset($order_ids) && count($order_ids ?? []) > 0)
         @php
             $pixelOrderTotal = round(\App\Models\Order::whereIn('id', $order_ids)->sum('order_amount'), 2);
-            $pixelOrderIds   = array_map('strval', $order_ids);
+            $pixelOrderIds   = \App\Models\OrderDetail::whereIn('order_id', $order_ids)
+                ->pluck('product_id')
+                ->unique()
+                ->map(fn($id) => (string)$id)
+                ->values()
+                ->toArray();
         @endphp
         @foreach($web_config['analytic_scripts'] as $analyticScript)
             @if($analyticScript['is_active'] && $analyticScript['type'] == 'meta_pixel' && $analyticScript['script_id'])

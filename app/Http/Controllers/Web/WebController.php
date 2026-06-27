@@ -872,6 +872,12 @@ class WebController extends Controller
         if (!empty($order_ids) && !session('capi_purchase_sent_' . implode('_', $order_ids))) {
             try {
                 $orderTotal = \App\Models\Order::whereIn('id', $order_ids)->sum('order_amount');
+                $productIds = \App\Models\OrderDetail::whereIn('order_id', $order_ids)
+                    ->pluck('product_id')
+                    ->unique()
+                    ->map(fn($id) => (string)$id)
+                    ->values()
+                    ->toArray();
                 $customer   = auth('customer')->user();
                 $userData   = \App\Services\MetaConversionsApiService::buildUserData([
                     'email' => $customer?->email,
@@ -883,9 +889,9 @@ class WebController extends Controller
                     customData:     [
                         'value'        => round($orderTotal, 2),
                         'currency'     => strtoupper(\App\Utils\Helpers::currency_code()),
-                        'content_ids'  => array_map('strval', $order_ids),
+                        'content_ids'  => $productIds,
                         'content_type' => 'product',
-                        'num_items'    => count($order_ids),
+                        'num_items'    => count($productIds),
                     ],
                     eventSourceUrl: url()->current(),
                     userData:       $userData

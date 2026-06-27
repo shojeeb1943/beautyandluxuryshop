@@ -14,10 +14,13 @@ class FacebookFeedController extends Controller
         $currencyCode = $this->getCurrencyCode();
         $items = collect();
 
-        Product::active()->with(['brand', 'category'])->get()->each(function ($p) use (&$items, $currencyCode) {
-            $variations = json_decode($p->variation ?? '[]', true);
-            $baseImage  = $p->thumbnail_full_url['path'] ?? '';
-            $baseLink   = url('/product/' . $p->slug);
+        Product::with(['brand', 'category'])
+            ->where('request_status', 1)
+            ->get()->each(function ($p) use (&$items, $currencyCode) {
+            $variations   = json_decode($p->variation ?? '[]', true);
+            $baseImage    = $p->thumbnail_full_url['path'] ?? '';
+            $baseLink     = url('/product/' . $p->slug);
+            $isActive     = (int)$p->status === 1;
             $common = [
                 'name'        => $p->name,
                 'description' => mb_substr(strip_tags($p->details ?? ''), 0, 5000),
@@ -37,7 +40,7 @@ class FacebookFeedController extends Controller
                         'id'            => $p->id . '-' . str_replace(' ', '-', $type),
                         'item_group_id' => $p->id,
                         'price'         => number_format((float)$price, 2) . ' ' . $currencyCode,
-                        'availability'  => (int)$qty > 0 ? 'in stock' : 'out of stock',
+                        'availability'  => ($isActive && (int)$qty > 0) ? 'in stock' : 'out of stock',
                         'sku'           => $sku,
                     ]));
                 }
@@ -46,7 +49,7 @@ class FacebookFeedController extends Controller
                     'id'            => $p->id,
                     'item_group_id' => null,
                     'price'         => number_format((float)$p->unit_price, 2) . ' ' . $currencyCode,
-                    'availability'  => $p->current_stock > 0 ? 'in stock' : 'out of stock',
+                    'availability'  => ($isActive && $p->current_stock > 0) ? 'in stock' : 'out of stock',
                     'sku'           => $p->code ?? '',
                 ]));
             }

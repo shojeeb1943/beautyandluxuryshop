@@ -9,6 +9,9 @@
     <meta name="msvalidate.01" content="{{ getWebConfig('bing_webmaster_code') }}">
     <meta name="baidu-site-verification" content="{{ getWebConfig('baidu_webmaster_code') }}">
     <meta name="yandex-verification" content="{{ getWebConfig('yandex_webmaster_code') }}">
+    @if(getWebConfig('facebook_domain_verification_code'))
+    <meta name="facebook-domain-verification" content="{{ getWebConfig('facebook_domain_verification_code') }}" />
+    @endif
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta http-equiv="content-type" content="text/html; charset=utf-8"/>

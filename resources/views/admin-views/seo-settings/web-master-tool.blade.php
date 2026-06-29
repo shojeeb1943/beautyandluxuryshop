@@ -68,7 +68,7 @@
                                             <input type="text" name="bing_webmaster_code" value="{{$webMasterToolData['bing_webmaster_code']}}" placeholder="{{translate('enter_your_HTML_code_or_ID')}}" class="form-control">
                                             <div class="bg-info bg-opacity-10 fs-12 px-12 py-10 text-dark rounded d-flex gap-2 align-items-center">
                                                 <i class="fi fi-sr-lightbulb-on text-info"></i>
-                                                <span>&lt;meta name= “msvalidate.01” content=”your-id” /&gt;</span>
+                                                <span>&lt;meta name= "msvalidate.01" content="your-id" /&gt;</span>
                                             </div>
                                         </div>
                                     </div>
@@ -88,47 +88,47 @@
                                             <input type="text"  name="baidu_webmaster_code" value="{{$webMasterToolData['baidu_webmaster_code']}}" placeholder="{{translate('enter_your_HTML_code_or_ID')}}" class="form-control">
                                             <div class="bg-info bg-opacity-10 fs-12 px-12 py-10 text-dark rounded d-flex gap-2 align-items-center">
                                                 <i class="fi fi-sr-lightbulb-on text-info"></i>
-                                                <span>&lt;meta name= “baidu-site-verification” content=”your-id” /&gt;</span>
+                                                <span>&lt;meta name= "baidu-site-verification" content="your-id" /&gt;</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class=”card shadow-2”>
-                            <div class=”card-body”>
-                                <div class=”row g-3”>
-                                    <div class=”col-md-4 col-xl-3”>
-                                        <img src=”{{ dynamicAsset('public/assets/new/back-end/img/yandex-1.png') }}” alt=”” width=”30”>
-                                        <h3 class=”mt-3”>{{translate('yandex_webmaster_tool')}}</h3>
-                                        <p class=”mb-0 fs-12”>{{ translate('optimize_websites_performance_indexing_status_and_search_visibility') }}</p>
+                        <div class="card shadow-2">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-4 col-xl-3">
+                                        <img src="{{ dynamicAsset('public/assets/new/back-end/img/yandex-1.png') }}" alt="" width="30">
+                                        <h3 class="mt-3">{{translate('yandex_webmaster_tool')}}</h3>
+                                        <p class="mb-0 fs-12">{{ translate('optimize_websites_performance_indexing_status_and_search_visibility') }}</p>
                                     </div>
-                                    <div class=”col-md-8 col-xl-9”>
-                                        <div class=”p-12 p-sm-20 bg-section rounded d-flex flex-column gap-3”>
-                                            <input type=”text”  name=”yandex_webmaster_code” value=”{{$webMasterToolData['yandex_webmaster_code']}}”  placeholder=”{{translate('enter_your_HTML_code_or_ID')}}” class=”form-control”>
-                                            <div class=”bg-info bg-opacity-10 fs-12 px-12 py-10 text-dark rounded d-flex gap-2 align-items-center”>
-                                                <i class=”fi fi-sr-lightbulb-on text-info”></i>
-                                                <span> &lt;meta name= “yandex-verification” content=”your-id” /&gt;</span>
+                                    <div class="col-md-8 col-xl-9">
+                                        <div class="p-12 p-sm-20 bg-section rounded d-flex flex-column gap-3">
+                                            <input type="text"  name="yandex_webmaster_code" value="{{$webMasterToolData['yandex_webmaster_code']}}"  placeholder="{{translate('enter_your_HTML_code_or_ID')}}" class="form-control">
+                                            <div class="bg-info bg-opacity-10 fs-12 px-12 py-10 text-dark rounded d-flex gap-2 align-items-center">
+                                                <i class="fi fi-sr-lightbulb-on text-info"></i>
+                                                <span> &lt;meta name= "yandex-verification" content="your-id" /&gt;</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class=”card shadow-2”>
-                            <div class=”card-body”>
-                                <div class=”row g-3”>
-                                    <div class=”col-md-4 col-xl-3”>
-                                        <img src=”{{ dynamicAsset(path: 'public/assets/new/back-end/img/svg/facebook.svg') }}” alt=”” width=”30”>
-                                        <h3 class=”mt-3”>{{translate('Meta_Domain_Verification')}}</h3>
-                                        <p class=”mb-0 fs-12”>{{ translate('verify_your_domain_with_meta_business_manager_to_enable_conversions_api_and_improve_ad_performance') }}</p>
+                        <div class="card shadow-2">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-4 col-xl-3">
+                                        <img src="{{ dynamicAsset(path: 'public/assets/new/back-end/img/svg/facebook.svg') }}" alt="" width="30">
+                                        <h3 class="mt-3">{{translate('Meta_Domain_Verification')}}</h3>
+                                        <p class="mb-0 fs-12">{{ translate('verify_your_domain_with_meta_business_manager_to_enable_conversions_api_and_improve_ad_performance') }}</p>
                                     </div>
-                                    <div class=”col-md-8 col-xl-9”>
-                                        <div class=”p-12 p-sm-20 bg-section rounded d-flex flex-column gap-3”>
-                                            <input type=”text” name=”facebook_domain_verification_code” value=”{{$webMasterToolData['facebook_domain_verification_code']}}” placeholder=”{{translate('enter_your_HTML_code_or_ID')}}” class=”form-control”>
-                                            <div class=”bg-info bg-opacity-10 fs-12 px-12 py-10 text-dark rounded d-flex gap-2 align-items-center”>
-                                                <i class=”fi fi-sr-lightbulb-on text-info”></i>
-                                                <span>&lt;meta name=”facebook-domain-verification” content=”your-id” /&gt;</span>
+                                    <div class="col-md-8 col-xl-9">
+                                        <div class="p-12 p-sm-20 bg-section rounded d-flex flex-column gap-3">
+                                            <input type="text" name="facebook_domain_verification_code" value="{{$webMasterToolData['facebook_domain_verification_code']}}" placeholder="{{translate('enter_your_HTML_code_or_ID')}}" class="form-control">
+                                            <div class="bg-info bg-opacity-10 fs-12 px-12 py-10 text-dark rounded d-flex gap-2 align-items-center">
+                                                <i class="fi fi-sr-lightbulb-on text-info"></i>
+                                                <span>&lt;meta name="facebook-domain-verification" content="your-id" /&gt;</span>
                                             </div>
                                         </div>
                                     </div>

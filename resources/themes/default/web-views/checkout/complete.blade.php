@@ -77,7 +77,7 @@
                         content_type: 'product',
                         value: {{ $pixelOrderTotal }},
                         currency: window.PIXEL_CURRENCY || 'BDT'
-                    });
+                    }@if(!empty($capiEventId)), { eventID: '{{ $capiEventId }}' }@endif);
                 }
             </script>
             @endif

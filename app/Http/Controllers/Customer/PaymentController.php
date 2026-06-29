@@ -228,7 +228,17 @@ class PaymentController extends Controller
                 Toastr::success(translate('Payment_success'));
                 $isNewCustomerInSession = session('newCustomerRegister');
                 session()->forget('newCustomerRegister');
-                return view(VIEW_FILE_NAMES['order_complete'], compact('isNewCustomerInSession'));
+
+                $orderIds    = session('digital_payment_order_ids');
+                $capiEventId = session('digital_payment_capi_event_id');
+                session()->forget('digital_payment_order_ids');
+                session()->forget('digital_payment_capi_event_id');
+
+                return view(VIEW_FILE_NAMES['order_complete'], [
+                    'isNewCustomerInSession' => $isNewCustomerInSession,
+                    'order_ids'              => $orderIds,
+                    'capiEventId'            => $capiEventId,
+                ]);
             }
         } else {
             if (session()->has('payment_mode') && session('payment_mode') == 'app') {
@@ -238,7 +248,6 @@ class PaymentController extends Controller
                 return redirect(url('/'));
             }
         }
-
     }
 
     public function getCustomerPaymentRequest(Request $request, $orderAdditionalData = []): mixed

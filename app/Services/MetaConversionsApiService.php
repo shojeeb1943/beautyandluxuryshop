@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 class MetaConversionsApiService
 {
-    private const API_VERSION = 'v19.0';
+    private const API_VERSION = 'v22.0';
     private const API_URL = 'https://graph.facebook.com';
 
     public static function sendEvent(

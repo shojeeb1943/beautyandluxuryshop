@@ -647,32 +647,44 @@ class WebController extends Controller
         session()->forget('newCustomerRegister');
         session()->forget('newRegisterCustomerInfo');
 
+        $capiEventId = null;
         if (!empty($orderIds) && !session('capi_purchase_sent_' . implode('_', $orderIds))) {
             try {
                 $orderTotal = \App\Models\Order::whereIn('id', $orderIds)->sum('order_amount');
-                $customer   = auth('customer')->user();
-                $userData   = \App\Services\MetaConversionsApiService::buildUserData([
+                $productIds = \App\Models\OrderDetail::whereIn('order_id', $orderIds)
+                    ->pluck('product_id')
+                    ->unique()
+                    ->map(fn($id) => (string)$id)
+                    ->values()
+                    ->toArray();
+                $customer    = auth('customer')->user();
+                $userData    = \App\Services\MetaConversionsApiService::buildUserData([
                     'email' => $customer?->email,
                     'phone' => $customer?->phone,
                     'name'  => $customer?->f_name,
                 ]);
+                $capiEventId = 'ev_' . implode('_', $orderIds) . '_' . time();
                 \App\Services\MetaConversionsApiService::sendEvent(
                     eventName:      'Purchase',
                     customData:     [
                         'value'        => round($orderTotal, 2),
                         'currency'     => strtoupper(\App\Utils\Helpers::currency_code()),
-                        'content_ids'  => array_map('strval', $orderIds),
+                        'content_ids'  => $productIds,
                         'content_type' => 'product',
-                        'num_items'    => count($orderIds),
+                        'num_items'    => count($productIds),
                     ],
                     eventSourceUrl: url()->current(),
-                    userData:       $userData
+                    userData:       $userData,
+                    eventId:        $capiEventId,
                 );
                 session(['capi_purchase_sent_' . implode('_', $orderIds) => true]);
             } catch (\Throwable $e) {}
         }
 
         if ($request->ajax()) {
+            if ($capiEventId) {
+                session(['capi_event_id_' . implode('_', $orderIds) => $capiEventId]);
+            }
             return response()->json([
                 'status' => 1,
                 'message' => translate('Order_Placed_Successfully'),
@@ -681,7 +693,8 @@ class WebController extends Controller
         }
 
         return view(VIEW_FILE_NAMES['order_complete'], [
-            'order_ids' => $orderIds,
+            'order_ids'   => $orderIds,
+            'capiEventId' => $capiEventId,
             'isNewCustomerInSession' => $isNewCustomerInSession,
         ]);
     }
@@ -692,10 +705,14 @@ class WebController extends Controller
         session()->forget('newCustomerRegister');
         session()->forget('newRegisterCustomerInfo');
 
-        $orderIds = json_decode($request['orderIds'] ?? '', true);
+        $orderIds    = json_decode($request['orderIds'] ?? '', true);
+        $sessionKey  = 'capi_event_id_' . implode('_', (array)$orderIds);
+        $capiEventId = session($sessionKey);
+        session()->forget($sessionKey);
 
         return view(VIEW_FILE_NAMES['order_complete'], [
-            'order_ids' => $orderIds,
+            'order_ids'   => $orderIds,
+            'capiEventId' => $capiEventId,
             'isNewCustomerInSession' => $isNewCustomerInSession,
         ]);
     }
@@ -869,21 +886,23 @@ class WebController extends Controller
         session()->forget('newCustomerRegister');
         session()->forget('coupon_discount');
 
+        $capiEventId = null;
         if (!empty($order_ids) && !session('capi_purchase_sent_' . implode('_', $order_ids))) {
             try {
-                $orderTotal = \App\Models\Order::whereIn('id', $order_ids)->sum('order_amount');
-                $productIds = \App\Models\OrderDetail::whereIn('order_id', $order_ids)
+                $orderTotal  = \App\Models\Order::whereIn('id', $order_ids)->sum('order_amount');
+                $productIds  = \App\Models\OrderDetail::whereIn('order_id', $order_ids)
                     ->pluck('product_id')
                     ->unique()
                     ->map(fn($id) => (string)$id)
                     ->values()
                     ->toArray();
-                $customer   = auth('customer')->user();
-                $userData   = \App\Services\MetaConversionsApiService::buildUserData([
+                $customer    = auth('customer')->user();
+                $userData    = \App\Services\MetaConversionsApiService::buildUserData([
                     'email' => $customer?->email,
                     'phone' => $customer?->phone,
                     'name'  => $customer?->f_name,
                 ]);
+                $capiEventId = 'ev_' . implode('_', $order_ids) . '_' . time();
                 \App\Services\MetaConversionsApiService::sendEvent(
                     eventName:      'Purchase',
                     customData:     [
@@ -894,13 +913,14 @@ class WebController extends Controller
                         'num_items'    => count($productIds),
                     ],
                     eventSourceUrl: url()->current(),
-                    userData:       $userData
+                    userData:       $userData,
+                    eventId:        $capiEventId,
                 );
                 session(['capi_purchase_sent_' . implode('_', $order_ids) => true]);
             } catch (\Throwable $e) {}
         }
 
-        return view(VIEW_FILE_NAMES['order_complete'], compact('order_ids', 'isNewCustomerInSession'));
+        return view(VIEW_FILE_NAMES['order_complete'], compact('order_ids', 'isNewCustomerInSession') + ['capiEventId' => $capiEventId]);
     }
 
     public function order_placed(): View

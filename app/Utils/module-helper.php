@@ -82,6 +82,42 @@ if (!function_exists('digital_payment_success')) {
             foreach ($orderIds as $orderId) {
                 OrderManager::generateReferBonusForFirstOrder(orderId: $orderId);
             }
+
+            // Fire Meta Conversions API Purchase event for online payments
+            if (!empty($orderIds) && !session('capi_purchase_sent_' . implode('_', $orderIds))) {
+                try {
+                    $orderTotal    = \App\Models\Order::whereIn('id', $orderIds)->sum('order_amount');
+                    $productIds    = \App\Models\OrderDetail::whereIn('order_id', $orderIds)
+                        ->pluck('product_id')
+                        ->unique()
+                        ->map(fn($id) => (string)$id)
+                        ->values()
+                        ->toArray();
+                    $capiCustomer  = $addCustomer ?? User::find($additionalData['customer_id'] ?? null);
+                    $userData      = \App\Services\MetaConversionsApiService::buildUserData([
+                        'email' => $capiCustomer?->email,
+                        'phone' => $capiCustomer?->phone,
+                        'name'  => $capiCustomer?->f_name,
+                    ]);
+                    $capiEventId   = 'ev_' . implode('_', $orderIds) . '_' . time();
+                    \App\Services\MetaConversionsApiService::sendEvent(
+                        eventName:      'Purchase',
+                        customData:     [
+                            'value'        => round($orderTotal, 2),
+                            'currency'     => strtoupper(\App\Utils\Helpers::currency_code()),
+                            'content_ids'  => $productIds,
+                            'content_type' => 'product',
+                            'num_items'    => count($productIds),
+                        ],
+                        eventSourceUrl: url()->current(),
+                        userData:       $userData,
+                        eventId:        $capiEventId,
+                    );
+                    session(['capi_purchase_sent_' . implode('_', $orderIds) => true]);
+                    session(['digital_payment_order_ids'                      => $orderIds]);
+                    session(['digital_payment_capi_event_id'                  => $capiEventId]);
+                } catch (\Throwable $e) {}
+            }
         }
     }
 }

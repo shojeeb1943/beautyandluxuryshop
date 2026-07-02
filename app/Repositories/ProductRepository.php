@@ -225,12 +225,22 @@ class ProductRepository implements ProductRepositoryInterface
                 });
             })
             ->when(isset($filters['search_from']) && $filters['search_from'] == 'pos', function ($query) use ($filters) {
-                $searchKeyword = str_ireplace(['\'', '"', ',', ';', '<', '>', '?'], ' ', preg_replace('/\s\s+/', ' ', $filters['keywords']));
-                return $query->where(function ($query) use ($filters) {
-                    return $query->where('code', 'like', "%{$filters['keywords']}%")
-                        ->orWhere('name', 'like', "%{$filters['keywords']}%");
-                })
-                    ->orderByRaw("CASE WHEN name LIKE '%{$searchKeyword}%' THEN 1 ELSE 2 END, LOCATE('{$searchKeyword}', name), name");
+                $keyword = $filters['keywords'];
+                $searchKeyword = str_ireplace(['\'', '"', ',', ';', '<', '>', '?'], ' ', preg_replace('/\s\s+/', ' ', $keyword));
+                $translationIds = $this->translation
+                    ->where('translationable_type', 'App\Models\Product')
+                    ->where('key', 'name')
+                    ->where('value', 'like', "%{$keyword}%")
+                    ->pluck('translationable_id');
+                return $query->where(function ($query) use ($keyword, $translationIds) {
+                    return $query->where('code', 'like', "%{$keyword}%")
+                        ->orWhere('name', 'like', "%{$keyword}%")
+                        ->orWhereIn('id', $translationIds)
+                        ->orWhereHas('tags', fn($tq) => $tq->where('tag', 'like', "%{$keyword}%"));
+                })->orderByRaw(
+                    "CASE WHEN name LIKE ? THEN 1 ELSE 2 END, LOCATE(?, name), name",
+                    ["%{$searchKeyword}%", $searchKeyword]
+                );
             })
             ->when(isset($filters['added_by']) && $this->isAddedByInHouse(addedBy: $filters['added_by']), function ($query) {
                 return $query->where(['added_by' => 'admin']);

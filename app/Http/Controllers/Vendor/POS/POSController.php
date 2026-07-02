@@ -474,10 +474,8 @@ class POSController extends BaseController
                 'search_from' => 'pos',
                 'status' => 1
             ],
-            relations: ['clearanceSale' => function ($query) {
-                return $query->active();
-            }],
-            dataLimit: 'all'
+            relations: ['tags', 'clearanceSale' => fn($q) => $q->active()],
+            dataLimit: 10
         );
 
         $data = [
@@ -485,7 +483,7 @@ class POSController extends BaseController
             'result' => view(POS::SEARCH[VIEW], compact('products'))->render()
         ];
         if ($products->count() > 0) {
-            $data += ['id' => $products[0]->id];
+            $data += ['id' => $products->first()->id];
         }
 
         return response()->json($data);

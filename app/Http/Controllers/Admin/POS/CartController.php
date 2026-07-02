@@ -124,21 +124,21 @@ class CartController extends BaseController
             $variations[$choice->title] = $request[$choice->name];
         }
         $price = $product['unit_price'];
-        $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $price);
+        $discount = getCartItemDiscount($product, $variant, $price);
         $cartData = session($cartId);
         if ($cartId && session()->has($cartId) && count($cartData) > 0) {
             foreach ($cartData as $key => $cartItem) {
                 if (is_array($cartItem) && $cartItem['id'] == $request['id'] && $cartItem['variant'] == $variant) {
                     if ($variant != null) {
                         $price = $this->cartService->getVariationPrice(variation: json_decode($product['variation']), variant: $variant);
-                        $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $price);
+                        $discount = getCartItemDiscount($product, $variant, $price);
                     }
                     if ($product['product_type'] == 'digital' && $request->has('variant_key')) {
                         foreach ($product['digitalVariation'] as $digitalVariation) {
                             if ($digitalVariation['variant_key'] == $request['variant_key']) {
                                 $variant = $digitalVariation['variant_key'];
                                 $price = $digitalVariation['price'];
-                                $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $price);
+                                $discount = getCartItemDiscount($product, $variant, $price);
                             }
                         }
                     }
@@ -186,7 +186,7 @@ class CartController extends BaseController
         }
         if ($variant != null) {
             $price = $this->cartService->getVariationPrice(variation: json_decode($product['variation']), variant: $variant);
-            $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $price);
+            $discount = getCartItemDiscount($product, $variant, $price);
         }
 
         if ($product['product_type'] == 'digital' && $request->has('variant_key')) {
@@ -194,7 +194,7 @@ class CartController extends BaseController
                 if ($digitalVariation['variant_key'] == $request['variant_key']) {
                     $variant = $digitalVariation['variant_key'];
                     $price = $digitalVariation['price'];
-                    $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $price);
+                    $discount = getCartItemDiscount($product, $variant, $price);
                 }
             }
         }

@@ -78,16 +78,21 @@ class OrderManager
             foreach ($order->details as $detail) {
                 if ($detail['is_stock_decreased'] == 1) {
                     $product = Product::find($detail['product_id']);
+                    if (!$product) {
+                        continue;
+                    }
                     $type = $detail['variant'];
                     $variationData = [];
-                    foreach (json_decode($product['variation'], true) as $var) {
-                        if ($type == $var['type']) {
-                            $var['qty'] += $detail['qty'];
+                    if ($product['variation']) {
+                        foreach (json_decode($product['variation'], true) as $var) {
+                            if ($type == $var['type']) {
+                                $var['qty'] += $detail['qty'];
+                            }
+                            $variationData[] = $var;
                         }
-                        $variationData[] = $var;
                     }
                     Product::where(['id' => $product['id']])->update([
-                        'variation' => json_encode($variationData),
+                        'variation' => $variationData ? json_encode($variationData) : $product['variation'],
                         'current_stock' => $product['current_stock'] + $detail['qty'],
                     ]);
                     OrderDetail::where(['id' => $detail['id']])->update([
@@ -100,17 +105,21 @@ class OrderManager
             foreach ($order->details as $detail) {
                 if ($detail['is_stock_decreased'] == 0) {
                     $product = Product::find($detail['product_id']);
-
+                    if (!$product) {
+                        continue;
+                    }
                     $type = $detail['variant'];
                     $variationData = [];
-                    foreach (json_decode($product['variation'], true) as $var) {
-                        if ($type == $var['type']) {
-                            $var['qty'] -= $detail['qty'];
+                    if ($product['variation']) {
+                        foreach (json_decode($product['variation'], true) as $var) {
+                            if ($type == $var['type']) {
+                                $var['qty'] -= $detail['qty'];
+                            }
+                            $variationData[] = $var;
                         }
-                        $variationData[] = $var;
                     }
                     Product::where(['id' => $product['id']])->update([
-                        'variation' => json_encode($variationData),
+                        'variation' => $variationData ? json_encode($variationData) : $product['variation'],
                         'current_stock' => $product['current_stock'] - $detail['qty'],
                     ]);
                     OrderDetail::where(['id' => $detail['id']])->update([

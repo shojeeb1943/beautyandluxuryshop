@@ -441,14 +441,15 @@ class POSController extends BaseController
                 'keywords' => $request['name'],
                 'search_from' => 'pos'
             ],
-            dataLimit: 'all'
+            relations: ['tags', 'clearanceSale' => fn($q) => $q->active()],
+            dataLimit: 10
         );
         $data = [
             'count' => $products->count(),
             'result' => view('admin-views.pos.partials._search-product', compact('products'))->render()
         ];
         if ($products->count() > 0) {
-            $data += ['id' => $products[0]->id];
+            $data += ['id' => $products->first()->id];
         }
 
         return response()->json($data);

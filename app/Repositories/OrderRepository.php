@@ -293,16 +293,21 @@ class OrderRepository implements OrderRepositoryInterface
             foreach ($order['details'] as $detail) {
                 if ($detail['is_stock_decreased'] == 0) {
                     $product = $detail->product;
+                    if (!$product) {
+                        continue;
+                    }
                     $type = $detail['variant'];
                     $variations = [];
-                    foreach (json_decode($product['variation'], true) as $variation) {
-                        if ($type == $variation['type']) {
-                            $variation['qty'] -= $detail['qty'];
+                    if ($product['variation']) {
+                        foreach (json_decode($product['variation'], true) as $variation) {
+                            if ($type == $variation['type']) {
+                                $variation['qty'] -= $detail['qty'];
+                            }
+                            $variations[] = $variation;
                         }
-                        $variations[] = $variation;
                     }
                     $this->product->where(['id' => $product['id']])->update([
-                        'variation' => json_encode($variations),
+                        'variation' => $variations ? json_encode($variations) : $product['variation'],
                         'current_stock' => $product['current_stock'] - $detail['qty'],
                     ]);
                     $this->orderDetail->where(['id' => $detail['id']])->update([

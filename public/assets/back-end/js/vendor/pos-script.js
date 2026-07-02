@@ -67,30 +67,34 @@ document.addEventListener("keydown", function (event) {
     }
 });
 
+let posSearchTimer = null;
 $(".search-bar-input").on("keyup", function () {
     $(".pos-search-card").removeClass("d-none").show();
     let name = $(".search-bar-input").val();
     let elementSearchResultBox = $(".search-result-box");
+    clearTimeout(posSearchTimer);
     if (name.length > 0) {
         $("#pos-search-box").removeClass("d-none").show();
-        $.get({
-            url: $("#route-vendor-products-search-product").data("url"),
-            dataType: "json",
-            data: {
-                name: name,
-            },
-            beforeSend: function () {
-                $("#loading").fadeIn();
-            },
-            success: function (data) {
-                elementSearchResultBox.empty().html(data.result);
-                renderSelectProduct();
-                renderQuickViewSearchFunctionality();
-            },
-            complete: function () {
-                $("#loading").fadeOut();
-            },
-        });
+        posSearchTimer = setTimeout(function () {
+            $.get({
+                url: $("#route-vendor-products-search-product").data("url"),
+                dataType: "json",
+                data: {
+                    name: name,
+                },
+                beforeSend: function () {
+                    $("#loading").fadeIn();
+                },
+                success: function (data) {
+                    elementSearchResultBox.empty().html(data.result);
+                    renderSelectProduct();
+                    renderQuickViewSearchFunctionality();
+                },
+                complete: function () {
+                    $("#loading").fadeOut();
+                },
+            });
+        }, 400);
     } else {
         elementSearchResultBox.empty().hide();
     }

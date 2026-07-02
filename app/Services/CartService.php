@@ -297,7 +297,7 @@ class CartService
     public function getCartSubtotalCalculation(object $product, array $cartItem, array $calculation): array
     {
         $taxCalculate = $product['tax_model'] == 'include' ? 0 : $this->getTaxAmount($cartItem['price'], $product['tax']) * $cartItem['quantity'];
-        $discount = getProductPriceByType(product: $product, type: 'discounted_amount', result: 'value', price: $cartItem['price'], from: 'panel');
+        $discount = getCartItemDiscount($product, $cartItem['variant'] ?? null, $cartItem['price']);
         $productSubtotal = (($cartItem['price'] - $discount) * $cartItem['quantity']) - ($product['tax_model'] == 'include' ? $taxCalculate : 0);
         return [
             'countItem' => 1,

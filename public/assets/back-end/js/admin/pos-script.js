@@ -1398,8 +1398,22 @@ function removeFromCart() {
 }
 removeFromCart();
 
-$(".js-example-matcher").select2({
-    matcher: matchCustom,
+$(".js-customer-select").select2({
+    ajax: {
+        url: $("#route-admin-pos-customer-list").data("url"),
+        dataType: "json",
+        delay: 250,
+        data: function (params) {
+            return { searchValue: params.term || "", limit: 20 };
+        },
+        processResults: function (data) {
+            var walkIn = { id: 0, text: "Walk-In Customer" };
+            return { results: [walkIn].concat(data) };
+        },
+        cache: true,
+    },
+    minimumInputLength: 0,
+    placeholder: "Walk-In-Customer",
 });
 
 function matchCustom(params, data) {

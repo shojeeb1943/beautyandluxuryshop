@@ -70,7 +70,6 @@ class POSController extends BaseController
         );
         $cartId = 'walk-in-customer-' . rand(10, 1000);
         $this->cartService->getNewCartSession(cartId: $cartId);
-        $customers = $this->customerRepo->getListWhereNotIn(ids: [0]);
         $getCurrentCustomerData = $this->getCustomerDataFromSessionForPOS();
         $summaryData = array_merge($this->POSService->getSummaryData(), $getCurrentCustomerData);
         $cartItems = $this->getCartData(cartName: session(SessionKey::CURRENT_USER));
@@ -84,7 +83,6 @@ class POSController extends BaseController
             'categoryId',
             'products',
             'cartId',
-            'customers',
             'searchValue',
             'summaryData',
             'cartItems',
@@ -137,11 +135,17 @@ class POSController extends BaseController
             $couponDiscount = $cart['coupon_discount'] ?? 0;
             $includeTax = 0;
 
+            $cartArray = is_array($cart) ? $cart : $cart->toArray();
+            $discountProductIds = array_values(array_unique(
+                array_column(array_filter($cartArray, 'is_array'), 'id')
+            ));
+            $discountProducts = $discountProductIds
+                ? $this->productRepo->getWhereIn($discountProductIds, ['clearanceSale' => fn($q) => $q->active()])->keyBy('id')
+                : collect();
+
             foreach ($cart as $item) {
                 if (is_array($item)) {
-                    $product = $this->productRepo->getFirstWhere(params: ['id' => $item['id']], relations: ['clearanceSale' => function ($query) {
-                        return $query->active();
-                    }]);
+                    $product = $discountProducts->get($item['id']);
                     $totalProductPrice += $item['price'] * $item['quantity'];
                     $productDiscount += $item['discount'] * $item['quantity'];
                     $productTax += $this->getTaxAmount($item['price'], $product['tax']) * $item['quantity'];
@@ -230,11 +234,16 @@ class POSController extends BaseController
         $includeTax = 0;
         if (($coupon['customer_id'] == '0' || $coupon['customer_id'] == $userId)) {
             if ($carts != null) {
+                $couponProductIds = array_values(array_unique(
+                    array_column(array_filter($carts, 'is_array'), 'id')
+                ));
+                $couponProducts = $couponProductIds
+                    ? $this->productRepo->getWhereIn($couponProductIds, ['clearanceSale' => fn($q) => $q->active()])->keyBy('id')
+                    : collect();
+
                 foreach ($carts as $cart) {
                     if (is_array($cart)) {
-                        $product = $this->productRepo->getFirstWhere(params: ['id' => $cart['id']], relations: ['clearanceSale' => function ($query) {
-                            return $query->active();
-                        }]);
+                        $product = $couponProducts->get($cart['id']);
                         $totalProductPrice += $cart['price'] * $cart['quantity'];
                         $productDiscount += $cart['discount'] * $cart['quantity'];
                         $productTax += ($this->getTaxAmount($cart['price'], $product['tax'])) * $cart['quantity'];
@@ -374,12 +383,18 @@ class POSController extends BaseController
             'discountOnProduct' => 0,
             'productSubtotal' => 0,
         ];
-        if (session()->get($cartName)) {
-            foreach (session()->get($cartName) as $cartItem) {
+        $sessionItems = session()->get($cartName) ?? [];
+        $productIds = array_values(array_unique(
+            array_column(array_filter(is_array($sessionItems) ? $sessionItems : $sessionItems->toArray(), 'is_array'), 'id')
+        ));
+        $products = $productIds
+            ? $this->productRepo->getWhereIn($productIds, ['clearanceSale' => fn($q) => $q->active()])->keyBy('id')
+            : collect();
+
+        if ($sessionItems) {
+            foreach ($sessionItems as $cartItem) {
                 if (is_array($cartItem)) {
-                    $product = $this->productRepo->getFirstWhere(params: ['id' => $cartItem['id']], relations: ['clearanceSale' => function ($query) {
-                        return $query->active();
-                    }]);
+                    $product = $products->get($cartItem['id']);
                     if ($product) {
                         $cartSubTotalCalculation = $this->cartService->getCartSubtotalCalculation(
                             product: $product,
@@ -430,6 +445,12 @@ class POSController extends BaseController
         $customerCartData = $this->getCustomerCartData(cartName: $cartName);
         $cartItemData = $this->calculateCartItemsData(cartName: $cartName, customerCartData: $customerCartData);
         return array_merge($customerCartData[$cartName], $cartItemData);
+    }
+
+    public function getCustomerList(Request $request): JsonResponse
+    {
+        $customers = $this->customerRepo->getCustomerNameList(request: $request, dataLimit: 20);
+        return response()->json($customers);
     }
 
     public function getSearchedProductsView(Request $request): JsonResponse

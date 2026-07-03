@@ -380,12 +380,18 @@ class CartController extends BaseController
             'discountOnProduct' => 0,
             'productSubtotal' => 0,
         ];
-        if (session()->get($cartName)) {
-            foreach (session()->get($cartName) as $cartItem) {
+        $sessionItems = session()->get($cartName) ?? [];
+        $productIds = array_values(array_unique(
+            array_column(array_filter(is_array($sessionItems) ? $sessionItems : $sessionItems->toArray(), 'is_array'), 'id')
+        ));
+        $products = $productIds
+            ? $this->productRepo->getWhereIn($productIds, ['clearanceSale' => fn($q) => $q->active()])->keyBy('id')
+            : collect();
+
+        if ($sessionItems) {
+            foreach ($sessionItems as $cartItem) {
                 if (is_array($cartItem)) {
-                    $product = $this->productRepo->getFirstWhere(params: ['id' => $cartItem['id']], relations: ['clearanceSale' => function($query) {
-                        return $query->active();
-                    }]);
+                    $product = $products->get($cartItem['id']);
                     if ($product) {
                         $cartSubTotalCalculation = $this->cartService->getCartSubtotalCalculation(
                             product: $product,

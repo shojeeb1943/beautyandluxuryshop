@@ -61,6 +61,11 @@ class ProductRepository implements ProductRepositoryInterface
         return $this->product->where($params)->with($relations)->first();
     }
 
+    public function getWhereIn(array $ids, array $relations = []): Collection
+    {
+        return $this->product->with($relations)->whereIn('id', $ids)->get();
+    }
+
     public function getFirstWhereWithCount(array $params, array $withCount = [], array $relations = []): ?Model
     {
         return $this->product->with($relations)->where($params)->withCount($withCount)->first();

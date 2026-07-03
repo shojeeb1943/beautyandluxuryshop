@@ -98,17 +98,14 @@
                                 $userId = explode('-', session('current_user'))[2];
                             }
                             ?>
-                            <select id='customer' name="customer_id" data-placeholder="Walk-In-Customer" class="js-example-matcher form-control form-ellipsis action-customer-change">
-                                <option value="0" {{ $userId == 0 ? 'selected':'' }}>
-                                    {{ translate('Walk-In-Customer') }}
-                                </option>
-                                @foreach ($customers as $customer)
-                                    <option value="{{ $customer->id }}" {{ $userId == $customer->id ? 'selected':'' }}>
-                                        {{ $customer->f_name }} {{ $customer->l_name }}
-                                        ({{ env('APP_MODE') != 'demo' ? $customer->phone : '+88017'.rand(111, 999).'XXXXX' }})
-                                    </option>
-                                @endforeach
+                            <select id='customer' name="customer_id" data-placeholder="{{ translate('Walk-In-Customer') }}" class="js-customer-select form-control form-ellipsis action-customer-change">
+                                @if($userId != 0)
+                                    <option value="{{ $userId }}" selected>{{ $summaryData['currentCustomer'] }}</option>
+                                @else
+                                    <option value="0" selected>{{ translate('Walk-In-Customer') }}</option>
+                                @endif
                             </select>
+                            <span id="route-admin-pos-customer-list" data-url="{{ route('admin.pos.customer-list') }}"></span>
 
                             <button class="btn btn-success rounded text-nowrap" id="add_new_customer" type="button"
                                     data-bs-toggle="modal" data-bs-target="#add-customer" title="{{ translate('add_new_customer') }}">

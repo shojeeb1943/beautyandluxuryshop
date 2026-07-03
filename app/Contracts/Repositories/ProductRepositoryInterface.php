@@ -129,4 +129,11 @@ interface ProductRepositoryInterface extends RepositoryInterface
 
     public function updateByParams(array $params, array $data): bool;
 
+    /**
+     * @param array $ids
+     * @param array $relations
+     * @return Collection
+     */
+    public function getWhereIn(array $ids, array $relations = []): Collection;
+
 }

@@ -1,4 +1,3 @@
-@php(session(['last_order'=> false]))
 <div class="modal fade py-5" id="print-invoice" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">

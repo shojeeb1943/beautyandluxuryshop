@@ -9,6 +9,7 @@ use App\Contracts\Repositories\ProductRepositoryInterface;
 use App\Contracts\Repositories\StorageRepositoryInterface;
 use App\Events\CustomerRegistrationEvent;
 use App\Events\DigitalProductDownloadEvent;
+use App\Exceptions\PosInsufficientStockException;
 use App\Http\Controllers\Controller;
 use App\Models\BusinessSetting;
 use App\Models\Category;
@@ -122,33 +123,45 @@ class POSController extends Controller
 
     }
 
+    /**
+     * Locks the product row for the duration of the enclosing DB transaction and
+     * validates sufficient stock before decrementing, so concurrent requests for the
+     * same product serialize instead of racing (lost updates) and stock never goes negative.
+     *
+     * @throws PosInsufficientStockException
+     */
     public function getProductStockCalculate($cartItem, $product): void
     {
+        $lockedProduct = Product::query()->whereKey($product['id'])->lockForUpdate()->first();
+        if (!$lockedProduct) {
+            return;
+        }
+
+        $stockUpdateData = [];
         if ($cartItem['variant'] != null) {
-            $variationStore = [];
-            foreach (json_decode($product['variation'], true) as $variation) {
-                if ($cartItem['variant'] == $variation['type']) {
-                    $variation['qty'] -= $cartItem['quantity'];
+            $variation = json_decode($lockedProduct->variation, true) ?: [];
+            foreach ($variation as &$variationItem) {
+                if ($cartItem['variant'] == $variationItem['type']) {
+                    if ((float)($variationItem['qty'] ?? 0) < (float)$cartItem['quantity']) {
+                        throw new PosInsufficientStockException($product['name'] ?? ('#' . $product['id']));
+                    }
+                    $variationItem['qty'] -= $cartItem['quantity'];
                 }
-                $variationStore[] = $variation;
             }
-            $this->productRepo->updateByParams(params: ['id' => $product['id']], data: ['variation' => json_encode($variationStore)]);
+            unset($variationItem);
+            $stockUpdateData['variation'] = json_encode($variation);
         }
 
-        if ($product['product_type'] == 'physical') {
-            $this->productRepo->updateByParams(params: ['id' => $product['id']], data: [
-                'current_stock' => $product['current_stock'] - $cartItem['quantity']
-            ]);
+        if ($lockedProduct->product_type == 'physical') {
+            if ((float)$lockedProduct->current_stock < (float)$cartItem['quantity']) {
+                throw new PosInsufficientStockException($product['name'] ?? ('#' . $product['id']));
+            }
+            $stockUpdateData['current_stock'] = $lockedProduct->current_stock - $cartItem['quantity'];
         }
-    }
 
-    public static function getOrderNewId()
-    {
-        $generateOrderID = 100000 + Order::all()->count() + 1;
-        if (Order::find($generateOrderID)) {
-            $generateOrderID = Order::orderBy('id', 'DESC')->first()->id + 1;
+        if (!empty($stockUpdateData)) {
+            $this->productRepo->updateByParams(params: ['id' => $product['id']], data: $stockUpdateData);
         }
-        return $generateOrderID;
     }
 
     public function get_categories(): JsonResponse
@@ -335,65 +348,81 @@ class POSController extends Controller
             }
         }
 
-        $cartsTotalAmount = 0;
-        $generateOrderID = self::getOrderNewId();
-        foreach ($carts as $cartItem) {
-            if (is_array($cartItem)) {
-                $product = Product::where(['id' => $cartItem['id']])->with(['digitalVariation', 'clearanceSale' => function ($query) {
-                    return $query->active();
-                }])->withCount('reviews')->first();
-                if ($product) {
-                    $getOrderDetailsArray = self::getOrderDetailsAddData(cartItem: $cartItem, product: $product);
-                    $cartsTotalAmount += $getOrderDetailsArray['price'] * $cartItem['quantity'];
-                    $cartsTotalAmount += $getOrderDetailsArray['tax'] * $cartItem['quantity'];
+        try {
+            $generateOrderID = DB::transaction(function () use ($carts, $customerId, $seller, $paymentMethod, $extraDiscount, $extraDiscountType, $paidAmount, $couponDiscountAmount, $couponCode) {
+                // Order row is created first (real auto-increment id, no manual id race) with a
+                // placeholder amount, then updated with the final total once the cart is totalled.
+                $orderData = [
+                    'customer_id' => $customerId,
+                    'customer_type' => 'customer',
+                    'payment_status' => 'paid',
+                    'order_status' => 'delivered',
+                    'seller_id' => $seller->id,
+                    'seller_is' => 'seller',
+                    'payment_method' => $paymentMethod,
+                    'order_type' => 'POS',
+                    'checked' => 1,
+                    'extra_discount' => $extraDiscount ?? 0,
+                    'extra_discount_type' => $extraDiscountType ?? null,
+                    'order_amount' => 0,
+                    'paid_amount' => $paidAmount,
+                    'discount_amount' => currencyConverter(amount: $couponDiscountAmount ?? 0),
+                    'coupon_code' => $couponCode ?? null,
+                    'discount_type' => (isset($carts['coupon_code']) && $carts['coupon_code']) ? 'coupon_discount' : NULL,
+                    'coupon_discount_bearer' => $carts['coupon_bearer'] ?? 'inhouse',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+                $generateOrderID = DB::table('orders')->insertGetId($orderData);
 
-                    $orderDetailsData = [
-                        'order_id' => $generateOrderID,
-                        'product_id' => $cartItem['id'],
-                        'product_details' => $getOrderDetailsArray['product'],
-                        'qty' => $cartItem['quantity'],
-                        'price' => $getOrderDetailsArray['price'],
-                        'seller_id' => $product['user_id'],
-                        'tax' => $getOrderDetailsArray['tax'] * $cartItem['quantity'],
-                        'tax_model' => $product['tax_model'],
-                        'discount' => $getOrderDetailsArray['productDiscount'] * $cartItem['quantity'],
-                        'discount_type' => 'discount_on_product',
-                        'delivery_status' => 'delivered',
-                        'payment_status' => 'paid',
-                        'variant' => $getOrderDetailsArray['variant'],
-                        'variation' => json_encode($cartItem['variation']),
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ];
-                    self::getProductStockCalculate(cartItem: $cartItem, product: $product);
-                    DB::table('order_details')->insert($orderDetailsData);
+                $cartsTotalAmount = 0;
+                foreach ($carts as $cartItem) {
+                    if (is_array($cartItem)) {
+                        $product = Product::where(['id' => $cartItem['id']])->with(['digitalVariation', 'clearanceSale' => function ($query) {
+                            return $query->active();
+                        }])->withCount('reviews')->first();
+                        if ($product) {
+                            $getOrderDetailsArray = self::getOrderDetailsAddData(cartItem: $cartItem, product: $product);
+                            $cartsTotalAmount += $getOrderDetailsArray['price'] * $cartItem['quantity'];
+                            $cartsTotalAmount += $getOrderDetailsArray['tax'] * $cartItem['quantity'];
+
+                            $orderDetailsData = [
+                                'order_id' => $generateOrderID,
+                                'product_id' => $cartItem['id'],
+                                'product_details' => $getOrderDetailsArray['product'],
+                                'qty' => $cartItem['quantity'],
+                                'price' => $getOrderDetailsArray['price'],
+                                'seller_id' => $product['user_id'],
+                                'tax' => $getOrderDetailsArray['tax'] * $cartItem['quantity'],
+                                'tax_model' => $product['tax_model'],
+                                'discount' => $getOrderDetailsArray['productDiscount'] * $cartItem['quantity'],
+                                'discount_type' => 'discount_on_product',
+                                'delivery_status' => 'delivered',
+                                'payment_status' => 'paid',
+                                'variant' => $getOrderDetailsArray['variant'],
+                                'variation' => json_encode($cartItem['variation']),
+                                'created_at' => now(),
+                                'updated_at' => now()
+                            ];
+                            self::getProductStockCalculate(cartItem: $cartItem, product: $product);
+                            DB::table('order_details')->insert($orderDetailsData);
+                        }
+                    }
                 }
-            }
-        }
 
-        $orderData = [
-            'id' => $generateOrderID,
-            'customer_id' => $customerId,
-            'customer_type' => 'customer',
-            'payment_status' => 'paid',
-            'order_status' => 'delivered',
-            'seller_id' => $seller->id,
-            'seller_is' => 'seller',
-            'payment_method' => $paymentMethod,
-            'order_type' => 'POS',
-            'checked' => 1,
-            'extra_discount' => $extraDiscount ?? 0,
-            'extra_discount_type' => $extraDiscountType ?? null,
-            'order_amount' => $cartsTotalAmount,
-            'paid_amount' => $paidAmount,
-            'discount_amount' => currencyConverter(amount: $couponDiscountAmount ?? 0),
-            'coupon_code' => $couponCode ?? null,
-            'discount_type' => (isset($carts['coupon_code']) && $carts['coupon_code']) ? 'coupon_discount' : NULL,
-            'coupon_discount_bearer' => $carts['coupon_bearer'] ?? 'inhouse',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ];
-        DB::table('orders')->insertGetId($orderData);
+                DB::table('orders')->where('id', $generateOrderID)->update([
+                    'order_amount' => $cartsTotalAmount,
+                    'updated_at' => now(),
+                ]);
+
+                return $generateOrderID;
+            });
+        } catch (PosInsufficientStockException $e) {
+            return response()->json([
+                'insufficientStock' => true,
+                'message' => translate('insufficient_stock_for') . ' ' . $e->getMessage(),
+            ]);
+        }
 
         if ($isDigitalProduct) {
             $order = Order::with(['details.productAllStatus', 'customer'])->find($generateOrderID);

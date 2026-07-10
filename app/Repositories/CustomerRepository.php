@@ -94,6 +94,7 @@ class CustomerRepository implements CustomerRepositoryInterface
                     $q->orWhere('email', 'like', "%$searchValue%")
                         ->orWhere('f_name', 'like', "%$searchValue%")
                         ->orWhere('l_name', 'like', "%$searchValue%")
+                        ->orWhere('phone', 'like', "%$searchValue%")
                         ->orWhereRaw("CONCAT(f_name, ' ', l_name) LIKE ?", ["%$searchValue%"]);
                 })->where('email', '!=', 'abc@gm.com');
             })
@@ -123,6 +124,9 @@ class CustomerRepository implements CustomerRepositoryInterface
             })
             ->when(!empty($orderBy), function ($query) use ($orderBy) {
                 $query->orderBy(array_key_first($orderBy), array_values($orderBy)[0]);
+            })
+            ->when(empty($orderBy) && !isset($filters['sort_by']), function ($query) {
+                $query->orderBy('created_at', 'desc');
             });
 
         if (!empty($takeItem) && $dataLimit == 'all') {

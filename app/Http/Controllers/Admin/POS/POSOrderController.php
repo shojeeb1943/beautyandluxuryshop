@@ -11,7 +11,9 @@ use App\Contracts\Repositories\StorageRepositoryInterface;
 use App\Contracts\Repositories\VendorRepositoryInterface;
 use App\Enums\SessionKey;
 use App\Events\DigitalProductDownloadEvent;
+use App\Exceptions\PosInsufficientStockException;
 use App\Http\Controllers\BaseController;
+use App\Models\Product;
 use App\Models\ShippingAddress;
 use App\Models\ShippingMethod;
 use App\Services\CartService;
@@ -21,12 +23,15 @@ use App\Services\POSService;
 use App\Traits\CalculatorTrait;
 use App\Traits\CustomerTrait;
 use Devrabiul\ToastMagic\Facades\ToastMagic;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class POSOrderController extends BaseController
@@ -161,88 +166,126 @@ class POSOrderController extends BaseController
             }
         }
         $cart = session($cartId);
-        $orderId = 100000 + $this->orderRepo->getList()->count() + 1;
-        $order = $this->orderRepo->getFirstWhere(params: ['id' => $orderId]);
-        if ($order) {
-            $orderId = $this->orderRepo->getList(orderBy: ['id' => 'DESC'])->first()->id + 1;
+
+        $lock = Cache::lock('pos-order-place-' . $cartId, 15);
+        try {
+            $lock->block(5);
+        } catch (LockTimeoutException $e) {
+            return response()->json(['message' => translate('order_already_being_processed')]);
         }
-        foreach ($cart as $item) {
-            if (is_array($item)) {
-                $product = $this->productRepo->getFirstWhere(params: ['id' => $item['id']], relations: ['clearanceSale' => function ($query) {
-                    return $query->active();
-                }]);
-                if ($product) {
-                    $tax = $this->getTaxAmount($item['price'], $product['tax']);
-                    $price = $product['tax_model'] == 'include' ? $item['price'] - $tax : $item['price'];
 
-                    $digitalProductVariation = $this->digitalProductVariationRepo->getFirstWhere(params: ['product_id' => $item['id'], 'variant_key' => $item['variant']], relations: ['storage']);
-                    if ($product['product_type'] == 'digital' && $digitalProductVariation) {
-                        $price = $product['tax_model'] == 'include' ? $digitalProductVariation['price'] - $tax : $digitalProductVariation['price'];
-
-                        if ($product['digital_product_type'] == 'ready_product') {
-                            $getStoragePath = $this->storageRepo->getFirstWhere(params: [
-                                'data_id' => $digitalProductVariation['id'],
-                                "data_type" => "App\Models\DigitalProductVariation",
-                            ]);
-                            $product['digital_file_ready'] = $digitalProductVariation['file'];
-                            $product['storage_path'] = $getStoragePath ? $getStoragePath['value'] : 'public';
-                        }
-                    } elseif ($product['digital_product_type'] == 'ready_product' && !empty($product['digital_file_ready'])) {
-                        $product['storage_path'] = $product['digital_file_ready_storage_type'] ?? 'public';
-                    }
-                    $orderDetail = $this->orderDetailsService->getPOSOrderDetailsData(
-                        orderId: $orderId, item: $item,
-                        product: $product, price: $price, tax: $tax
+        try {
+            try {
+                $orderId = DB::transaction(function () use ($cart, $amount, $paidAmount, $request, $userId, $orderType, $shippingAddress, $shippingCost, $shippingMethodId) {
+                    $orderData = $this->orderService->getPOSOrderData(
+                        cart: $cart,
+                        amount: $amount,
+                        paidAmount: $request['type'] == 'cash' ? $paidAmount : $amount,
+                        paymentType: $request['type'],
+                        addedBy: 'admin',
+                        userId: $userId,
+                        orderType: $orderType,
+                        shippingAddress: $shippingAddress,
+                        shippingCost: $shippingCost,
+                        shippingMethodId: $shippingMethodId
                     );
-                    if ($item['variant'] != null) {
-                        $variantData = $this->POSService->getVariantData(
-                            type: $item['variant'],
-                            variation: json_decode($product['variation'], true),
-                            quantity: $item['quantity']
+                    $createdOrder = $this->orderRepo->add(data: $orderData);
+                    $orderId = $createdOrder->id;
+
+                    foreach ($cart as $item) {
+                        if (!is_array($item)) {
+                            continue;
+                        }
+                        $product = $this->productRepo->getFirstWhere(params: ['id' => $item['id']], relations: ['clearanceSale' => function ($query) {
+                            return $query->active();
+                        }]);
+                        if (!$product) {
+                            continue;
+                        }
+                        $tax = $this->getTaxAmount($item['price'], $product['tax']);
+                        $price = $product['tax_model'] == 'include' ? $item['price'] - $tax : $item['price'];
+
+                        $digitalProductVariation = $this->digitalProductVariationRepo->getFirstWhere(params: ['product_id' => $item['id'], 'variant_key' => $item['variant']], relations: ['storage']);
+                        if ($product['product_type'] == 'digital' && $digitalProductVariation) {
+                            $price = $product['tax_model'] == 'include' ? $digitalProductVariation['price'] - $tax : $digitalProductVariation['price'];
+
+                            if ($product['digital_product_type'] == 'ready_product') {
+                                $getStoragePath = $this->storageRepo->getFirstWhere(params: [
+                                    'data_id' => $digitalProductVariation['id'],
+                                    "data_type" => "App\Models\DigitalProductVariation",
+                                ]);
+                                $product['digital_file_ready'] = $digitalProductVariation['file'];
+                                $product['storage_path'] = $getStoragePath ? $getStoragePath['value'] : 'public';
+                            }
+                        } elseif ($product['digital_product_type'] == 'ready_product' && !empty($product['digital_file_ready'])) {
+                            $product['storage_path'] = $product['digital_file_ready_storage_type'] ?? 'public';
+                        }
+
+                        $orderDetail = $this->orderDetailsService->getPOSOrderDetailsData(
+                            orderId: $orderId, item: $item,
+                            product: $product, price: $price, tax: $tax
                         );
-                        $this->productRepo->update(id: $product['id'], data: ['variation' => json_encode($variantData)]);
+
+                        // Re-fetch with a row lock immediately before mutating stock so concurrent
+                        // requests for the same product serialize instead of racing (lost updates).
+                        $lockedProduct = Product::query()->whereKey($product['id'])->lockForUpdate()->first();
+                        if ($lockedProduct) {
+                            $stockUpdateData = [];
+                            if ($item['variant'] != null) {
+                                $variation = json_decode($lockedProduct->variation, true) ?: [];
+                                foreach ($variation as &$variant) {
+                                    if ($item['variant'] == $variant['type']) {
+                                        if ((float)($variant['qty'] ?? 0) < (float)$item['quantity']) {
+                                            throw new PosInsufficientStockException($product['name'] ?? ('#' . $product['id']));
+                                        }
+                                        $variant['qty'] -= $item['quantity'];
+                                    }
+                                }
+                                unset($variant);
+                                $stockUpdateData['variation'] = json_encode($variation);
+                            }
+                            if ($lockedProduct->product_type == 'physical') {
+                                if ((float)$lockedProduct->current_stock < (float)$item['quantity']) {
+                                    throw new PosInsufficientStockException($product['name'] ?? ('#' . $product['id']));
+                                }
+                                $stockUpdateData['current_stock'] = $lockedProduct->current_stock - $item['quantity'];
+                            }
+                            if (!empty($stockUpdateData)) {
+                                $this->productRepo->update(id: $product['id'], data: $stockUpdateData);
+                            }
+                        }
+                        $this->orderDetailRepo->add(data: $orderDetail);
                     }
 
-                    if ($product['product_type'] == 'physical') {
-                        $currentStock = $product['current_stock'] - $item['quantity'];
-                        $this->productRepo->update(id: $product['id'], data: ['current_stock' => $currentStock]);
-                    }
-                    $this->orderDetailRepo->add(data: $orderDetail);
-                }
+                    return $orderId;
+                });
+            } catch (PosInsufficientStockException $e) {
+                $message = translate('insufficient_stock_for') . ' ' . $e->getMessage();
+                ToastMagic::error($message);
+                return response()->json(['insufficientStock' => true, 'message' => $message]);
             }
+
+            if ($checkProductTypeDigital) {
+                $order = $this->orderRepo->getFirstWhere(params: ['id' => $orderId], relations: ['details.productAllStatus']);
+                $data = [
+                    'userName' => $order->customer->f_name,
+                    'userType' => 'customer',
+                    'templateName' => 'digital-product-download',
+                    'order' => $order,
+                    'subject' => translate('download_Digital_Product'),
+                    'title' => translate('Congratulations') . '!',
+                    'emailId' => $order->customer['email'],
+                ];
+                event(new DigitalProductDownloadEvent(email: $order->customer['email'], data: $data));
+            }
+            session()->forget($cartId);
+            session()->flash('last_order', $orderId);
+            $this->cartService->getNewCartId();
+            ToastMagic::success(translate('order_placed_successfully'));
+            return response()->json();
+        } finally {
+            $lock->release();
         }
-        $order = $this->orderService->getPOSOrderData(
-            orderId: $orderId,
-            cart: $cart,
-            amount: $amount,
-            paidAmount: $request['type'] == 'cash' ? $paidAmount : $amount,
-            paymentType: $request['type'],
-            addedBy: 'admin',
-            userId: $userId,
-            orderType: $orderType,
-            shippingAddress: $shippingAddress,
-            shippingCost: $shippingCost,
-            shippingMethodId: $shippingMethodId
-        );
-        $this->orderRepo->add(data: $order);
-        if ($checkProductTypeDigital) {
-            $order = $this->orderRepo->getFirstWhere(params: ['id' => $orderId], relations: ['details.productAllStatus']);
-            $data = [
-                'userName' => $order->customer->f_name,
-                'userType' => 'customer',
-                'templateName' => 'digital-product-download',
-                'order' => $order,
-                'subject' => translate('download_Digital_Product'),
-                'title' => translate('Congratulations') . '!',
-                'emailId' => $order->customer['email'],
-            ];
-            event(new DigitalProductDownloadEvent(email: $order->customer['email'], data: $data));
-        }
-        session()->forget($cartId);
-        session(['last_order' => $orderId]);
-        $this->cartService->getNewCartId();
-        ToastMagic::success(translate('order_placed_successfully'));
-        return response()->json();
     }
 
     public function cancelOrder(Request $request): JsonResponse

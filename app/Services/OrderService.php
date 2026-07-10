@@ -8,11 +8,10 @@ class OrderService
     {
     }
 
-    public function getPOSOrderData(int|string $orderId, array $cart, float $amount, float $paidAmount, string $paymentType, string $addedBy, int $userId, string $orderType = 'walk_in', ?array $shippingAddress = null, float $shippingCost = 0, ?int $shippingMethodId = null): array
+    public function getPOSOrderData(array $cart, float $amount, float $paidAmount, string $paymentType, string $addedBy, int $userId, string $orderType = 'walk_in', ?array $shippingAddress = null, float $shippingCost = 0, ?int $shippingMethodId = null): array
     {
         $isDelivery = $orderType === 'delivery';
         return [
-            'id' => $orderId,
             'customer_id' => $userId,
             'customer_type' => 'customer',
             'payment_status' => $isDelivery ? ($paidAmount >= $amount ? 'paid' : 'unpaid') : 'paid',

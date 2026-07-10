@@ -170,7 +170,6 @@ function viewAllHoldOrders(action = null) {
             }
             $(".total_hold_orders").text(data.totalHoldOrders);
             renderViewHoldOrdersFunctionality();
-            basicFunctionalityForCartSummary();
         },
         complete: function () {
             $("#loading").fadeOut();
@@ -534,7 +533,10 @@ function basicFunctionalityForCartSummary() {
         });
     });
 
-    $(".action-form-submit").on("click", function () {
+    $(".action-form-submit").off("click.posOrderSubmit").on("click.posOrderSubmit", function () {
+        if (window.posOrderSubmitting) {
+            return;
+        }
         if (checkedPaidAmount()) {
             Swal.fire({
                 title: messageAreYouSure,
@@ -548,7 +550,9 @@ function basicFunctionalityForCartSummary() {
                 confirmButtonText: getYesWord,
                 reverseButtons: true,
             }).then(function (result) {
-                if (result.value) {
+                if (result.value && !window.posOrderSubmitting) {
+                    window.posOrderSubmitting = true;
+                    $(".action-form-submit").prop("disabled", true);
                     let formData = new FormData(document.getElementById('order-place'));
                     $.ajaxSetup({
                         headers: {
@@ -572,12 +576,23 @@ function basicFunctionalityForCartSummary() {
                                 $('.alert--message-for-pos .warning-message').empty().html(response.message);
                             } else if (response && (Boolean(response.deliveryNeedsCustomer) === true || Boolean(response.deliveryNeedsAddress) === true || Boolean(response.deliveryNeedsMethod) === true)) {
                                 toastMagic.error(response.message);
+                            } else if (response && Boolean(response.insufficientStock) === true) {
+                                toastMagic.error(response.message);
+                            } else if (response && response.message) {
+                                toastMagic.error(response.message);
                             } else {
                                 location.reload();
                             }
                         },
                         complete: function () {
                             $("#loading").fadeOut();
+                            window.posOrderSubmitting = false;
+                            if (typeof syncPosDeliveryToHiddenInputs === "function") {
+                                syncPosDeliveryToHiddenInputs();
+                            } else {
+                                $(".action-form-submit").prop("disabled", false);
+                            }
+                            disableOrderPlaceButton();
                         },
                     });
                 }

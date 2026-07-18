@@ -117,6 +117,13 @@ $orderTotalPriceSummary = \App\Utils\OrderManager::getOrderTotalPriceSummary(ord
             <td class="text-right">{{ translate('subtotal') }}:</td>
             <td class="text-right">{{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $orderTotalPriceSummary['subTotal']), currencyCode: getCurrencyCode()) }}</td>
         </tr>
+        @if(($orderTotalPriceSummary['shippingTotal'] ?? 0) > 0)
+            <tr>
+                <td colspan="2"></td>
+                <td class="text-right">{{ translate('shipping') }}:</td>
+                <td class="text-right">{{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $orderTotalPriceSummary['shippingTotal']), currencyCode: getCurrencyCode()) }}</td>
+            </tr>
+        @endif
         <tr>
             <td colspan="2"></td>
             <td class="text-right">{{ translate('tax') }} / {{ translate('VAT') }}:</td>

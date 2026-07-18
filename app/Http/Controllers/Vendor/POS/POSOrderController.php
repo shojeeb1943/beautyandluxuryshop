@@ -192,7 +192,7 @@ class POSOrderController extends BaseController
                     $orderData = $this->orderService->getPOSOrderData(
                         cart: $cart,
                         amount: $amount,
-                        paidAmount: $request['type'] == 'cash' ? $paidAmount : $amount,
+                        paidAmount: $request['type'] === 'cash_on_delivery' ? 0 : ($request['type'] == 'cash' ? $paidAmount : $amount),
                         paymentType: $request['type'],
                         addedBy: 'seller',
                         userId: $userId,

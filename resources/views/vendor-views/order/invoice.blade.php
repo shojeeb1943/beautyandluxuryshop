@@ -820,7 +820,7 @@
                                             <td class="text-left font-bold">{{ translate('sub_Total')}}</td>
                                             <td class="text-right">{{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $orderTotalPriceSummary['subTotal']), currencyCode: getCurrencyCode()) }}</td>
                                         </tr>
-                                        @if($order->order_type == 'default_type' && $order?->is_shipping_free != 1)
+                                        @if(($order->order_type == 'default_type' && $order?->is_shipping_free != 1) || (in_array($order->order_type, ['POS', 'pos']) && ($orderTotalPriceSummary['shippingTotal'] ?? 0) > 0))
                                             <tr>
                                                 <td class="text-left font-bold">{{ translate('shipping')}}</td>
                                                 <td class="text-right">{{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $orderTotalPriceSummary['shippingTotal']), currencyCode: getCurrencyCode()) }}</td>

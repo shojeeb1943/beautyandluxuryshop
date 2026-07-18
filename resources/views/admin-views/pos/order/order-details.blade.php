@@ -380,9 +380,6 @@
             </div>
 
             <div class="col-lg-4 col-xl-3">
-                @php($isPosDelivery = $order->delivery_type == 'self_delivery' || !is_null($order->shipping_address_data))
-
-                @if($isPosDelivery)
                 <div class="card mb-3">
                     <div class="card-body text-capitalize d-flex flex-column gap-4">
                         <div class="d-flex flex-column align-items-center gap-2">
@@ -441,7 +438,6 @@
                         </div>
                     </div>
                 @endif
-                @endif {{-- end $isPosDelivery --}}
 
                 <div class="card">
 

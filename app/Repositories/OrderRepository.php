@@ -264,11 +264,14 @@ class OrderRepository implements OrderRepositoryInterface
 
     public function updateStockOnOrderStatusChange(string|int $orderId, string $status): bool
     {
-        $order = $this->order->with('details.product')->find($orderId);
+        $order = $this->order->with('details.productAllStatus')->find($orderId);
         if ($status == 'returned' || $status == 'failed' || $status == 'canceled') {
             foreach ($order['details'] as $detail) {
                 if ($detail['is_stock_decreased'] == 1) {
-                    $product = $detail->product;
+                    $product = $detail->productAllStatus;
+                    if (!$product) {
+                        continue;
+                    }
                     $type = $detail['variant'];
                     $variations = [];
                     if ($product['variation']) {
@@ -292,7 +295,7 @@ class OrderRepository implements OrderRepositoryInterface
         } else {
             foreach ($order['details'] as $detail) {
                 if ($detail['is_stock_decreased'] == 0) {
-                    $product = $detail->product;
+                    $product = $detail->productAllStatus;
                     if (!$product) {
                         continue;
                     }

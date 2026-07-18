@@ -36,14 +36,14 @@
                     @endphp
                    @if($showDeliveryAddress)
                         <div class="flex-1 w-49">
-                            @if($data['order']?->shippingAddress)
+                            @if($data['order']?->shipping_address_data)
                                 <h3 class="mb-2">{{translate('delivery_Address')}} </h3>
-                                <div class="mb-2">{{$data['order']?->shippingAddress->contact_person_name}}</div>
-                                <div>{{$data['order']?->shippingAddress?->address}}</div>
-                            @elseif($data['order']?->billingAddress)
+                                <div class="mb-2">{{$data['order']?->shipping_address_data->contact_person_name}}</div>
+                                <div>{{$data['order']?->shipping_address_data?->address}}</div>
+                            @elseif($data['order']?->billing_address_data)
                                 <h3 class="mb-2">{{translate('delivery_Address')}} </h3>
-                                <div class="mb-2">{{$data['order']?->billingAddress->contact_person_name}}</div>
-                                <div>{{$data['order']?->billingAddress?->address}}</div>
+                                <div class="mb-2">{{$data['order']?->billing_address_data->contact_person_name}}</div>
+                                <div>{{$data['order']?->billing_address_data?->address}}</div>
                             @endif
                         </div>
                     @endif

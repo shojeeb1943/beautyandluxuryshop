@@ -196,11 +196,7 @@
                                         <div class="mt-5">
                                             <div class="row">
 
-                                                @if($orderDetails->shippingAddress)
-                                                    @php($shipping=$orderDetails->shippingAddress)
-                                                @else
-                                                    @php($shipping=$orderDetails['shipping_address_data'])
-                                                @endif
+                                                @php($shipping=$orderDetails['shipping_address_data'])
 
                                                 @if($shipping)
                                                 <div class="col-lg-6">
@@ -221,11 +217,7 @@
                                                 </div>
                                                 @endif
 
-                                                @if($orderDetails->billingAddress)
-                                                    @php($billing=$orderDetails->billingAddress)
-                                                @else
-                                                    @php($billing=$orderDetails['billing_address_data'])
-                                                @endif
+                                                @php($billing=$orderDetails['billing_address_data'])
 
                                                 @if($billing || $shipping)
                                                 <div class="col-lg-6">

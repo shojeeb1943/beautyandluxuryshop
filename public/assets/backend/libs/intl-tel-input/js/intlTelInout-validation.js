@@ -140,12 +140,10 @@ function getLocalExampleNumberLength(iti) {
 
         const digitsOnly = example.replace(/\D/g, "");
 
-        // Dynamically find position of dialCode inside number
-        const dialCodeIndex = digitsOnly.indexOf(dialCode);
-        const nationalDigits =
-            dialCodeIndex >= 0
-                ? digitsOnly.slice(dialCodeIndex + dialCode.length)
-                : digitsOnly;
+        // Strip a leading dial code only (not wherever it happens to appear)
+        const nationalDigits = digitsOnly.startsWith(dialCode)
+            ? digitsOnly.slice(dialCode.length)
+            : digitsOnly;
 
         return nationalDigits.length;
     } catch (e) {
@@ -161,11 +159,9 @@ function validatePhoneInput(input) {
     const fullNumber = iti.getNumber(); // E164 format
     const dialCode = iti.getSelectedCountryData().dialCode;
     const digitsOnly = keepOnlyNumbers(fullNumber);
-    const dialCodeIndex = digitsOnly.indexOf(dialCode);
-    const localNumber =
-        dialCodeIndex >= 0
-            ? digitsOnly.slice(dialCodeIndex + dialCode.length)
-            : digitsOnly;
+    const localNumber = digitsOnly.startsWith(dialCode)
+        ? digitsOnly.slice(dialCode.length)
+        : digitsOnly;
 
     const expectedLength = getLocalExampleNumberLength(iti);
     const isValid = iti.isValidNumber() && localNumber.length === expectedLength;
@@ -189,11 +185,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const dialCode = iti.getSelectedCountryData().dialCode;
             const expectedLength = getLocalExampleNumberLength(iti) + 3;
 
-            const dialCodeIndex = inputVal.indexOf(dialCode);
-            let localPart =
-                dialCodeIndex >= 0
-                    ? inputVal.slice(dialCodeIndex + dialCode.length)
-                    : inputVal;
+            let localPart = inputVal.startsWith(dialCode)
+                ? inputVal.slice(dialCode.length)
+                : inputVal;
 
             if (localPart.length + 4 > expectedLength) {
                 localPart = localPart.slice(0, expectedLength);

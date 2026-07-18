@@ -67,7 +67,14 @@
                                     @foreach($customer->addresses as $address)
                                         <div class="swiper-slide p-3 rounded bg-section">
                                             <div class="customer-details-new-card-content">
-                                                <h4 class="name text-capitalize mb-2">{{$address['address_type'].' ( '.translate($address['is_billing'] == 0 ? 'shipping_address': 'billing_address').' )'}} </h4>
+                                                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                                    <h4 class="name text-capitalize mb-0">{{$address['address_type'].' ( '.translate($address['is_billing'] == 0 ? 'shipping_address': 'billing_address').' )'}} </h4>
+                                                    <button type="button" class="btn btn-outline-primary icon-btn btn-sm"
+                                                            title="{{translate('edit')}}"
+                                                            data-bs-toggle="modal" data-bs-target="#addressUpdateModal{{$address->id}}">
+                                                        <i class="fi fi-sr-pencil"></i>
+                                                    </button>
+                                                </div>
                                                 <ul class="customer-details-new-card-content-list">
                                                     <li>
                                                         <strong class="key">{{translate('name')}}</strong>
@@ -90,6 +97,68 @@
                                     @endforeach
                                 </div>
                             </div>
+                            @foreach($customer->addresses as $address)
+                                <div class="modal fade" id="addressUpdateModal{{$address->id}}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header border-0 pb-4 d-flex justify-content-between align-items-center">
+                                                <h3 class="mb-0">{{translate('edit_address')}}</h3>
+                                                <button type="button" class="btn-close border-0 btn-circle bg-section2 shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body px-4 px-sm-5 pt-0">
+                                                <form action="{{route('admin.customer.address.update')}}" method="post">
+                                                    @csrf
+                                                    <input type="hidden" name="id" value="{{$address->id}}">
+                                                    <div class="row gx-3 gy-4">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label class="form-label">{{translate('name')}}</label>
+                                                                <input type="text" name="name" class="form-control" value="{{$address->contact_person_name}}" required>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label class="form-label">{{translate('phone')}}</label>
+                                                                <input type="text" name="phone" class="form-control" value="{{$address->phone}}" required>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label class="form-label">{{translate('country')}}</label>
+                                                                <input type="text" name="country" class="form-control" value="{{$address->country}}" required>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <div class="form-group">
+                                                                <label class="form-label">{{translate('city')}}</label>
+                                                                <input type="text" name="city" class="form-control" value="{{$address->city}}" required>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <div class="form-group">
+                                                                <label class="form-label">{{translate('zip')}}</label>
+                                                                <input type="text" name="zip" class="form-control" value="{{$address->zip}}">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <label class="form-label">{{translate('address')}}</label>
+                                                                <textarea name="address" rows="3" class="form-control" required>{{$address->address}}</textarea>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <div class="d-flex justify-content-end gap-3">
+                                                                <button type="button" class="btn btn-secondary px-5" data-bs-dismiss="modal">{{translate('cancel')}}</button>
+                                                                <button type="submit" class="btn btn-primary px-5">{{translate('update')}}</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>

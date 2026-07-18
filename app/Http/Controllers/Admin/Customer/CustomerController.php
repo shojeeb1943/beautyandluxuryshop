@@ -160,6 +160,31 @@ class CustomerController extends BaseController
         return back();
     }
 
+    public function updateAddress(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'id' => 'required',
+            'name' => 'required',
+            'phone' => 'required|max:20',
+            'city' => 'required',
+            'country' => 'required',
+            'address' => 'required',
+        ]);
+
+        $this->shippingAddressRepo->update(id: $request['id'], data: [
+            'contact_person_name' => $request['name'],
+            'phone' => $request['phone'],
+            'city' => $request['city'],
+            'zip' => $request['zip'],
+            'country' => $request['country'],
+            'address' => $request['address'],
+            'updated_at' => now(),
+        ]);
+
+        ToastMagic::success(translate('successfully_updated'));
+        return back();
+    }
+
     public function exportOrderList(Request $request, $id): BinaryFileResponse
     {
         $customer = $this->customerRepo->getFirstWhere(params: ['id' => $id]);

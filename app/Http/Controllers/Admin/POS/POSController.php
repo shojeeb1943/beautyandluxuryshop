@@ -124,7 +124,7 @@ class POSController extends BaseController
             ToastMagic::error(translate($text));
             return response()->json([
                 'extraDiscount' => "amount_low",
-                'view' => view('admin-views.pos.partials._cart', compact('cartId', 'cartItems'))->render()
+                'view' => view('admin-views.pos.partials._cart-content', compact('cartId', 'cartItems'))->render()
             ]);
         }
         $cart = session($cartId, collect());
@@ -165,7 +165,7 @@ class POSController extends BaseController
                 $cartItems = $this->getCartData(cartName: $cartId);
                 return response()->json([
                     'extraDiscount' => "amount_low",
-                    'view' => view('admin-views.pos.partials._cart', compact('cartId', 'cartItems'))->render()
+                    'view' => view('admin-views.pos.partials._cart-content', compact('cartId', 'cartItems'))->render()
                 ]);
             } else {
                 $cart['ext_discount'] = $request['type'] == 'percent' ? $request['discount'] : currencyConverter(amount: $request['discount']);
@@ -174,7 +174,7 @@ class POSController extends BaseController
                 $cartItems = $this->getCartData(cartName: $cartId);
                 return response()->json([
                     'extraDiscount' => "success",
-                    'view' => view('admin-views.pos.partials._cart', compact('cartId', 'cartItems'))->render()
+                    'view' => view('admin-views.pos.partials._cart-content', compact('cartId', 'cartItems'))->render()
                 ]);
             }
         } else {
@@ -182,7 +182,7 @@ class POSController extends BaseController
             return response()->json([
                 'extraDiscount' => "empty",
                 'cart' => "empty",
-                'view' => view('admin-views.pos.partials._cart', compact('cartId', 'cartItems'))->render()
+                'view' => view('admin-views.pos.partials._cart-content', compact('cartId', 'cartItems'))->render()
             ]);
         }
     }
@@ -223,7 +223,7 @@ class POSController extends BaseController
             $cartItems = $this->getCartData(cartName: $cartId);
             return response()->json([
                 'coupon' => 'coupon_invalid',
-                'view' => view('admin-views.pos.partials._cart', compact('cartId', 'cartItems'))->render()
+                'view' => view('admin-views.pos.partials._cart-content', compact('cartId', 'cartItems'))->render()
             ]);
         }
 
@@ -272,7 +272,7 @@ class POSController extends BaseController
                         $cartItems = $this->getCartData(cartName: $cartId);
                         return response()->json([
                             'coupon' => "amount_low",
-                            'view' => view('admin-views.pos.partials._cart', compact('cartId', 'cartItems'))->render()
+                            'view' => view('admin-views.pos.partials._cart-content', compact('cartId', 'cartItems'))->render()
                         ]);
                     }
 
@@ -287,21 +287,21 @@ class POSController extends BaseController
                     $cartItems = $this->getCartData(cartName: $cartId);
                     return response()->json([
                         'coupon' => 'success',
-                        'view' => view('admin-views.pos.partials._cart', compact('cartId', 'cartItems'))->render()
+                        'view' => view('admin-views.pos.partials._cart-content', compact('cartId', 'cartItems'))->render()
                     ]);
                 }
             } else {
                 $cartItems = $this->getCartData(cartName: $cartId);
                 return response()->json([
                     'coupon' => 'cart_empty',
-                    'view' => view('admin-views.pos.partials._cart', compact('cartId', 'cartItems'))->render()
+                    'view' => view('admin-views.pos.partials._cart-content', compact('cartId', 'cartItems'))->render()
                 ]);
             }
         }
         $cartItems = $this->getCartData(cartName: $cartId);
         return response()->json([
             'coupon' => 'coupon_invalid',
-            'view' => view('admin-views.pos.partials._cart', compact('cartId', 'cartItems'))->render()
+            'view' => view('admin-views.pos.partials._cart-content', compact('cartId', 'cartItems'))->render()
         ]);
     }
 

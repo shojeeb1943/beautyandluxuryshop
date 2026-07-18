@@ -47,7 +47,7 @@ class CartManager
         }
     }
 
-    public static function getCartListQuery($groupId = null, $type = null)
+    public static function getCartListQuery($groupId = null, $type = null, $request = null)
     {
         ProductManager::updateProductPriceInCartList(request: request()->all());
 
@@ -59,8 +59,8 @@ class CartManager
             ->whereHas('product', function ($query) {
                 return $query->active();
             })
-            ->when($groupId == null, function ($query) {
-                return $query->whereIn('cart_group_id', CartManager::get_cart_group_ids());
+            ->when($groupId == null, function ($query) use ($request) {
+                return $query->whereIn('cart_group_id', CartManager::get_cart_group_ids(request: $request));
             })
             ->when($groupId, function ($query) use ($groupId) {
                 return $query->where('cart_group_id', $groupId);

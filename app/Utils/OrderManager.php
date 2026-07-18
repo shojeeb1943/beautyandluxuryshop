@@ -18,9 +18,12 @@ use App\Models\AdminWallet;
 use App\Models\OrderDetail;
 use App\Models\Transaction;
 use App\Traits\CommonTrait;
+use App\Exceptions\PosInsufficientStockException;
+use Illuminate\Database\QueryException;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use App\Models\CartShipping;
 use App\Models\SellerWallet;
 use App\Models\ShippingType;
@@ -692,7 +695,7 @@ class OrderManager
 
     public static function processOrderGenerateData(array|object|null $data = []): array
     {
-        $cartListQuery = CartManager::getCartListQuery(type: 'checked');
+        $cartListQuery = CartManager::getCartListQuery(type: 'checked', request: $data['requestObj'] ?? null);
         $cartListQueryGroup = $cartListQuery?->groupBy('cart_group_id');
         $checkReferralDiscount = OrderManager::checkCustomerReferralDiscount(request: ($data['requestObj'] ?? request()->all()));
         $onlyProductPriceGrandTotal = CartManager::getOnlyCartProductPriceGrandTotal(type: 'checked');
@@ -868,23 +871,40 @@ class OrderManager
                 'updated_at' => now()
             ];
 
-            if ($cartSingleItem['variant'] != null) {
-                $type = $cartSingleItem['variant'];
-                $variationData = [];
-                foreach (json_decode($product['variation'], true) as $var) {
-                    if ($type == $var['type']) {
-                        $var['qty'] -= $cartSingleItem['quantity'];
-                    }
-                    $variationData[] = $var;
+            // Re-fetch with a row lock immediately before mutating stock so concurrent
+            // requests for the same product serialize instead of racing (lost updates).
+            DB::transaction(function () use ($cartSingleItem, $product) {
+                $lockedProduct = Product::query()->whereKey($product['id'])->lockForUpdate()->first();
+                if (!$lockedProduct) {
+                    return;
                 }
-                Product::where(['id' => $product['id']])->update([
-                    'variation' => json_encode($variationData),
-                ]);
-            }
 
-            Product::where(['id' => $product['id']])->update([
-                'current_stock' => $product['current_stock'] - $cartSingleItem['quantity']
-            ]);
+                $stockUpdateData = [];
+                if ($cartSingleItem['variant'] != null) {
+                    $variation = json_decode($lockedProduct->variation, true) ?: [];
+                    foreach ($variation as &$var) {
+                        if ($cartSingleItem['variant'] == $var['type']) {
+                            if ((float)($var['qty'] ?? 0) < (float)$cartSingleItem['quantity']) {
+                                throw new PosInsufficientStockException($product['name'] ?? ('#' . $product['id']));
+                            }
+                            $var['qty'] -= $cartSingleItem['quantity'];
+                        }
+                    }
+                    unset($var);
+                    $stockUpdateData['variation'] = json_encode($variation);
+                }
+
+                if ($lockedProduct->product_type == 'physical') {
+                    if ((float)$lockedProduct->current_stock < (float)$cartSingleItem['quantity']) {
+                        throw new PosInsufficientStockException($product['name'] ?? ('#' . $product['id']));
+                    }
+                    $stockUpdateData['current_stock'] = $lockedProduct->current_stock - $cartSingleItem['quantity'];
+                }
+
+                if (!empty($stockUpdateData)) {
+                    Product::where(['id' => $product['id']])->update($stockUpdateData);
+                }
+            });
 
             DB::table('order_details')->insert($orderDetails);
         }
@@ -911,18 +931,36 @@ class OrderManager
             'requestObj' => $data['requestObj'] ?? null,
         ]);
 
-        foreach ($vendorWiseCartList as $vendorWiseGroupId => $vendorWiseCart) {
-            $order_id = OrderManager::generateNewOrderID();
-            $orderPlacedIds[] = $order_id;
+        if (empty($vendorWiseCartList) && ($data['payment_status'] ?? null) === 'paid') {
+            Log::error('generateOrder: payment marked paid but cart resolved empty, no order was created', [
+                'customer_id' => $getCustomerInfo['customer_id'] ?? null,
+                'transaction_ref' => $data['transaction_ref'] ?? null,
+            ]);
+        }
 
-            $ordersData = OrderManager::getOrderAddData(
-                orderId: $order_id,
-                orderGroupId: $orderGroupId,
-                customerData: $getCustomerInfo,
-                cartData: $vendorWiseCart,
-                orderData: $data,
-            );
-            DB::table('orders')->insertGetId($ordersData);
+        foreach ($vendorWiseCartList as $vendorWiseGroupId => $vendorWiseCart) {
+            // generateNewOrderID() computes the next id manually rather than relying on
+            // auto-increment, so two concurrent checkouts can collide; retry with a fresh id.
+            $retriesLeft = 3;
+            do {
+                $order_id = OrderManager::generateNewOrderID();
+                $ordersData = OrderManager::getOrderAddData(
+                    orderId: $order_id,
+                    orderGroupId: $orderGroupId,
+                    customerData: $getCustomerInfo,
+                    cartData: $vendorWiseCart,
+                    orderData: $data,
+                );
+                try {
+                    DB::table('orders')->insertGetId($ordersData);
+                    break;
+                } catch (QueryException $e) {
+                    if (--$retriesLeft <= 0) {
+                        throw $e;
+                    }
+                }
+            } while (true);
+            $orderPlacedIds[] = $order_id;
 
             if ($data['payment_method'] == 'offline_payment') {
                 OfflinePayments::insert(['order_id' => $order_id, 'payment_info' => json_encode($data['offline_payment_info']), 'created_at' => Carbon::now()]);

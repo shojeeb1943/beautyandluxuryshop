@@ -80,19 +80,19 @@ class CartController extends BaseController
                 return response()->json([
                     'qty' => $quantity,
                     'productType' => $product['product_type'],
-                    'view' => view('admin-views.pos.partials._cart', compact('cartId', 'cartItems'))->render()
+                    'view' => view('admin-views.pos.partials._cart-content', compact('cartId', 'cartItems'))->render()
                 ]);
             } else {
                 return response()->json([
                     'quantityUpdate' => 1,
-                    'view' => view('admin-views.pos.partials._cart', compact('cartId', 'cartItems'))->render()
+                    'view' => view('admin-views.pos.partials._cart-content', compact('cartId', 'cartItems'))->render()
                 ]);
             }
         } else {
             $cartItems = $this->getCartData(cartName: $cartId);
             return response()->json([
                 'upQty' => 'zeroNegative',
-                'view' => view('admin-views.pos.partials._cart', compact('cartId', 'cartItems'))->render()
+                'view' => view('admin-views.pos.partials._cart-content', compact('cartId', 'cartItems'))->render()
             ]);
         }
     }
@@ -149,7 +149,7 @@ class CartController extends BaseController
                             'data' => 'custom-error',
                             'title' => translate('Invalid_quantity'),
                             'text' => translate('Please_provide_a_valid_quantity'),
-                            'view' => view('admin-views.pos.partials._cart', compact('cartId', 'cartItems'))->render()
+                            'view' => view('admin-views.pos.partials._cart-content', compact('cartId', 'cartItems'))->render()
                         ]);
                     }
 
@@ -158,7 +158,7 @@ class CartController extends BaseController
                         $cartItems = $this->getCartData(cartName: $cartId);
                         return response()->json([
                             'data' => 0,
-                            'view' => view('admin-views.pos.partials._cart', compact('cartId', 'cartItems'))->render()
+                            'view' => view('admin-views.pos.partials._cart-content', compact('cartId', 'cartItems'))->render()
                         ]);
                     }
                     $cartItem = $this->cartService->addCartDataOnSession(
@@ -204,7 +204,7 @@ class CartController extends BaseController
             $cartItems = $this->getCartData(cartName: $cartId);
             return response()->json([
                 'data' => 0,
-                'view' => view('admin-views.pos.partials._cart', compact('cartId', 'cartItems'))->render()
+                'view' => view('admin-views.pos.partials._cart-content', compact('cartId', 'cartItems'))->render()
             ]);
         }
         $sessionData = $this->cartService->addCartDataOnSession(
@@ -218,7 +218,7 @@ class CartController extends BaseController
         $cartItems = $this->getCartData(cartName: $cartId);
         return response()->json([
             'data' => $sessionData,
-            'view' => view('admin-views.pos.partials._cart', compact('cartId', 'cartItems'))->render()
+            'view' => view('admin-views.pos.partials._cart-content', compact('cartId', 'cartItems'))->render()
         ]);
     }
 
@@ -247,7 +247,7 @@ class CartController extends BaseController
         session()->put($cartId, $cartKeeper);
         $cartItems = $this->getCartData(cartName: $cartId);
         return response()->json(
-            ['view' => view('admin-views.pos.partials._cart', compact('cartId', 'cartItems'))->render()]
+            ['view' => view('admin-views.pos.partials._cart-content', compact('cartId', 'cartItems'))->render()]
         );
     }
 

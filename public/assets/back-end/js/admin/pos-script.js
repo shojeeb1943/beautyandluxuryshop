@@ -618,6 +618,12 @@ function basicFunctionalityForCartSummary() {
                                 location.reload();
                             }
                         },
+                        error: function (xhr) {
+                            let message = xhr.responseJSON && xhr.responseJSON.message
+                                ? xhr.responseJSON.message
+                                : "Failed to place order. Please try again.";
+                            toastMagic.error(message);
+                        },
                         complete: function () {
                             $("#loading").fadeOut();
                             window.posOrderSubmitting = false;

@@ -26,7 +26,7 @@ class OrderService
             'order_amount' => currencyConverter(amount: $amount),
             'paid_amount' => currencyConverter(amount: $paidAmount),
             'shipping_cost' => $isDelivery ? currencyConverter(amount: $shippingCost) : 0,
-            'shipping_method_id' => $isDelivery ? $shippingMethodId : null,
+            'shipping_method_id' => $isDelivery ? $shippingMethodId : 0,
             'shipping_address_data' => $isDelivery && $shippingAddress ? $shippingAddress : null,
             'delivery_type' => $isDelivery ? 'self_delivery' : null,
             'expected_delivery_date' => $isDelivery ? now()->addDay() : null,

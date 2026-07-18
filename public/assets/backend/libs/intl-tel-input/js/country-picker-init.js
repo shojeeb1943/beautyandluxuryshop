@@ -3,16 +3,12 @@
 function initializePhoneInput(selector, outputSelector) {
     const phoneInput = document.querySelector(selector);
     const outputInput = document.querySelector(outputSelector);
-    const phoneNumber = phoneInput.value;
-    const countryCodeMatch = phoneNumber.replace(/[^0-9]/g, "");
 
     const defaultCountryCodeElement = document.querySelector(".system-default-country-code");
     const defaultCountry = defaultCountryCodeElement?.dataset?.value?.toLowerCase() || "bd";
 
-    const initialCountry = countryCodeMatch ? `+${countryCodeMatch}` : defaultCountry;
-
     let phoneInputInit = window.intlTelInput(phoneInput, {
-        initialCountry: initialCountry.toLowerCase(),
+        initialCountry: defaultCountry,
         showSelectedDialCode: true,
         useFullscreenPopup: false,
     });

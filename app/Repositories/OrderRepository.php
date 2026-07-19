@@ -264,11 +264,13 @@ class OrderRepository implements OrderRepositoryInterface
 
     public function updateStockOnOrderStatusChange(string|int $orderId, string $status): bool
     {
-        $order = $this->order->with('details.productAllStatus')->find($orderId);
+        $order = $this->order->with('details')->find($orderId);
         if ($status == 'returned' || $status == 'failed' || $status == 'canceled') {
             foreach ($order['details'] as $detail) {
                 if ($detail['is_stock_decreased'] == 1) {
-                    $product = $detail->productAllStatus;
+                    // Re-fetch per iteration (not from a pre-loop eager load) so a second line
+                    // for the same product sees the previous line's just-written stock update.
+                    $product = Product::find($detail['product_id']);
                     if (!$product) {
                         continue;
                     }
@@ -295,7 +297,7 @@ class OrderRepository implements OrderRepositoryInterface
         } else {
             foreach ($order['details'] as $detail) {
                 if ($detail['is_stock_decreased'] == 0) {
-                    $product = $detail->productAllStatus;
+                    $product = Product::find($detail['product_id']);
                     if (!$product) {
                         continue;
                     }

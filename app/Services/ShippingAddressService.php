@@ -8,7 +8,7 @@ class ShippingAddressService
     {
         return [
             'customer_id' => $customerId,
-            'contact_person_name' => $request['f_name'].' '.$request['f_name'],
+            'contact_person_name' => $request['f_name'].' '.$request['l_name'],
             'address_type' => $addressType,
             'address' => $request['address'],
             'city' => $request['city'],

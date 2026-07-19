@@ -395,7 +395,7 @@ class CustomerController extends BaseController
         return response()->json($customers);
     }
 
-    public function add(CustomerRequest $request, CustomerService $customerService): RedirectResponse
+    public function add(CustomerRequest $request, CustomerService $customerService): JsonResponse
     {
         $token = Str::random(120);
         $this->passwordResetRepo->add($this->passwordResetService->getAddData(identity: $request['phone'], token: $token, userType: 'customer'));
@@ -414,7 +414,12 @@ class CustomerController extends BaseController
             ];
             event(new CustomerRegistrationEvent(email: $request['email'], data: $data));
         }
-        ToastMagic::success(translate('customer_added_successfully'));
-        return redirect()->back();
+        return response()->json([
+            'message' => translate('customer_added_successfully'),
+            'customer' => [
+                'id' => $customer['id'],
+                'text' => trim($customer['f_name'] . ' ' . $customer['l_name']) . ' (' . $customer['phone'] . ')',
+            ],
+        ]);
     }
 }

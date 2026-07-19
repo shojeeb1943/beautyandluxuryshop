@@ -146,6 +146,45 @@ $(".action-customer-change").on("change", function () {
     });
 });
 
+$("#product_form").on("submit", function (e) {
+    e.preventDefault();
+    let submitBtn = $("#submit_new_customer");
+    if (submitBtn.prop("disabled")) {
+        return;
+    }
+    let formData = new FormData(this);
+    submitBtn.prop("disabled", true);
+    $.ajax({
+        url: $(this).attr("action"),
+        method: "POST",
+        data: formData,
+        contentType: false,
+        processData: false,
+        beforeSend: function () {
+            $("#loading").fadeIn();
+        },
+        success: (response) => {
+            toastMagic.success(response.message);
+            let option = new Option(response.customer.text, response.customer.id, true, true);
+            $("#customer").append(option).trigger("change");
+            $("#add-customer").modal("hide");
+            this.reset();
+        },
+        error: function (xhr) {
+            let errors = xhr.responseJSON && xhr.responseJSON.errors;
+            if (errors) {
+                Object.values(errors).forEach((messages) => messages.forEach((message) => toastMagic.error(message)));
+            } else {
+                toastMagic.error("Failed to add customer. Please try again.");
+            }
+        },
+        complete: function () {
+            $("#loading").fadeOut();
+            submitBtn.prop("disabled", false);
+        },
+    });
+});
+
 $(".action-view-all-hold-orders").on("click", () => viewAllHoldOrders());
 elementViewAllHoldOrdersSearch.on("input", () => viewAllHoldOrders("keyup"));
 

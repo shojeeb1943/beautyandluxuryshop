@@ -588,7 +588,7 @@ class OrderRepository implements OrderRepositoryInterface
             ->where($filters)
             ->select('customer_id', DB::raw('COUNT(customer_id) as count'))
             ->whereHas('customer', function ($query) {
-                $query->where('id', '!=', 0)->whereNot('email', 'walking@customer.com');
+                $query->where('id', '!=', 0);
             })
             ->groupBy('customer_id')
             ->orderBy("count", 'desc');

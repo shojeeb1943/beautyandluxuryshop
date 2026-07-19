@@ -77,7 +77,7 @@ class CustomerRepository implements CustomerRepositoryInterface
                 return $query->withCount($filters['withCount']);
             })
             ->when(isset($filters['avoid_walking_customer']) && $filters['avoid_walking_customer'] == 1, function ($query) use ($filters) {
-                return $query->whereNot('email', 'walking@customer.com');
+                return $query->where('id', '!=', 0);
             })
             ->when(!empty($orderBy), function ($query) use ($orderBy) {
                 $query->orderBy(array_key_first($orderBy), array_values($orderBy)[0]);
@@ -96,7 +96,7 @@ class CustomerRepository implements CustomerRepositoryInterface
                         ->orWhere('l_name', 'like', "%$searchValue%")
                         ->orWhere('phone', 'like', "%$searchValue%")
                         ->orWhereRaw("CONCAT(f_name, ' ', l_name) LIKE ?", ["%$searchValue%"]);
-                })->where('email', '!=', 'abc@gm.com');
+                });
             })
             ->when(isset($filters['order_date']) && !empty($filters['order_date']), function ($query) use ($filters) {
                 $dates = explode(' - ', $filters['order_date']);
@@ -120,7 +120,7 @@ class CustomerRepository implements CustomerRepositoryInterface
                 return $query->withSum('orders', 'order_amount')->orderBy('orders_sum_order_amount', 'desc');
             })
             ->when(isset($filters['avoid_walking_customer']) && $filters['avoid_walking_customer'] == 1, function ($query) use ($filters) {
-                return $query->whereNot('email', 'walking@customer.com');
+                return $query->where('id', '!=', 0);
             })
             ->when(!empty($orderBy), function ($query) use ($orderBy) {
                 $query->orderBy(array_key_first($orderBy), array_values($orderBy)[0]);

@@ -197,9 +197,13 @@ class OrderRepository implements OrderRepositoryInterface
         return $this->order->where('id', $id)->update($data);
     }
 
-    public function updateWhere(array $params, array $data): bool
+    public function updateWhere(array $params, array $data, array $whereNotNull = []): bool
     {
-        return $this->order->where($params)->update($data);
+        $query = $this->order->where($params);
+        foreach ($whereNotNull as $column) {
+            $query->whereNotNull($column);
+        }
+        return $query->update($data);
     }
 
     public function delete(array $params): bool

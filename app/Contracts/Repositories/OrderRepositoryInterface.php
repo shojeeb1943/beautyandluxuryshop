@@ -22,7 +22,7 @@ interface OrderRepositoryInterface extends RepositoryInterface
      * @param array $data
      * @return bool
      */
-    public function updateWhere(array $params, array $data): bool;
+    public function updateWhere(array $params, array $data, array $whereNotNull = []): bool;
 
 
     /**

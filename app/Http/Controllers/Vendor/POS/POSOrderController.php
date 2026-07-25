@@ -131,6 +131,7 @@ class POSOrderController extends BaseController
         $orderType = $request['order_type_pos'] == 'delivery' ? 'delivery' : 'walk_in';
         $shippingCost = 0;
         $shippingAddress = null;
+        $shippingAddressId = null;
         $shippingMethodId = null;
         if ($orderType == 'delivery') {
             if ($userId == 0) {
@@ -167,6 +168,7 @@ class POSOrderController extends BaseController
                     'latitude' => '',
                     'longitude' => '',
                 ];
+                $shippingAddressId = $savedAddress->id;
             }
             $shippingMethod = ShippingMethod::find($request['shipping_method_id']);
             if (!$shippingMethod) {
@@ -188,7 +190,7 @@ class POSOrderController extends BaseController
 
         try {
             try {
-                $orderId = DB::transaction(function () use ($cart, $amount, $paidAmount, $request, $userId, $orderType, $shippingAddress, $shippingCost, $shippingMethodId) {
+                $orderId = DB::transaction(function () use ($cart, $amount, $paidAmount, $request, $userId, $orderType, $shippingAddress, $shippingAddressId, $shippingCost, $shippingMethodId) {
                     $orderData = $this->orderService->getPOSOrderData(
                         cart: $cart,
                         amount: $amount,
@@ -199,7 +201,8 @@ class POSOrderController extends BaseController
                         orderType: $orderType,
                         shippingAddress: $shippingAddress,
                         shippingCost: $shippingCost,
-                        shippingMethodId: $shippingMethodId
+                        shippingMethodId: $shippingMethodId,
+                        shippingAddressId: $shippingAddressId
                     );
                     $createdOrder = $this->orderRepo->add(data: $orderData);
                     $orderId = $createdOrder->id;

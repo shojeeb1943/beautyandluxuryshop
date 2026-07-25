@@ -8,7 +8,7 @@ class OrderService
     {
     }
 
-    public function getPOSOrderData(array $cart, float $amount, float $paidAmount, string $paymentType, string $addedBy, int $userId, string $orderType = 'walk_in', ?array $shippingAddress = null, float $shippingCost = 0, ?int $shippingMethodId = null): array
+    public function getPOSOrderData(array $cart, float $amount, float $paidAmount, string $paymentType, string $addedBy, int $userId, string $orderType = 'walk_in', ?array $shippingAddress = null, float $shippingCost = 0, ?int $shippingMethodId = null, ?int $shippingAddressId = null): array
     {
         $isDelivery = $orderType === 'delivery';
         return [
@@ -27,6 +27,7 @@ class OrderService
             'paid_amount' => currencyConverter(amount: $paidAmount),
             'shipping_cost' => $isDelivery ? currencyConverter(amount: $shippingCost) : 0,
             'shipping_method_id' => $isDelivery ? $shippingMethodId : 0,
+            'shipping_address' => $isDelivery ? $shippingAddressId : null,
             'shipping_address_data' => $isDelivery && $shippingAddress ? $shippingAddress : null,
             'delivery_type' => $isDelivery ? 'self_delivery' : null,
             'expected_delivery_date' => $isDelivery ? now()->addDay() : null,

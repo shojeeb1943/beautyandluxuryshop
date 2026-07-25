@@ -171,6 +171,8 @@ class CustomerController extends BaseController
             'address' => 'required',
         ]);
 
+        $customerId = $this->shippingAddressRepo->getFirstWhere(params: ['id' => $request['id']])?->customer_id;
+
         $this->shippingAddressRepo->update(id: $request['id'], data: [
             'contact_person_name' => $request['name'],
             'phone' => $request['phone'],
@@ -184,6 +186,33 @@ class CustomerController extends BaseController
         $updatedAddress = $this->shippingAddressRepo->getFirstWhere(params: ['id' => $request['id']]);
         $this->orderRepo->updateWhere(params: ['shipping_address' => $request['id']], data: ['shipping_address_data' => json_encode($updatedAddress)]);
         $this->orderRepo->updateWhere(params: ['billing_address' => $request['id']], data: ['billing_address_data' => json_encode($updatedAddress)]);
+
+        // ponytail: POS orders don't link `shipping_address` back to this row (fixed going
+        // forward in POSOrderController/OrderService), so legacy POS orders are only findable
+        // by customer_id. Assumes one saved address per customer; whereNotNull guards against
+        // stamping an address onto walk-in orders that never had one.
+        if ($customerId) {
+            $this->orderRepo->updateWhere(
+                params: ['customer_id' => $customerId, 'shipping_address' => null],
+                data: ['shipping_address_data' => json_encode($updatedAddress)],
+                whereNotNull: ['shipping_address_data']
+            );
+        }
+
+        if ($customerId) {
+            $nameParts = explode(' ', trim($request['name']));
+            $lastName = count($nameParts) > 1 ? array_pop($nameParts) : '';
+            $firstName = implode(' ', $nameParts) ?: $request['name'];
+            $this->customerRepo->update(id: $customerId, data: [
+                'f_name' => $firstName,
+                'l_name' => $lastName,
+                'phone' => $request['phone'],
+                'street_address' => $request['address'],
+                'city' => $request['city'],
+                'zip' => $request['zip'],
+                'country' => $request['country'],
+            ]);
+        }
 
         ToastMagic::success(translate('successfully_updated'));
         return back();

@@ -181,6 +181,10 @@ class CustomerController extends BaseController
             'updated_at' => now(),
         ]);
 
+        $updatedAddress = $this->shippingAddressRepo->getFirstWhere(params: ['id' => $request['id']]);
+        $this->orderRepo->updateWhere(params: ['shipping_address' => $request['id']], data: ['shipping_address_data' => json_encode($updatedAddress)]);
+        $this->orderRepo->updateWhere(params: ['billing_address' => $request['id']], data: ['billing_address_data' => json_encode($updatedAddress)]);
+
         ToastMagic::success(translate('successfully_updated'));
         return back();
     }

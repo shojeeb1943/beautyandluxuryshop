@@ -118,6 +118,7 @@ Route::middleware('throttle:60,1')->get('/image-proxy', function () {
 });
 
 Route::get('/facebook-feed.xml', [\App\Http\Controllers\Web\FacebookFeedController::class, 'feed'])->name('facebook.feed');
+Route::get('/google-feed.xml', [\App\Http\Controllers\Web\GoogleFeedController::class, 'feed'])->name('google.feed');
 
 Route::controller(WebController::class)->group(function () {
     Route::get('maintenance-mode', 'maintenance_mode')->name('maintenance-mode');

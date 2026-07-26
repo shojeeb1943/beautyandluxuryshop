@@ -43,7 +43,7 @@ class GoogleFeedController extends Controller
                     $items->push(array_merge($common, [
                         'id'            => $p->id . '-' . str_replace(' ', '-', $type),
                         'item_group_id' => $p->id,
-                        'price'         => number_format((float)$price, 2) . ' ' . $currencyCode,
+                        'price'         => number_format((float)$price, 2, '.', '') . ' ' . $currencyCode,
                         'availability'  => (int)$qty > 0 ? 'in stock' : 'out of stock',
                         'sku'           => $sku,
                     ]));
@@ -52,7 +52,7 @@ class GoogleFeedController extends Controller
                 $items->push(array_merge($common, [
                     'id'            => $p->id,
                     'item_group_id' => null,
-                    'price'         => number_format((float)$p->unit_price, 2) . ' ' . $currencyCode,
+                    'price'         => number_format((float)$p->unit_price, 2, '.', '') . ' ' . $currencyCode,
                     'availability'  => $p->current_stock > 0 ? 'in stock' : 'out of stock',
                     'sku'           => $p->code ?? '',
                 ]));

@@ -305,6 +305,9 @@ class ProductRepository implements ProductRepositoryInterface
             ->when(isset($relations['seller.shop']), function ($query) use ($relations) {
                 return $query->with($relations['seller.shop']);
             })
+            ->when(isset($relations['clearanceSale']), function ($query) use ($relations) {
+                return $query->with($relations['clearanceSale']);
+            })
             ->when(isset($relations['flashDealProducts.flashDeal']), function ($query) use ($relations) {
                 return $query->with($relations['flashDealProducts.flashDeal']);
             })

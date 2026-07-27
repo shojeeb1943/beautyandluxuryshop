@@ -178,7 +178,7 @@ class ProductDetailsController extends Controller
                 scope: 'active',
                 filters: ['category_id' => $product['category_id']],
                 whereNotIn: ['id' => [$product['id']]],
-                relations: ['reviews' => 'reviews'],
+                relations: ['reviews' => 'reviews', 'clearanceSale' => 'clearanceSale'],
                 dataLimit: 12,
                 offset: 1
             );
@@ -277,7 +277,7 @@ class ProductDetailsController extends Controller
                 scope: 'active',
                 filters: ['category_ids' => $product['category_ids'], 'customer_id' => Auth::guard('customer')->user()->id ?? 0],
                 whereNotIn: ['id' => [$product['id']]],
-                relations: ['reviews' => 'reviews', 'flashDealProducts.flashDeal' => 'flashDealProducts.flashDeal', 'wishList' => 'wishList', 'compareList' => 'compareList'],
+                relations: ['reviews' => 'reviews', 'flashDealProducts.flashDeal' => 'flashDealProducts.flashDeal', 'wishList' => 'wishList', 'compareList' => 'compareList', 'clearanceSale' => 'clearanceSale'],
                 withCount: ['reviews' => 'reviews'],
                 dataLimit: 12,
                 offset: 1

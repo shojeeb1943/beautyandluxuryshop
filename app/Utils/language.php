@@ -25,16 +25,21 @@ if (!function_exists('translate')) {
             $processedKey = ucfirst(str_replace('_', ' ', removeSpecialCharacters($key)));
 
             if (!array_key_exists($key, $translatedMessagesArray) && !array_key_exists($key, $newMessagesArray)) {
-                $newMessagesArray[$key] = $processedKey;
-
-                $languageFileContents = "<?php\n\nreturn [\n";
-                foreach ($newMessagesArray as $languageKey => $value) {
-                    $languageFileContents .= "\t\"" . $languageKey . "\" => \"" . $value . "\",\n";
-                }
-                $languageFileContents .= "];\n";
-
                 $targetPath = base_path('resources/lang/' . $local . '/new-messages.php');
-                file_put_contents($targetPath, $languageFileContents);
+                $handle = fopen($targetPath, 'c+');
+                flock($handle, LOCK_EX);
+
+                $freshMessagesArray = include($targetPath) ?: [];
+                $freshMessagesArray[$key] = $processedKey;
+                $languageFileContents = "<?php\n\nreturn " . var_export($freshMessagesArray, true) . ";\n";
+
+                ftruncate($handle, 0);
+                rewind($handle);
+                fwrite($handle, $languageFileContents);
+                fflush($handle);
+                flock($handle, LOCK_UN);
+                fclose($handle);
+
                 $message = $processedKey;
             } elseif (array_key_exists($key, $translatedMessagesArray)) {
                 $message = __('messages.' . $key);

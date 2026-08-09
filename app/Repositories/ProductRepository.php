@@ -158,7 +158,7 @@ class ProductRepository implements ProductRepositoryInterface
                 ->where('value', 'like', "%{$searchValue}%")
                 ->pluck('translationable_id')?->toArray() ?? [];
 
-            $getProductIds = $this->product->where('name', 'like', "%{$searchValue}%")->get()?->pluck('id')?->toArray() ?? [];
+            $getProductIds = $this->product->where('name', 'like', "%{$searchValue}%")->pluck('id')?->toArray() ?? [];
             $product_ids = array_merge($product_ids, $getProductIds);
 
             return $query->where('name', 'like', "%{$searchValue}%")

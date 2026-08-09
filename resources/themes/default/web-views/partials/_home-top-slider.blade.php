@@ -7,6 +7,7 @@
                     @foreach($bannerTypeMainBanner as $key=>$banner)
                         <a href="{{$banner['url']}}" class="d-block" target="_blank">
                             <img class="w-100" style="object-fit: cover; height: auto; display: block;" alt=""
+                                width="1920" height="580"
                                 src="{{ getStorageImages(path: $banner->photo_full_url, type: 'banner') }}">
                         </a>
                     @endforeach

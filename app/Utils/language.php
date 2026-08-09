@@ -18,9 +18,16 @@ if (!function_exists('translate')) {
 
     function getOrPutTranslateMessageValueByKey(string $local, string $key): array|string|null
     {
+        static $requestCache = [];
         try {
-            $translatedMessagesArray = include(base_path('resources/lang/' . $local . '/messages.php'));
-            $newMessagesArray = include(base_path('resources/lang/' . $local . '/new-messages.php'));
+            if (!isset($requestCache[$local])) {
+                $requestCache[$local] = [
+                    'translated' => include(base_path('resources/lang/' . $local . '/messages.php')),
+                    'new' => include(base_path('resources/lang/' . $local . '/new-messages.php')),
+                ];
+            }
+            $translatedMessagesArray = $requestCache[$local]['translated'];
+            $newMessagesArray = $requestCache[$local]['new'];
             $key = str_replace('"', '', $key);
             $processedKey = ucfirst(str_replace('_', ' ', removeSpecialCharacters($key)));
 
@@ -29,7 +36,10 @@ if (!function_exists('translate')) {
                 $handle = fopen($targetPath, 'c+');
                 flock($handle, LOCK_EX);
 
-                $freshMessagesArray = include($targetPath) ?: [];
+                $freshMessagesArray = include($targetPath);
+                if (!is_array($freshMessagesArray)) {
+                    $freshMessagesArray = $newMessagesArray;
+                }
                 $freshMessagesArray[$key] = $processedKey;
                 $languageFileContents = "<?php\n\nreturn " . var_export($freshMessagesArray, true) . ";\n";
 
@@ -40,6 +50,7 @@ if (!function_exists('translate')) {
                 flock($handle, LOCK_UN);
                 fclose($handle);
 
+                $requestCache[$local]['new'][$key] = $processedKey;
                 $message = $processedKey;
             } elseif (array_key_exists($key, $translatedMessagesArray)) {
                 $message = __('messages.' . $key);

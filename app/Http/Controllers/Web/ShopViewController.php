@@ -182,6 +182,9 @@ class ShopViewController extends Controller
 
         $featuredProductQuery = Product::active()->with([
             'seller.shop',
+            'clearanceSale' => function ($query) {
+                return $query->active();
+            },
             'wishList' => function ($query) {
                 return $query->where('customer_id', Auth::guard('customer')->user()->id ?? 0);
             },
@@ -297,6 +300,9 @@ class ShopViewController extends Controller
 
         $featuredProductQuery = Product::active()->with([
             'seller.shop',
+            'clearanceSale' => function ($query) {
+                return $query->active();
+            },
             'wishList' => function ($query) {
                 return $query->where('customer_id', Auth::guard('customer')->user()->id ?? 0);
             },

@@ -203,7 +203,6 @@
 <script src="{{ theme_asset(path: 'public/assets/front-end/js/theme.js') }}"></script>
 <script src="{{ theme_asset(path: 'public/assets/front-end/js/slick.js') }}"></script>
 <script src="{{ theme_asset(path: 'public/assets/front-end/js/sweet_alert.js') }}"></script>
-<script src="{{ theme_asset(path: "public/assets/back-end/js/toastr.js") }}"></script>
 <script src="{{ theme_asset(path: 'public/assets/front-end/js/custom.js') }}"></script>
 
 <script src="{{ dynamicAsset(path: 'public/assets/backend/libs/intl-tel-input/js/intlTelInput.js') }}"></script>

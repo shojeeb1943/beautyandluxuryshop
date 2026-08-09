@@ -36,7 +36,10 @@ if (!function_exists('translate')) {
                 $handle = fopen($targetPath, 'c+');
                 flock($handle, LOCK_EX);
 
-                $freshMessagesArray = include($targetPath) ?: [];
+                $freshMessagesArray = include($targetPath);
+                if (!is_array($freshMessagesArray)) {
+                    $freshMessagesArray = $newMessagesArray;
+                }
                 $freshMessagesArray[$key] = $processedKey;
                 $languageFileContents = "<?php\n\nreturn " . var_export($freshMessagesArray, true) . ";\n";
 

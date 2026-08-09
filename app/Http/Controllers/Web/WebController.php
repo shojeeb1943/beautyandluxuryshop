@@ -255,7 +255,9 @@ class WebController extends Controller
                 return $shop;
             });
 
-        $inhouseProducts = Product::active()->with(['reviews', 'rating'])->withCount('reviews')->where(['added_by' => 'admin'])->get();
+        $inhouseProducts = Product::active()->with(['reviews', 'rating', 'clearanceSale' => function ($query) {
+            return $query->active();
+        }])->withCount('reviews')->where(['added_by' => 'admin'])->get();
         $inhouseProductCount = $inhouseProducts->count();
 
         $inhouseReviewData = Review::active()->whereIn('product_id', $inhouseProducts->pluck('id'));
@@ -981,7 +983,9 @@ class WebController extends Controller
 
     public function seller_shop_product(Request $request, $id): View|JsonResponse
     {
-        $products = Product::active()->withCount('reviews')->with('shop')->where(['added_by' => 'seller'])
+        $products = Product::active()->withCount('reviews')->with(['shop', 'clearanceSale' => function ($query) {
+            return $query->active();
+        }])->where(['added_by' => 'seller'])
             ->where('user_id', $id)
             ->whereJsonContains('category_ids', [
                 ['id' => strval($request->category_id)],

@@ -21,6 +21,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends BaseController
 {
@@ -48,8 +49,12 @@ class DashboardController extends BaseController
      */
     public function index(Request|null $request, string $type = null): View|Collection|LengthAwarePaginator|null|callable|RedirectResponse
     {
-        $mostRatedProducts = $this->productRepo->getTopRatedList()->take(DASHBOARD_DATA_LIMIT);
-        $topSellProduct = $this->productRepo->getTopSellList(relations: ['orderDetails'])->take(DASHBOARD_TOP_SELL_DATA_LIMIT);
+        $mostRatedProducts = Cache::remember('admin_dashboard_most_rated_products', now()->addMinutes(15), fn() =>
+            $this->productRepo->getTopRatedList()->take(DASHBOARD_DATA_LIMIT)
+        );
+        $topSellProduct = Cache::remember('admin_dashboard_top_sell_products', now()->addMinutes(15), fn() =>
+            $this->productRepo->getTopSellList(relations: ['orderDetails'])->take(DASHBOARD_TOP_SELL_DATA_LIMIT)
+        );
         $topCustomer = $this->orderRepo->getTopCustomerList(relations: ['customer'], dataLimit: 'all')->take(DASHBOARD_DATA_LIMIT);
         $topRatedDeliveryMan = $this->deliveryManRepo->getTopRatedList(filters: ['seller_id' => 0], relations: ['deliveredOrders'], dataLimit: 'all')->take(DASHBOARD_DATA_LIMIT);
         $topVendorByEarning = $this->vendorWalletRepo->getListWhere(orderBy: ['total_earning' => 'desc'], filters: [['column' => 'total_earning', 'operator' => '>', 'value' => 0]], relations: ['seller.shop'])->take(DASHBOARD_DATA_LIMIT);
@@ -61,11 +66,22 @@ class DashboardController extends BaseController
         $to = now()->endOfYear()->format('Y-m-d');
         $range = range(1, 12);
         $label = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        $inHouseOrderEarningArray = $this->getOrderStatisticsData(from: $from, to: $to, range: $range, type: 'month', userType: 'admin');
-        $vendorOrderEarningArray = $this->getOrderStatisticsData(from: $from, to: $to, range: $range, type: 'month', userType: 'seller');
-        $inHouseEarning = $this->getEarning(from: $from, to: $to, range: $range, type: 'month', userType: 'admin');
-        $vendorEarning = $this->getEarning(from: $from, to: $to, range: $range, type: 'month', userType: 'seller');
-        $commissionEarn = $this->getAdminCommission(from: $from, to: $to, range: $range, type: 'month');
+        $earningCacheYear = now()->year;
+        $inHouseOrderEarningArray = Cache::remember("admin_dashboard_inhouse_order_earning_{$earningCacheYear}", now()->addMinutes(15), fn() =>
+            $this->getOrderStatisticsData(from: $from, to: $to, range: $range, type: 'month', userType: 'admin')
+        );
+        $vendorOrderEarningArray = Cache::remember("admin_dashboard_vendor_order_earning_{$earningCacheYear}", now()->addMinutes(15), fn() =>
+            $this->getOrderStatisticsData(from: $from, to: $to, range: $range, type: 'month', userType: 'seller')
+        );
+        $inHouseEarning = Cache::remember("admin_dashboard_inhouse_earning_{$earningCacheYear}", now()->addMinutes(15), fn() =>
+            $this->getEarning(from: $from, to: $to, range: $range, type: 'month', userType: 'admin')
+        );
+        $vendorEarning = Cache::remember("admin_dashboard_vendor_earning_{$earningCacheYear}", now()->addMinutes(15), fn() =>
+            $this->getEarning(from: $from, to: $to, range: $range, type: 'month', userType: 'seller')
+        );
+        $commissionEarn = Cache::remember("admin_dashboard_commission_earn_{$earningCacheYear}", now()->addMinutes(15), fn() =>
+            $this->getAdminCommission(from: $from, to: $to, range: $range, type: 'month')
+        );
         $dateType = 'yearEarn';
         $getTotalCustomerCount = $this->customerRepo->getListWhereBetween(filters: ['avoid_walking_customer' => 1], dataLimit: 'all')->count();
         $data += [

@@ -174,7 +174,7 @@ class OrderController extends BaseController
             'seller_is' => $vendorIs,
         ];
 
-        $orders = $this->orderRepo->getListWhere(orderBy: ['id' => 'desc'], searchValue: $request['searchValue'], filters: $filters, relations: ['customer', 'seller.shop'], dataLimit: 'all');
+        $orders = $this->orderRepo->getListWhere(orderBy: ['id' => 'desc'], searchValue: $request['searchValue'], filters: $filters, relations: ['customer', 'seller.shop', 'orderDetails'], dataLimit: 'all');
 
         /** order status count  */
         $status_array = [

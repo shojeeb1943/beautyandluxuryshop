@@ -4,10 +4,8 @@
 
 @push('css_or_js')
     <link rel="stylesheet" href="{{ theme_asset(path: 'public/assets/front-end/css/payment.css') }}">
-    
     <script src="https://js.stripe.com/v3/"></script>
 @endpush
-
 @section('content')
     <div class="container pb-5 mb-2 mb-md-4 rtl px-0 px-md-3 text-align-direction">
         <div class="row mx-max-md-0">

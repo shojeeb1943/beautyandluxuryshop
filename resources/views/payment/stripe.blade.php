@@ -1,7 +1,6 @@
 @extends('payment.layouts.master')
 
 @push('script')
-    
     <script src="https://js.stripe.com/v3/"></script>
 @endpush
 

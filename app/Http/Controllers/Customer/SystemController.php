@@ -510,7 +510,7 @@ class SystemController extends Controller
             }
 
             if (User::where(['email' => $newCustomerAddress['email']])->orWhere(['phone' => $newCustomerAddress['phone']])->first()) {
-                return response()->json(['errors' => translate('Already_registered')], 403);
+                return response()->json(['errors' => translate('You_already_have_an_account_with_this_email_or_phone_please_log_in_or_untick_create_account')], 403);
             }else{
                 $newCustomerRegister = self::getRegisterNewCustomer(request: $request, address: $newCustomerAddress);
                 session()->put('newCustomerRegister', $newCustomerRegister);

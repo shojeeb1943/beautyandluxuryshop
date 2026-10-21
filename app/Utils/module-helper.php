@@ -28,7 +28,7 @@ if (!function_exists('digital_payment_success')) {
                         'email' => $newCustomerInfo['email'],
                         'phone' => $newCustomerInfo['phone'],
                         'is_active' => 1,
-                        'password' => bcrypt($newCustomerInfo['password']),
+                        'password' => !empty($newCustomerInfo['password_hashed']) ? $newCustomerInfo['password'] : bcrypt($newCustomerInfo['password']),
                         'referral_code' => $newCustomerInfo['referral_code'],
                     ]);
                 } else {
@@ -46,6 +46,18 @@ if (!function_exists('digital_payment_success')) {
                 }
             }
 
+            # Checkout was recorded as guest, but the cart lives under an existing account (the
+            # "create account" email/phone matched a registered user, or they were logged in).
+            # Cart lookup by the guest id then finds nothing -> paid but no order. Use the account.
+            if ($addCustomer && !empty($additionalData['is_guest'])
+                && !Cart::where(['customer_id' => $additionalData['customer_id'], 'is_guest' => 1])->exists()
+                && Cart::where(['customer_id' => $addCustomer['id'], 'is_guest' => 0])->exists()) {
+                $additionalData['customer_id'] = $addCustomer['id'];
+                $additionalData['is_guest'] = 0;
+                $additionalData['is_guest_in_order'] = 0;
+                $additionalData['new_customer_id'] = $addCustomer['id'];
+            }
+
             session()->put('payment_mode', $additionalData['payment_mode'] ?? 'web');
 
             if (isset($additionalData['is_guest']) && $additionalData['is_guest'] == 0) {
@@ -56,7 +68,7 @@ if (!function_exists('digital_payment_success')) {
             $requestObj = [
                 'customer_id' => $additionalData['customer_id'],
                 'is_guest' => $additionalData['is_guest'] ?? 0,
-                'guest_id' => ($additionalData['is_guest_in_order'] ?? 0) ? $additionalData['customer_id'] : null,
+                'guest_id' => (($additionalData['is_guest_in_order'] ?? 0) || !empty($additionalData['is_guest'])) ? $additionalData['customer_id'] : null,
                 'payment_request_from' => $additionalData['payment_mode'] ?? 'web',
             ];
             request()->merge($requestObj);

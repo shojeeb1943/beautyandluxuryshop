@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Payment_Methods;
 
+use App\Models\Order;
 use App\Models\PaymentRequest;
 use App\Models\User;
 use App\Traits\Processor;
+use App\Utils\PaymentAudit;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -76,6 +78,7 @@ class SslCommerzPaymentController extends Controller
         # GENERATE AND PERSIST THE TRANSACTION ID SO IT CAN BE MATCHED, VALIDATED AND RECONCILED LATER
         $tran_id = uniqid();
         $this->payment::where(['id' => $data['id']])->update(['transaction_id' => $tran_id]);
+        PaymentAudit::log('pay_started', $data['id'], $tran_id, null, ['amount' => $payment_amount]);
 
         $post_data = array();
         $post_data['store_id'] = $this->store_id;
@@ -246,6 +249,10 @@ class SslCommerzPaymentController extends Controller
     protected function validateAndConfirm(Request $request)
     {
         $tranId = $request->input('tran_id');
+        PaymentAudit::log($request->is('*ipn*') ? 'ipn_received' : 'return_received', $request['payment_id'] ?? null, $tranId, $request->input('status'), [
+            'val_id' => $request->input('val_id'),
+            'card_type' => $request->input('card_type'),
+        ]);
 
         # RESOLVE THE PAYMENT: by payment_id when present (browser redirect), else by the
         # persisted tran_id (the global IPN POST carries no payment_id).
@@ -323,8 +330,25 @@ class SslCommerzPaymentController extends Controller
         $payment = $this->payment::where(['id' => $payment->id])->first();
 
         if ($affected > 0 && isset($payment) && function_exists($payment->success_hook)) {
-            call_user_func($payment->success_hook, $payment);
+            try {
+                call_user_func($payment->success_hook, $payment);
+            } catch (\Throwable $e) {
+                Log::error('SSLCOMMERZ confirm: success hook threw', ['payment_id' => $payment->id, 'error' => $e->getMessage()]);
+            }
             Log::info('SSLCOMMERZ confirm: payment confirmed and order hook executed', ['payment_id' => $payment->id, 'tran_id' => $payment->transaction_id]);
+
+            # Money is taken: never leave a paid payment without an order. If the hook produced none,
+            # flip back to unpaid so the next IPN retry / sslcommerz:reconcile can rebuild it, and alert.
+            if ($payment->success_hook === 'digital_payment_success'
+                && !Order::where('transaction_ref', $payment->transaction_id)->exists()) {
+                $this->payment::where(['id' => $payment->id])->update(['is_paid' => 0]);
+                Log::critical('PAID BUT NO ORDER', ['payment_id' => $payment->id, 'tran_id' => $payment->transaction_id]);
+                PaymentAudit::log('order_missing', $payment->id, $payment->transaction_id, 'fail', ['amount' => $payment->payment_amount]);
+                return false;
+            }
+            PaymentAudit::log('order_created', $payment->id, $payment->transaction_id, 'ok', [
+                'via' => $request->is('*ipn*') ? 'ipn' : 'redirect',
+            ]);
         }
 
         return $payment;

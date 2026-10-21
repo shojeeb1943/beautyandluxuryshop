@@ -280,6 +280,14 @@ class PaymentController extends Controller
             $isGuestUserInOrder = 0;
         }
 
+        # never persist the plaintext password in payment_requests; the hook uses the hash as-is
+        if (!empty($additionalData['new_customer_info']['password']) && empty($additionalData['new_customer_info']['password_hashed'])) {
+            $newInfo = (array)$additionalData['new_customer_info'];
+            $newInfo['password'] = bcrypt($newInfo['password']);
+            $newInfo['password_hashed'] = 1;
+            $additionalData['new_customer_info'] = $newInfo;
+        }
+
         $additionalData['is_guest'] = $isGuestUser;
         if (in_array($request['payment_request_from'], ['app'])) {
             $additionalData['customer_id'] = $request['customer_id'];
